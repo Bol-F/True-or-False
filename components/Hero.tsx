@@ -13,7 +13,7 @@ export function Hero() {
     <section
       id="how-it-works"
       aria-labelledby="hero-heading"
-      className="content-gutter relative grid min-h-[310px] gap-5 pb-9 pt-3 lg:grid-cols-[0.9fr_1.1fr] lg:gap-4 lg:pb-8 lg:pt-2"
+      className="content-gutter relative grid min-h-[310px] gap-5 pb-9 pt-3 lg:min-h-[286px] lg:grid-cols-[minmax(620px,1fr)_minmax(0,1fr)] lg:gap-0 lg:pb-0 lg:pt-0"
     >
       <motion.div
         initial="hidden"
@@ -33,15 +33,15 @@ export function Hero() {
           id="hero-heading"
           variants={enter}
           transition={{ duration: 0.5 }}
-          className="max-w-[650px] font-serif text-[39px] leading-[1.03] font-semibold tracking-[-0.045em] text-ink sm:text-[48px] lg:text-[51px] xl:text-[55px]"
+          className="max-w-[680px] font-serif text-[39px] leading-[1.03] font-semibold tracking-[-0.045em] text-ink sm:text-[48px] lg:text-[51px] lg:leading-[0.96]"
         >
           Проверьте текст
           <br />
-          на признаки{" "}
-          <span className="text-[#c9421e]">
-            недостоверной
-            <br className="hidden sm:block" /> информации
+          <span className="sm:whitespace-nowrap">
+            на признаки <span className="text-[#c9421e]">недостоверной</span>
           </span>
+          <br />
+          <span className="text-[#c9421e]">информации</span>
         </motion.h1>
 
         <motion.p
@@ -59,20 +59,21 @@ export function Hero() {
         initial={{ opacity: 0, x: 18 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.7, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
-        className="relative -mx-4 min-h-[238px] sm:min-h-[280px] lg:-mr-[46px] lg:-ml-24 lg:min-h-[318px]"
+        className="relative -mx-4 min-h-[238px] sm:min-h-[280px] lg:-mr-[46px] lg:-ml-24 lg:min-h-[286px]"
       >
-        <div className="absolute inset-x-0 bottom-[-6px] top-0">
+        <div className="absolute inset-x-0 bottom-[-6px] top-[-110px]">
           <Image
             src="/hero-collage.png"
             alt="Редакционный коллаж с московской архитектурой и набережной"
             fill
-            priority
+            loading="eager"
+            fetchPriority="high"
             sizes="(max-width: 1024px) 100vw, 58vw"
             className="object-contain object-right-bottom"
           />
         </div>
 
-        <div className="font-hand absolute left-[11%] top-[7%] hidden -rotate-6 text-[19px] leading-[0.95] text-[#7b879a] xl:block">
+        <div className="font-hand absolute left-[11%] top-[-2%] hidden -rotate-6 text-[19px] leading-[0.95] text-[#7b879a] xl:block">
           Больше
           <br /> контекста —
           <br /> меньше
@@ -90,7 +91,7 @@ export function Hero() {
           </svg>
         </div>
 
-        <div className="font-hand absolute right-[5%] top-[15%] hidden rotate-[-4deg] text-[18px] leading-[1.04] text-[#66758c] 2xl:block">
+        <div className="font-hand absolute right-[5%] top-[1%] hidden rotate-[-4deg] text-[18px] leading-[1.04] text-[#66758c] xl:block">
           Проверяйте факты.
           <br /> Думайте критически.
           <br /> Делитесь ответственно.
