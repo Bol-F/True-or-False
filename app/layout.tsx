@@ -1,0 +1,43 @@
+import type { Metadata } from "next";
+import { Caveat, Lora, Manrope } from "next/font/google";
+import "./globals.css";
+
+const lora = Lora({
+  variable: "--font-lora",
+  subsets: ["cyrillic", "latin"],
+  display: "swap",
+});
+
+const manrope = Manrope({
+  variable: "--font-manrope",
+  subsets: ["cyrillic", "latin"],
+  display: "swap",
+});
+
+const caveat = Caveat({
+  variable: "--font-caveat",
+  subsets: ["cyrillic", "latin"],
+  display: "swap",
+});
+
+export const metadata: Metadata = {
+  title: "RuFact — проверка русскоязычных текстов",
+  description:
+    "Образовательный сервис для вероятностной оценки признаков недостоверной информации в русскоязычных текстах.",
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="ru">
+      <body
+        className={`${lora.variable} ${manrope.variable} ${caveat.variable}`}
+      >
+        {children}
+      </body>
+    </html>
+  );
+}
