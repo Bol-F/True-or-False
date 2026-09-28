@@ -7,7 +7,7 @@ import { Brand } from "./Brand";
 
 const navigation = [
   { label: "Как это работает", href: "#how-it-works" },
-  { label: "О модели", href: "#model" },
+  { label: "О модели", href: "#model-quality" },
   { label: "Вопросы и ответы", href: "#questions" },
 ];
 

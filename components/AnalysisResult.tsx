@@ -17,6 +17,7 @@ export type AnalysisStatus = "initial" | "loading" | "success" | "error";
 
 interface AnalysisResultProps {
   result: AnalysisResponse;
+  analyzedText: string;
   status: AnalysisStatus;
   timestamp: string;
   errorMessage: string | null;
@@ -25,6 +26,7 @@ interface AnalysisResultProps {
 
 export function AnalysisResult({
   result,
+  analyzedText,
   status,
   timestamp,
   errorMessage,
@@ -36,6 +38,7 @@ export function AnalysisResult({
   const panelClass = isFake
     ? "border-[#f2d9d4] bg-[linear-gradient(110deg,#ffefec,#fae6e2)]"
     : "border-[#d6e7d8] bg-[linear-gradient(110deg,#eef7ef,#e3f0e5)]";
+  const isDemo = result.meta?.engine !== "external-model";
 
   return (
     <motion.article
@@ -64,9 +67,20 @@ export function AnalysisResult({
             Результат анализа
           </h2>
         </div>
-        <time className="w-full pl-12 text-left text-[10px] font-medium text-[#768398] sm:w-auto sm:shrink-0 sm:pl-0 sm:text-right sm:text-[11px]">
-          {timestamp}
-        </time>
+        <div className="flex w-full items-center gap-2 pl-12 sm:w-auto sm:shrink-0 sm:pl-0">
+          <span
+            className={`rounded-md px-2 py-1 text-[9px] font-extrabold uppercase tracking-[0.08em] ${
+              isDemo
+                ? "bg-[#f3e1d4] text-[#985539]"
+                : "bg-[#dcebdd] text-[#316746]"
+            }`}
+          >
+            {isDemo ? "Демо-анализ" : "ML-модель"}
+          </span>
+          <time className="text-left text-[10px] font-medium text-[#768398] sm:text-right sm:text-[11px]">
+            {timestamp}
+          </time>
+        </div>
       </header>
 
       <AnimatePresence mode="wait" initial={false}>
@@ -141,16 +155,16 @@ export function AnalysisResult({
                   </p>
                   <p className="mt-2 max-w-[300px] text-[11px] leading-[1.4] text-[#5e5e68] sm:text-[12px]">
                     {isFake
-                      ? "Высокая вероятность недостоверной информации"
-                      : "Признаки недостоверности выражены слабо"}
+                      ? "Обнаружены признаки недостоверной информации"
+                      : "Выраженные признаки недостоверности не обнаружены"}
                   </p>
                 </div>
               </div>
 
-              <ConfidenceRing value={result.confidence} label="уверенность модели" tone={tone} />
+              <ConfidenceRing value={result.confidence} label="уверенность в ответе" tone={tone} />
             </section>
 
-            <ResultExplanation label={result.label} />
+            <ResultExplanation result={result} analyzedText={analyzedText} />
 
             <aside className="mt-4 flex gap-3 rounded-[13px] bg-[#e7eef9] px-4 py-3 text-[#3c608e]">
               <Info className="mt-0.5 shrink-0" size={19} fill="#5f8ed8" color="white" aria-hidden="true" />

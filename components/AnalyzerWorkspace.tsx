@@ -1,16 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { analyzeText, type AnalysisResponse } from "@/lib/api";
+import { analyzeText, getMockAnalysis, type AnalysisResponse } from "@/lib/api";
 import { DEFAULT_TEXT, EXAMPLES } from "@/lib/examples";
 import { AnalysisResult, type AnalysisStatus } from "./AnalysisResult";
 import { type TextExample } from "./ExampleChips";
 import { TextAnalyzer } from "./TextAnalyzer";
 
-const INITIAL_RESULT: AnalysisResponse = {
-  label: "FAKE",
-  confidence: 0.91,
-};
+const INITIAL_RESULT: AnalysisResponse = getMockAnalysis(DEFAULT_TEXT);
 
 function formatTimestamp(date: Date) {
   return new Intl.DateTimeFormat("ru-RU", {
@@ -28,6 +25,7 @@ export function AnalyzerWorkspace() {
   const [text, setText] = useState(DEFAULT_TEXT);
   const [activeExampleId, setActiveExampleId] = useState<string | null>("medical");
   const [result, setResult] = useState<AnalysisResponse>(INITIAL_RESULT);
+  const [analyzedText, setAnalyzedText] = useState(DEFAULT_TEXT);
   const [status, setStatus] = useState<AnalysisStatus>("initial");
   const [timestamp, setTimestamp] = useState("26 нояб. 2024, 14:37");
   const [validationMessage, setValidationMessage] = useState<string | null>(null);
@@ -70,6 +68,7 @@ export function AnalyzerWorkspace() {
     try {
       const nextResult = await analyzeText(normalizedText);
       setResult(nextResult);
+      setAnalyzedText(normalizedText);
       setTimestamp(formatTimestamp(new Date()));
       setStatus("success");
     } catch {
@@ -102,6 +101,7 @@ export function AnalyzerWorkspace() {
         <div className="lg:-mt-[72px] xl:-mt-[104px]">
           <AnalysisResult
             result={result}
+            analyzedText={analyzedText}
             status={status}
             timestamp={timestamp}
             errorMessage={errorMessage}

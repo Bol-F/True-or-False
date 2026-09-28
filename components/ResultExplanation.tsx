@@ -1,24 +1,35 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronDown, ListChecks, SearchCheck } from "lucide-react";
+import {
+  ChevronDown,
+  ExternalLink,
+  ListChecks,
+  Search,
+  SearchCheck,
+} from "lucide-react";
 import { useState } from "react";
-import type { AnalysisLabel } from "@/lib/api";
+import type {
+  AnalysisLabel,
+  AnalysisResponse,
+  AnalysisSignal,
+  EvidenceSpan,
+} from "@/lib/api";
 
-const content = {
+const fallbackContent = {
   FAKE: {
     explanation:
-      "Текст содержит типичные признаки недостоверной информации: неподтверждённые заявления, ссылки на несуществующие исследования, чрезмерные и универсальные утверждения о пользе, а также отсутствие конкретных источников.",
+      "Текст содержит типичные признаки недостоверной информации: неподтверждённые заявления, чрезмерные обещания или отсутствие конкретных источников.",
     signals: [
       "Отсутствуют конкретные источники",
       "Слишком категоричные утверждения",
       "Ссылка на неопределённых «учёных»",
-      "Медицинские утверждения без доказательств",
+      "Утверждения без проверяемых доказательств",
     ],
   },
   REAL: {
     explanation:
-      "В тексте не обнаружены выраженные языковые признаки манипуляции: формулировки сдержанные, утверждения допускают проверку, а источники описаны конкретнее. Это не подтверждает факты автоматически.",
+      "В тексте не обнаружены выраженные языковые признаки манипуляции: формулировки сдержанные, а источники или контекст описаны конкретнее. Это не подтверждает факты автоматически.",
     signals: [
       "Сдержанные и проверяемые формулировки",
       "Нет обещаний гарантированного результата",
@@ -29,12 +40,52 @@ const content = {
 } satisfies Record<AnalysisLabel, { explanation: string; signals: string[] }>;
 
 interface ResultExplanationProps {
-  label: AnalysisLabel;
+  result: AnalysisResponse;
+  analyzedText: string;
 }
 
-export function ResultExplanation({ label }: ResultExplanationProps) {
+function getFallbackSignals(label: AnalysisLabel): AnalysisSignal[] {
+  const tone = label === "FAKE" ? "risk" : "reassuring";
+
+  return fallbackContent[label].signals.map((title, index) => ({
+    id: `fallback-${label.toLowerCase()}-${index}`,
+    title,
+    description:
+      label === "FAKE"
+        ? "Этот маркер повышает риск недостоверной или манипулятивной подачи."
+        : "Этот маркер делает утверждение более проверяемым, но не доказывает его истинность.",
+    tone,
+    severity: "medium",
+    evidenceIds: [],
+  }));
+}
+
+function buildEvidenceMap(evidence: readonly EvidenceSpan[] | undefined, analyzedText: string) {
+  const map = new Map<string, EvidenceSpan>();
+
+  for (const item of evidence ?? []) {
+    if (
+      item.start >= 0 &&
+      item.end > item.start &&
+      item.end <= analyzedText.length &&
+      analyzedText.slice(item.start, item.end) === item.quote
+    ) {
+      map.set(item.id, item);
+    }
+  }
+
+  return map;
+}
+
+export function ResultExplanation({ result, analyzedText }: ResultExplanationProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const resultContent = content[label];
+  const [isSourceOpen, setIsSourceOpen] = useState(false);
+  const fallback = fallbackContent[result.label];
+  const signals = result.signals?.length
+    ? result.signals
+    : getFallbackSignals(result.label);
+  const evidenceById = buildEvidenceMap(result.evidence, analyzedText);
+  const sourceReview = result.sourceReview;
 
   return (
     <div>
@@ -51,7 +102,7 @@ export function ResultExplanation({ label }: ResultExplanationProps) {
             Почему так?
           </h3>
           <p className="mt-2 text-[12.5px] leading-[1.55] text-[#69778c] sm:text-[13px]">
-            {resultContent.explanation}
+            {result.explanation ?? fallback.explanation}
           </p>
         </div>
       </section>
@@ -68,6 +119,9 @@ export function ResultExplanation({ label }: ResultExplanationProps) {
             <ListChecks size={16} strokeWidth={2} aria-hidden="true" />
           </span>
           <span className="flex-1">Ключевые признаки в тексте</span>
+          <span className="rounded-md bg-[#f1e4de] px-2 py-0.5 text-[10px] font-bold tabular-nums text-[#8f5a48]">
+            {signals.length}
+          </span>
           <motion.span animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
             <ChevronDown size={17} aria-hidden="true" />
           </motion.span>
@@ -82,18 +136,111 @@ export function ResultExplanation({ label }: ResultExplanationProps) {
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.22, ease: "easeOut" }}
             >
-              <ul className="grid gap-2 border-t border-[#eadbd5] px-4 py-3 text-[12px] leading-[1.45] text-[#657287]">
-                {resultContent.signals.map((signal) => (
-                  <li key={signal} className="flex gap-2">
-                    <span className="mt-[0.48rem] h-1.5 w-1.5 shrink-0 rounded-full bg-[#d66749]" />
-                    {signal}
-                  </li>
-                ))}
+              <ul className="grid gap-3 border-t border-[#eadbd5] px-4 py-3">
+                {signals.map((signal) => {
+                  const signalEvidence = signal.evidenceIds
+                    .map((id) => evidenceById.get(id))
+                    .filter((item): item is EvidenceSpan => Boolean(item));
+
+                  return (
+                    <li key={signal.id} className="flex gap-2.5">
+                      <span
+                        className={`mt-[0.42rem] h-2 w-2 shrink-0 rounded-full ${
+                          signal.tone === "risk" ? "bg-[#d66749]" : "bg-[#4c8a60]"
+                        }`}
+                        aria-hidden="true"
+                      />
+                      <div className="min-w-0">
+                        <p className="text-[12px] leading-[1.4] font-bold text-[#445269]">
+                          {signal.title}
+                        </p>
+                        <p className="mt-0.5 text-[11px] leading-[1.45] text-[#758094]">
+                          {signal.description}
+                        </p>
+                        {signalEvidence.map((item) => (
+                          <blockquote
+                            key={item.id}
+                            className={`mt-2 rounded-r-lg border-l-2 px-2.5 py-1.5 text-[10.5px] leading-[1.45] italic ${
+                              item.tone === "risk"
+                                ? "border-[#dc765b] bg-[#fff1ec] text-[#865b51]"
+                                : "border-[#65a077] bg-[#edf6ef] text-[#55715d]"
+                            }`}
+                          >
+                            «{item.quote}»
+                          </blockquote>
+                        ))}
+                      </div>
+                    </li>
+                  );
+                })}
               </ul>
             </motion.div>
           ) : null}
         </AnimatePresence>
       </div>
+
+      {sourceReview ? (
+        <section
+          className="mt-3 overflow-hidden rounded-[12px] border border-[#d8dfe4] bg-[#f3f5f3]/65"
+          aria-labelledby="source-check-heading"
+        >
+          <button
+            type="button"
+            className="focus-ring flex min-h-11 w-full items-center gap-3 rounded-[11px] px-3 text-left transition-colors hover:bg-white/35"
+            aria-expanded={isSourceOpen}
+            aria-controls="source-check-content"
+            onClick={() => setIsSourceOpen((value) => !value)}
+          >
+            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-[8px] bg-[#e1e8ec] text-[#385f7a]">
+              <Search size={15} strokeWidth={2} aria-hidden="true" />
+            </span>
+            <h3 id="source-check-heading" className="min-w-0 flex-1 text-[12.5px] font-extrabold text-[#23425d]">
+              Как проверить источники
+            </h3>
+            <span className="rounded-md bg-[#f0ddcf] px-2 py-0.5 text-[8.5px] font-extrabold uppercase tracking-[0.07em] text-[#93553c]">
+              Не проверялись
+            </span>
+            <motion.span animate={{ rotate: isSourceOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
+              <ChevronDown size={16} aria-hidden="true" />
+            </motion.span>
+          </button>
+
+          <AnimatePresence initial={false}>
+            {isSourceOpen ? (
+              <motion.div
+                id="source-check-content"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.22, ease: "easeOut" }}
+                className="border-t border-[#d8dfe4] px-4 py-3"
+              >
+                <p className="text-[11px] leading-[1.5] text-[#6d7886]">
+                  {sourceReview.message}
+                </p>
+
+                {sourceReview.actions.length ? (
+                  <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                    {sourceReview.actions.map((action) => (
+                      <a
+                        key={action.id}
+                        href={`https://yandex.ru/search/?text=${encodeURIComponent(action.query)}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        title={action.rationale}
+                        className="focus-ring inline-flex min-h-9 items-center justify-between gap-2 rounded-[10px] border border-[#d9e0e2] bg-white/70 px-3 text-[10.5px] font-bold text-[#31536e] transition-colors hover:bg-white"
+                      >
+                        {action.label}
+                        <ExternalLink size={13} strokeWidth={2} aria-hidden="true" />
+                      </a>
+                    ))}
+                  </div>
+                ) : null}
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
+        </section>
+      ) : null}
     </div>
   );
 }

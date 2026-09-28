@@ -15,13 +15,13 @@ const cards = [
   {
     variant: "model" as const,
     icon: Cpu,
-    title: "RuBERT-модель",
+    title: "Готово к RuBERT",
     description:
-      "Используем современную языковую модель, обученную на больших корпусах русскоязычных текстов.",
+      "API-слой подготовлен для подключения обученной модели. Сейчас интерфейс честно помечает демонстрационные ответы.",
     annotation: "Технологии на службе здравого смысла",
     action: {
       label: "Подробнее о модели",
-      href: "#model",
+      href: "#model-quality",
     },
   },
   {
@@ -36,7 +36,7 @@ const cards = [
 
 export function InfoCards() {
   return (
-    <section id="model" aria-labelledby="info-cards-heading" className="tool-gutter pb-6 pt-[22px]">
+    <section id="principles" aria-labelledby="info-cards-heading" className="tool-gutter pb-6 pt-[22px]">
       <h2 id="info-cards-heading" className="sr-only">
         Возможности и принципы RuFact
       </h2>
