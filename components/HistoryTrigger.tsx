@@ -1,0 +1,62 @@
+"use client";
+
+import { History } from "lucide-react";
+
+export const HISTORY_DIALOG_ID = "analysis-history-dialog";
+export const HISTORY_TRIGGER_ID = "analysis-history-trigger";
+
+export interface HistoryTriggerProps {
+  isOpen: boolean;
+  enabled: boolean;
+  itemCount: number;
+  onOpen: () => void;
+  dialogId?: string;
+  id?: string;
+  className?: string;
+}
+
+export function HistoryTrigger({
+  isOpen,
+  enabled,
+  itemCount,
+  onOpen,
+  dialogId = HISTORY_DIALOG_ID,
+  id = HISTORY_TRIGGER_ID,
+  className = "",
+}: HistoryTriggerProps) {
+  const count = Math.max(0, itemCount);
+  const countLabel = enabled && count > 0 ? `, записей: ${count}` : "";
+  const statusLabel = enabled ? "включена" : "выключена";
+
+  return (
+    <button
+      id={id}
+      type="button"
+      aria-haspopup="dialog"
+      aria-controls={dialogId}
+      aria-expanded={isOpen}
+      aria-label={`История проверок: ${statusLabel}${countLabel}`}
+      onClick={onOpen}
+      className={`focus-ring relative inline-flex min-h-10 items-center gap-2 rounded-xl border border-[#d8d8d2] bg-[#fbfaf6]/90 px-2.5 text-[12px] font-bold text-[#28445f] shadow-[0_6px_18px_rgba(31,48,63,0.06)] transition hover:-translate-y-0.5 hover:border-[#bdc8cf] hover:bg-white sm:px-3.5 ${className}`}
+    >
+      <span className="relative grid h-7 w-7 place-items-center rounded-lg bg-[#e7edf2] text-[#315d7f]">
+        <History size={16} strokeWidth={2} aria-hidden="true" />
+        <span
+          className={`absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full ring-2 ring-[#fbfaf6] ${
+            enabled ? "bg-[#3b8a54]" : "bg-[#a9afb4]"
+          }`}
+          aria-hidden="true"
+        />
+      </span>
+      <span className="hidden sm:inline">История</span>
+      {enabled && count > 0 ? (
+        <span
+          className="absolute -right-1 -top-1 min-w-5 rounded-md bg-[#dfe8ee] px-1.5 py-0.5 text-center text-[10px] font-extrabold tabular-nums text-[#31536d] ring-2 ring-[#fbfaf6] sm:static sm:ring-0"
+          aria-hidden="true"
+        >
+          {count}
+        </span>
+      ) : null}
+    </button>
+  );
+}

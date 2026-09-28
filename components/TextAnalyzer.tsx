@@ -9,6 +9,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { ExampleChips, type TextExample } from "./ExampleChips";
+import { HistoryTrigger } from "./HistoryTrigger";
 
 interface TextAnalyzerProps {
   text: string;
@@ -16,10 +17,14 @@ interface TextAnalyzerProps {
   activeExampleId: string | null;
   isLoading: boolean;
   validationMessage: string | null;
+  historyOpen: boolean;
+  historyEnabled: boolean;
+  historyCount: number;
   onTextChange: (value: string) => void;
   onClear: () => void;
   onExampleSelect: (example: TextExample) => void;
   onSubmit: () => void;
+  onOpenHistory: () => void;
 }
 
 const MAX_LENGTH = 5000;
@@ -30,10 +35,14 @@ export function TextAnalyzer({
   activeExampleId,
   isLoading,
   validationMessage,
+  historyOpen,
+  historyEnabled,
+  historyCount,
   onTextChange,
   onClear,
   onExampleSelect,
   onSubmit,
+  onOpenHistory,
 }: TextAnalyzerProps) {
   return (
     <motion.article
@@ -50,15 +59,24 @@ export function TextAnalyzer({
             Введите текст для проверки
           </h2>
         </div>
-        <button
-          type="button"
-          onClick={onClear}
-          disabled={isLoading || text.length === 0}
-          className="focus-ring inline-flex min-h-9 items-center gap-1.5 rounded-lg px-2 text-[12px] font-medium text-[#78869a] transition-colors hover:bg-[#f1eeea] hover:text-[#4d5c72] disabled:cursor-not-allowed disabled:opacity-45"
-        >
-          <Trash2 size={14} strokeWidth={1.8} aria-hidden="true" />
-          Очистить
-        </button>
+        <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+          <HistoryTrigger
+            isOpen={historyOpen}
+            enabled={historyEnabled}
+            itemCount={historyCount}
+            onOpen={onOpenHistory}
+          />
+          <button
+            type="button"
+            onClick={onClear}
+            disabled={isLoading || text.length === 0}
+            aria-label="Очистить текст"
+            className="focus-ring inline-flex min-h-9 items-center gap-1.5 rounded-lg px-2 text-[12px] font-medium text-[#78869a] transition-colors hover:bg-[#f1eeea] hover:text-[#4d5c72] disabled:cursor-not-allowed disabled:opacity-45"
+          >
+            <Trash2 size={14} strokeWidth={1.8} aria-hidden="true" />
+            <span className="hidden sm:inline">Очистить</span>
+          </button>
+        </div>
       </div>
 
       <div className="relative">
