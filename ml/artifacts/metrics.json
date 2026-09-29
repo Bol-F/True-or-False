@@ -1,0 +1,118 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-09-29T12:50:05Z",
+  "modelName": "RuFact TF-IDF + Logistic Regression (RU)",
+  "modelVersion": "tfidf-logreg-ru-v1",
+  "maxTextLength": 5000,
+  "dataset": {
+    "name": "KazFakeCorpus Russian subset",
+    "revision": "bd9bdd36d1171f0031cc448c808ebee6ecacd6d0",
+    "license": "CC BY 4.0",
+    "main": {
+      "rawSamples": 2106,
+      "samples": 2039,
+      "real": 986,
+      "fake": 1053,
+      "exactDuplicatesRemoved": 67
+    },
+    "external": {
+      "samples": 157,
+      "real": 76,
+      "fake": 81,
+      "sources": [
+        "Factcheck.kz",
+        "Stopfake.kz",
+        "informburo.kz",
+        "kazinform.kz",
+        "tengrinews.kz"
+      ]
+    }
+  },
+  "evaluation": {
+    "headline": "externalNestedCrossValidation",
+    "inDomainGroupedCrossValidation": {
+      "protocol": "5-fold stratified group cross-validation; paired REAL/FAKE source IDs stay in the same fold; exact normalized duplicates removed",
+      "samples": 2039,
+      "metrics": {
+        "accuracy": 0.996567,
+        "macroF1": 0.996564,
+        "precisionFake": 1.0,
+        "recallFake": 0.993352,
+        "precisionReal": 0.992951,
+        "recallReal": 1.0,
+        "rocAuc": 1.0,
+        "brierScore": 0.011377,
+        "logLoss": 0.08086,
+        "confusionMatrix": [
+          [
+            986,
+            0
+          ],
+          [
+            7,
+            1046
+          ]
+        ]
+      }
+    },
+    "externalNestedCrossValidation": {
+      "protocol": "Nested 5-fold out-of-fold evaluation on authentic Russian examples. Each outer fold is untouched while calibration strength is selected by 4-fold cross-validation inside the remaining examples.",
+      "samples": 157,
+      "outerFolds": 5,
+      "selectedCalibrationC": [
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0
+      ],
+      "metrics": {
+        "accuracy": 0.719745,
+        "macroF1": 0.719461,
+        "precisionFake": 0.760563,
+        "recallFake": 0.666667,
+        "precisionReal": 0.686047,
+        "recallReal": 0.776316,
+        "rocAuc": 0.786225,
+        "brierScore": 0.194538,
+        "logLoss": 0.573181,
+        "confusionMatrix": [
+          [
+            59,
+            17
+          ],
+          [
+            27,
+            54
+          ]
+        ]
+      },
+      "confidenceIntervals": {
+        "accuracy95": [
+          0.656051,
+          0.783439
+        ],
+        "macroF195": [
+          0.655355,
+          0.783431
+        ]
+      }
+    },
+    "finalCalibration": {
+      "method": "sigmoid over base-model log-odds",
+      "selectedC": 10.0,
+      "crossValidatedMacroF1ByC": {
+        "1.0": 0.667387,
+        "10.0": 0.719461,
+        "100.0": 0.713329
+      }
+    }
+  },
+  "limitations": [
+    "The main FAKE class is synthetic while the REAL class is mostly official news.",
+    "The external Russian evaluation set has 157 Kazakhstan-focused texts.",
+    "The model classifies wording patterns and does not retrieve or verify evidence.",
+    "Confidence can become miscalibrated on new topics, sources, or adversarial paraphrases.",
+    "Binary REAL/FAKE labels do not represent satire, opinion, or partially true claims."
+  ]
+}

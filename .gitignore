@@ -27,5 +27,13 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
+# python / ML workspace
+/ml/.venv/
+/ml/.pytest_cache/
+/ml/.ruff_cache/
+/ml/**/__pycache__/
+/ml/data/raw/
+/ml/artifacts/*.tmp
+
 # typescript
 *.tsbuildinfo

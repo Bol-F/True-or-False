@@ -1,0 +1,42 @@
+[project]
+name = "rufact-ml"
+version = "0.1.0"
+description = "Reproducible Russian misinformation-risk classifier and FastAPI service for RuFact"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "fastapi>=0.118,<1",
+  "joblib>=1.5,<2",
+  "numpy>=2.3,<3",
+  "scikit-learn>=1.9,<1.10",
+  "uvicorn[standard]>=0.37,<1",
+]
+
+[dependency-groups]
+dev = [
+  "httpx>=0.28,<1",
+  "pytest>=8.4,<9",
+  "ruff>=0.13,<1",
+]
+
+[project.scripts]
+rufact-train = "rufact_ml.training:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/rufact_ml"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+pythonpath = ["src"]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]

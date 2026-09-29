@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "filename": "model.joblib",
+  "sha256": "81ae598b80d1219e4dd56718338a834cfc5c68fac4b9b0e03b63c3ebf13c9206",
+  "bytes": 1056527,
+  "modelVersion": "tfidf-logreg-ru-v1",
+  "sklearnVersion": "1.9.1"
+}
