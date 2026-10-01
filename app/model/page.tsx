@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 
 import { Header } from "@/components/Header";
 import { InfoCards } from "@/components/InfoCards";
+import { ModelEvaluationDetails } from "@/components/ModelEvaluationDetails";
 import { ModelTransparency } from "@/components/ModelTransparency";
 
 export const metadata: Metadata = {
@@ -45,6 +46,7 @@ export default function ModelPage() {
 
         <InfoCards />
         <ModelTransparency />
+        <ModelEvaluationDetails />
       </main>
     </div>
   );

@@ -24,6 +24,10 @@ export interface ModelQuality {
     split: string;
   };
   confidenceInterval: readonly [number, number];
+  confusionMatrix: readonly [
+    readonly [number, number],
+    readonly [number, number],
+  ];
   metrics: readonly ModelQualityMetric[];
   limitations: readonly string[];
 }
@@ -41,6 +45,10 @@ export const MODEL_QUALITY: ModelQuality = {
     split: "Вложенная 5-кратная OOF-оценка",
   },
   confidenceInterval: headline.confidenceIntervals.accuracy95 as [number, number],
+  confusionMatrix: headline.metrics.confusionMatrix as [
+    [number, number],
+    [number, number],
+  ],
   metrics: [
     {
       key: "accuracy",
