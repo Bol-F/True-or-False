@@ -67,6 +67,7 @@ if (enabled && apiKey) {
           label: result.label,
           certainty: result.certainty,
           warningSigns: result.warningSigns.length,
+          claims: result.claims.length,
           externalSourcesChecked: result.externalSourcesChecked,
           latencyMs: Math.round(performance.now() - startedAt),
         },

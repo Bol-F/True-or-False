@@ -1,4 +1,7 @@
 import type {
+  GeminiClaim,
+  GeminiClaimAssessment,
+  GeminiClaimKind,
   GeminiReview,
   GeminiReviewCertainty,
   GeminiReviewLabel,
@@ -269,6 +272,22 @@ function isGeminiCertainty(value: unknown): value is GeminiReviewCertainty {
   return value === "low" || value === "medium" || value === "high";
 }
 
+function isGeminiClaimKind(value: unknown): value is GeminiClaimKind {
+  return value === "FACTUAL" || value === "OPINION";
+}
+
+function isGeminiClaimAssessment(
+  value: unknown,
+): value is GeminiClaimAssessment {
+  return (
+    value === "PLAUSIBLE" ||
+    value === "SUSPICIOUS" ||
+    value === "UNSUPPORTED" ||
+    value === "UNSURE" ||
+    value === "NOT_APPLICABLE"
+  );
+}
+
 function isGeminiUnavailableReason(
   value: unknown,
 ): value is GeminiUnavailableReason {
@@ -286,6 +305,7 @@ function isGeminiUnavailableReason(
 function sanitizeGeminiReview(
   value: unknown,
   primaryLabel: AnalysisLabel,
+  analyzedText: string,
 ): GeminiReview | null {
   if (!value || typeof value !== "object") {
     return null;
@@ -320,6 +340,7 @@ function sanitizeGeminiReview(
     "agreesWithPrimary",
     "explanation",
     "warningSigns",
+    "claims",
     "externalSourcesChecked",
   ];
 
@@ -330,7 +351,7 @@ function sanitizeGeminiReview(
     typeof review.model !== "string" ||
     review.model.length === 0 ||
     review.model.length > 100 ||
-    review.promptVersion !== "misinfo-review-v1" ||
+    review.promptVersion !== "misinfo-review-v2" ||
     !isGeminiLabel(review.label) ||
     !isGeminiCertainty(review.certainty) ||
     typeof review.explanation !== "string" ||
@@ -338,6 +359,9 @@ function sanitizeGeminiReview(
     review.explanation.length > 1_200 ||
     !Array.isArray(review.warningSigns) ||
     review.warningSigns.length > 5 ||
+    !Array.isArray(review.claims) ||
+    review.claims.length < 1 ||
+    review.claims.length > 6 ||
     review.externalSourcesChecked !== false
   ) {
     return null;
@@ -366,16 +390,77 @@ function sanitizeGeminiReview(
     warningSigns.push(normalized);
   }
 
+  const claims: GeminiClaim[] = [];
+  for (const [index, claimValue] of review.claims.entries()) {
+    if (!claimValue || typeof claimValue !== "object") {
+      return null;
+    }
+
+    const claim = claimValue as Record<string, unknown>;
+    const claimKeys = Object.keys(claim);
+    if (
+      claimKeys.length !== 6 ||
+      !claimKeys.every((key) =>
+        [
+          "id",
+          "quote",
+          "kind",
+          "assessment",
+          "explanation",
+          "needsExternalVerification",
+        ].includes(key),
+      ) ||
+      claim.id !== `claim-${index + 1}` ||
+      typeof claim.quote !== "string" ||
+      !isGeminiClaimKind(claim.kind) ||
+      !isGeminiClaimAssessment(claim.assessment) ||
+      typeof claim.explanation !== "string" ||
+      typeof claim.needsExternalVerification !== "boolean"
+    ) {
+      return null;
+    }
+
+    const quote = claim.quote.trim();
+    const claimExplanation = claim.explanation.trim();
+    const validPair =
+      claim.kind === "OPINION"
+        ? claim.assessment === "NOT_APPLICABLE"
+        : claim.assessment !== "NOT_APPLICABLE";
+    const expectedVerification = claim.kind === "FACTUAL";
+
+    if (
+      quote.length < 4 ||
+      quote.length > 320 ||
+      !analyzedText.includes(quote) ||
+      claimExplanation.length < 10 ||
+      claimExplanation.length > 500 ||
+      !validPair ||
+      claim.needsExternalVerification !== expectedVerification
+    ) {
+      return null;
+    }
+
+    claims.push({
+      id: claim.id,
+      quote,
+      kind: claim.kind,
+      assessment: claim.assessment,
+      explanation: claimExplanation,
+      needsExternalVerification: expectedVerification,
+    });
+  }
+
   return {
     status: "complete",
     provider: "gemini",
     model: review.model,
-    promptVersion: "misinfo-review-v1",
+    promptVersion: "misinfo-review-v2",
     label: review.label,
     certainty: review.certainty,
     agreesWithPrimary: expectedAgreement,
     explanation,
     warningSigns,
+    claims,
     externalSourcesChecked: false,
   };
 }
@@ -523,6 +608,7 @@ function sanitizeAnalysisResponse(
     const geminiReview = sanitizeGeminiReview(
       candidate.geminiReview,
       response.label,
+      analyzedText,
     );
     if (geminiReview) {
       response.geminiReview = geminiReview;
