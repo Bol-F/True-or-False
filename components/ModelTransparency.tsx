@@ -26,7 +26,7 @@ export function ModelTransparency() {
           <div className="border-b border-[#ccd7dc] px-6 py-7 sm:px-8 lg:border-b-0 lg:border-r lg:px-9 lg:py-9">
             <div className="inline-flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.17em] text-[#8a5b42]">
               <FlaskConical size={16} strokeWidth={2} aria-hidden="true" />
-              MVP · демонстрационный режим
+              ML-базовая модель · {MODEL_QUALITY.modelVersion}
             </div>
             <h2
               id="model-quality-heading"
@@ -58,12 +58,13 @@ export function ModelTransparency() {
               </span>
               <div>
                 <h3 className="text-[17px] font-extrabold tracking-[-0.02em] text-ink">
-                  Точность пока не измерена
+                  Accuracy на внешней выборке: 72%
                 </h3>
                 <p className="mt-1.5 max-w-[620px] text-[12.5px] leading-[1.55] text-[#687689] sm:text-[13px]">
-                  Сейчас анализ выполняет локальный демонстрационный классификатор.
-                  Публиковать accuracy без проверки на отдельной размеченной выборке было
-                  бы некорректно.
+                  {MODEL_QUALITY.dataset.samples} русскоязычных текстов · {MODEL_QUALITY.dataset.split}.
+                  95% интервал для accuracy: {Math.round(MODEL_QUALITY.confidenceInterval[0] * 100)}–
+                  {Math.round(MODEL_QUALITY.confidenceInterval[1] * 100)}%. Это оценка качества
+                  на конкретной выборке, а не гарантия для любого текста.
                 </p>
               </div>
             </div>
@@ -101,8 +102,9 @@ export function ModelTransparency() {
             <div className="mt-5 flex gap-3 rounded-[13px] bg-[#dfe9f3] px-4 py-3 text-[#3d607f]">
               <ArrowDownRight className="mt-0.5 shrink-0" size={18} strokeWidth={2} aria-hidden="true" />
               <p className="text-[11.5px] leading-[1.5]">
-                После подключения RuBERT здесь появятся версия модели, дата оценки,
-                размер тестовой выборки, матрица ошибок и калибровка вероятностей.
+                На похожей внутренней выборке модель получила 99,7%, но этот результат
+                завышен различиями между официальными и синтетическими текстами. Поэтому
+                выше показана более строгая внешняя оценка.
               </p>
             </div>
           </div>

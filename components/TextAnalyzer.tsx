@@ -79,7 +79,7 @@ export function TextAnalyzer({
         </div>
       </div>
 
-      <div className="relative">
+      <div>
         <label htmlFor="analysis-text" className="sr-only">
           Русскоязычный текст для анализа
         </label>
@@ -92,19 +92,21 @@ export function TextAnalyzer({
           aria-invalid={Boolean(validationMessage)}
           aria-errormessage={validationMessage ? "text-validation" : undefined}
           onChange={(event) => onTextChange(event.target.value)}
-          className={`focus-ring min-h-[308px] w-full resize-none rounded-[14px] border bg-[rgba(255,255,255,0.42)] px-4 pb-9 pt-3 text-[14px] leading-[1.48] text-[#303b4d] shadow-inner shadow-[#16324a]/[0.015] transition-colors placeholder:text-[#8993a0] disabled:cursor-wait disabled:opacity-75 sm:min-h-[184px] sm:text-[16px] ${
+          className={`focus-ring block min-h-[308px] w-full resize-none rounded-[14px] border bg-[rgba(255,255,255,0.42)] px-4 py-3 text-[14px] leading-[1.48] text-[#303b4d] shadow-inner shadow-[#16324a]/[0.015] transition-colors placeholder:text-[#8993a0] disabled:cursor-wait disabled:opacity-75 sm:min-h-[184px] sm:text-[16px] ${
             validationMessage
               ? "border-[#d98383]"
               : "border-[#d7d9dc] hover:border-[#c6cbd0]"
           }`}
           placeholder="Вставьте новость, публикацию или утверждение…"
         />
-        <span
-          id="text-counter"
-          className="absolute bottom-3 right-4 text-[11px] font-medium tabular-nums text-[#78859a]"
-        >
-          {text.length} / {MAX_LENGTH}
-        </span>
+        <div className="mt-1 flex justify-end pr-1">
+          <span
+            id="text-counter"
+            className="text-[11px] font-medium tabular-nums text-[#78859a]"
+          >
+            {text.length} / {MAX_LENGTH}
+          </span>
+        </div>
       </div>
 
       {validationMessage ? (

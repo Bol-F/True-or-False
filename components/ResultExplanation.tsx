@@ -81,9 +81,12 @@ export function ResultExplanation({ result, analyzedText }: ResultExplanationPro
   const [isOpen, setIsOpen] = useState(false);
   const [isSourceOpen, setIsSourceOpen] = useState(false);
   const fallback = fallbackContent[result.label];
+  const isModelResult = result.meta?.engine === "external-model";
   const signals = result.signals?.length
     ? result.signals
-    : getFallbackSignals(result.label);
+    : isModelResult
+      ? []
+      : getFallbackSignals(result.label);
   const evidenceById = buildEvidenceMap(result.evidence, analyzedText);
   const sourceReview = result.sourceReview;
 
@@ -102,12 +105,16 @@ export function ResultExplanation({ result, analyzedText }: ResultExplanationPro
             Почему так?
           </h3>
           <p className="mt-2 text-[12.5px] leading-[1.55] text-[#69778c] sm:text-[13px]">
-            {result.explanation ?? fallback.explanation}
+            {result.explanation ??
+              (isModelResult
+                ? "Подробное объяснение не сохранено в локальной истории. Повторите анализ, чтобы получить актуальные статистические признаки модели."
+                : fallback.explanation)}
           </p>
         </div>
       </section>
 
-      <div className="mt-3 overflow-hidden rounded-[12px] border border-[#ead5ce] bg-white/25">
+      {signals.length ? (
+        <div className="mt-3 overflow-hidden rounded-[12px] border border-[#ead5ce] bg-white/25">
         <button
           type="button"
           className="focus-ring flex min-h-11 w-full items-center gap-3 rounded-[11px] px-3 text-left text-[13px] font-semibold text-[#243b55] transition-colors hover:bg-white/35"
@@ -118,7 +125,9 @@ export function ResultExplanation({ result, analyzedText }: ResultExplanationPro
           <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#fae0d6] text-[#d45c39]">
             <ListChecks size={16} strokeWidth={2} aria-hidden="true" />
           </span>
-          <span className="flex-1">Ключевые признаки в тексте</span>
+          <span className="flex-1">
+            {isModelResult ? "Статистические признаки модели" : "Ключевые признаки в тексте"}
+          </span>
           <span className="rounded-md bg-[#f1e4de] px-2 py-0.5 text-[10px] font-bold tabular-nums text-[#8f5a48]">
             {signals.length}
           </span>
@@ -177,7 +186,13 @@ export function ResultExplanation({ result, analyzedText }: ResultExplanationPro
             </motion.div>
           ) : null}
         </AnimatePresence>
-      </div>
+        </div>
+      ) : (
+        <p className="mt-3 rounded-[12px] border border-[#d8dfe4] bg-white/35 px-4 py-3 text-[11px] leading-[1.5] text-[#6d7886]">
+          Статистические признаки доступны сразу после нового анализа и не являются
+          доказательством истинности или ложности выделенных фраз.
+        </p>
+      )}
 
       {sourceReview ? (
         <section

@@ -1,3 +1,5 @@
+import evaluationData from "@/ml/artifacts/metrics.json";
+
 export type QualityMetricKey =
   | "accuracy"
   | "macroF1"
@@ -12,53 +14,62 @@ export interface ModelQualityMetric {
 }
 
 export interface ModelQuality {
-  status: "demo" | "evaluated";
+  status: "evaluated";
   modelName: string;
-  modelVersion: string | null;
-  evaluatedAt: string | null;
+  modelVersion: string;
+  evaluatedAt: string;
   dataset: {
     name: string;
     samples: number;
     split: string;
-  } | null;
+  };
+  confidenceInterval: readonly [number, number];
   metrics: readonly ModelQualityMetric[];
   limitations: readonly string[];
 }
 
+const headline = evaluationData.evaluation.externalNestedCrossValidation;
+
 export const MODEL_QUALITY: ModelQuality = {
-  status: "demo",
-  modelName: "Локальный демонстрационный классификатор",
-  modelVersion: "demo-heuristic-v1",
-  evaluatedAt: null,
-  dataset: null,
+  status: "evaluated",
+  modelName: "TF-IDF + логистическая регрессия",
+  modelVersion: evaluationData.modelVersion,
+  evaluatedAt: evaluationData.generatedAt,
+  dataset: {
+    name: "KazFakeCorpus · внешняя русская выборка",
+    samples: headline.samples,
+    split: "Вложенная 5-кратная OOF-оценка",
+  },
+  confidenceInterval: headline.confidenceIntervals.accuracy95 as [number, number],
   metrics: [
     {
       key: "accuracy",
       label: "Accuracy",
-      value: null,
-      description: "Доля правильных ответов на отдельной тестовой выборке",
+      value: headline.metrics.accuracy,
+      description: "Доля правильных ответов на внешней выборке",
     },
     {
       key: "macroF1",
       label: "Macro F1",
-      value: null,
+      value: headline.metrics.macroF1,
       description: "Баланс качества по классам REAL и FAKE",
     },
     {
       key: "precisionFake",
       label: "Precision · FAKE",
-      value: null,
+      value: headline.metrics.precisionFake,
       description: "Какая доля предупреждений действительно относится к классу FAKE",
     },
     {
       key: "recallFake",
       label: "Recall · FAKE",
-      value: null,
+      value: headline.metrics.recallFake,
       description: "Какую долю размеченных примеров FAKE удалось обнаружить",
     },
   ],
   limitations: [
-    "Демонстрационный режим анализирует языковые маркеры, а не проверяет факты в интернете.",
-    "Метрики появятся только после оценки RuBERT на отдельной размеченной выборке.",
+    "Модель анализирует статистические языковые признаки, но не проверяет факты в интернете.",
+    "Основной обучающий класс FAKE синтетический, а внешняя выборка содержит только 157 текстов.",
+    "Оценка отражает казахстанский новостной домен и может снижаться на других темах и источниках.",
   ],
 };

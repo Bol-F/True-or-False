@@ -60,8 +60,7 @@ type DetectorSpec = {
 };
 
 const MAX_TEXT_LENGTH = 5_000;
-const REQUEST_TIMEOUT_MS = 6_000;
-const FALLBACK_DELAY_MS = 1_000;
+const REQUEST_TIMEOUT_MS = 12_000;
 const DEMO_ENGINE_VERSION = "demo-heuristic-v1";
 
 const riskDetectors: readonly DetectorSpec[] = [
@@ -168,9 +167,6 @@ const reassuringDetectors: readonly DetectorSpec[] = [
     severity: "low",
   },
 ] as const;
-
-const wait = (milliseconds: number) =>
-  new Promise<void>((resolve) => setTimeout(resolve, milliseconds));
 
 function collectDetections(text: string, specs: readonly DetectorSpec[]) {
   const signals: AnalysisSignal[] = [];
@@ -447,11 +443,9 @@ export function getMockAnalysis(text: string): AnalysisResponse {
 }
 
 /**
- * Sends text to the local demo route by default. Set NEXT_PUBLIC_ANALYSIS_API_URL
- * to a FastAPI `/predict` URL later without changing UI components.
- *
- * Only the local route may fall back to the deterministic demo. Errors from a
- * configured external backend are surfaced so they cannot masquerade as ML output.
+ * Sends text through the same-origin Next.js route. That route reads the server-only
+ * ML_API_URL setting and proxies FastAPI without exposing backend topology to browsers.
+ * When ML_API_URL is absent, the route explicitly returns the labelled demo engine.
  */
 export async function analyzeText(text: string): Promise<AnalysisResponse> {
   if (typeof text !== "string" || text.trim().length === 0) {
@@ -464,16 +458,11 @@ export async function analyzeText(text: string): Promise<AnalysisResponse> {
     throw new Error("Текст не должен превышать 5000 символов.");
   }
 
-  const endpoint =
-    process.env.NEXT_PUBLIC_ANALYSIS_API_URL?.trim() ||
-    process.env.NEXT_PUBLIC_RUFACT_API_URL?.trim() ||
-    "/api/analyze";
-  const usesLocalDemo = endpoint === "/api/analyze";
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
   try {
-    const response = await fetch(endpoint, {
+    const response = await fetch("/api/analyze", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ text: normalizedText }),
@@ -489,10 +478,7 @@ export async function analyzeText(text: string): Promise<AnalysisResponse> {
     const parsed = sanitizeAnalysisResponse(
       payload,
       normalizedText,
-      createMeta(
-        usesLocalDemo ? "demo-heuristic" : "external-model",
-        usesLocalDemo ? DEMO_ENGINE_VERSION : "external-api",
-      ),
+      createMeta("demo-heuristic", DEMO_ENGINE_VERSION),
     );
 
     if (!parsed) {
@@ -500,13 +486,6 @@ export async function analyzeText(text: string): Promise<AnalysisResponse> {
     }
 
     return parsed;
-  } catch (error) {
-    if (!usesLocalDemo) {
-      throw error;
-    }
-
-    await wait(FALLBACK_DELAY_MS);
-    return getMockAnalysis(normalizedText);
   } finally {
     clearTimeout(timeoutId);
   }

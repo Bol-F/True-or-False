@@ -39,6 +39,7 @@ export function AnalysisResult({
     ? "border-[#f2d9d4] bg-[linear-gradient(110deg,#ffefec,#fae6e2)]"
     : "border-[#d6e7d8] bg-[linear-gradient(110deg,#eef7ef,#e3f0e5)]";
   const isDemo = result.meta?.engine !== "external-model";
+  const isLowConfidence = result.confidence < 0.6;
 
   return (
     <motion.article
@@ -154,7 +155,9 @@ export function AnalysisResult({
                     {result.label}
                   </p>
                   <p className="mt-2 max-w-[300px] text-[11px] leading-[1.4] text-[#5e5e68] sm:text-[12px]">
-                    {isFake
+                    {isLowConfidence
+                      ? "Неуверенный результат — особенно важна ручная проверка"
+                      : isFake
                       ? "Обнаружены признаки недостоверной информации"
                       : "Выраженные признаки недостоверности не обнаружены"}
                   </p>
