@@ -12,7 +12,7 @@ export const DEFAULT_GEMINI_MODEL = "gemini-3.5-flash-lite";
 export const GEMINI_PROMPT_VERSION = "misinfo-review-v2" as const;
 
 const GEMINI_API_ROOT = "https://generativelanguage.googleapis.com/v1beta/models";
-const DEFAULT_TIMEOUT_MS = 5_000;
+const DEFAULT_TIMEOUT_MS = 8_000;
 const MAX_EXPLANATION_LENGTH = 1_200;
 const MAX_WARNING_SIGN_LENGTH = 220;
 const MAX_WARNING_SIGNS = 5;

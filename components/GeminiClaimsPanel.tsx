@@ -81,7 +81,7 @@ export function GeminiClaimsPanel({ claims }: GeminiClaimsPanelProps) {
             : "В тексте выделены только оценочные суждения."}
         </p>
 
-        <ol className="grid gap-2.5">
+        <ol className="grid gap-2.5" aria-label="Утверждения Gemini">
           {claims.map((claim, index) => (
             <li
               key={claim.id}

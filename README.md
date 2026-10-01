@@ -31,9 +31,13 @@ npm run lint
 npm run build
 npm run check:gemini
 npm run test:gemini
+npm run test:report
+npm run test:e2e
 npm run lint:ml
 npm run test:ml
 ```
+
+`npm run check` выполняет все статические проверки, unit-тесты, production build и тесты ML. Playwright e2e запускается отдельно, потому что ему нужен установленный Chromium. CI выполняет оба этапа автоматически.
 
 Клиентская интеграция анализа изолирована в `lib/api.ts` и всегда обращается к same-origin `POST /api/analyze`. Next.js route проксирует серверный `ML_API_URL`, поэтому адрес FastAPI не попадает в браузерный bundle.
 
@@ -86,3 +90,7 @@ npm run train:ml
 Команда загружает только зафиксированную версию датасета, проверяет хэши, удаляет точные дубликаты с учётом лимита 5000 символов, повторяет оценку и записывает модель плюс манифест целостности в `ml/artifacts/`.
 
 Локальная история проверок выключена по умолчанию и включается пользователем явно. Она хранит до 20 успешных проверок в `localStorage`, удаляет записи старше 30 дней и полностью очищается при отключении.
+
+Инструкция по двухсервисному production-развёртыванию, переменным окружения, health-check и откату находится в [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
+
+Выполненные этапы 10-дневного MVP-плана собраны в [`docs/ROADMAP_10_DAYS.md`](docs/ROADMAP_10_DAYS.md).
