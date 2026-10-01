@@ -1,3 +1,13 @@
+import type {
+  GeminiReview,
+  GeminiReviewCertainty,
+  GeminiReviewLabel,
+  GeminiReviewRequestOptions,
+  GeminiUnavailableReason,
+} from "@/lib/gemini-review";
+
+export type { GeminiReview } from "@/lib/gemini-review";
+
 export type AnalysisLabel = "REAL" | "FAKE";
 export type SignalTone = "risk" | "reassuring";
 export type SignalSeverity = "low" | "medium" | "high";
@@ -48,6 +58,7 @@ export interface AnalysisResponse {
   evidence?: EvidenceSpan[];
   sourceReview?: SourceReview;
   meta?: AnalysisMeta;
+  geminiReview?: GeminiReview;
 }
 
 type DetectorSpec = {
@@ -250,6 +261,125 @@ function isSignalSeverity(value: unknown): value is SignalSeverity {
   return value === "low" || value === "medium" || value === "high";
 }
 
+function isGeminiLabel(value: unknown): value is GeminiReviewLabel {
+  return value === "REAL" || value === "FAKE" || value === "UNSURE";
+}
+
+function isGeminiCertainty(value: unknown): value is GeminiReviewCertainty {
+  return value === "low" || value === "medium" || value === "high";
+}
+
+function isGeminiUnavailableReason(
+  value: unknown,
+): value is GeminiUnavailableReason {
+  return (
+    value === "not-configured" ||
+    value === "primary-unavailable" ||
+    value === "timeout" ||
+    value === "rate-limited" ||
+    value === "blocked" ||
+    value === "invalid-response" ||
+    value === "upstream-error"
+  );
+}
+
+function sanitizeGeminiReview(
+  value: unknown,
+  primaryLabel: AnalysisLabel,
+): GeminiReview | null {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  const review = value as Record<string, unknown>;
+  if (review.provider !== "gemini") {
+    return null;
+  }
+
+  if (review.status === "unavailable") {
+    const keys = Object.keys(review);
+    return keys.length === 3 &&
+      keys.every((key) => ["status", "provider", "reason"].includes(key)) &&
+      isGeminiUnavailableReason(review.reason)
+      ? {
+          status: "unavailable",
+          provider: "gemini",
+          reason: review.reason,
+        }
+      : null;
+  }
+
+  const completeKeys = Object.keys(review);
+  const expectedCompleteKeys = [
+    "status",
+    "provider",
+    "model",
+    "promptVersion",
+    "label",
+    "certainty",
+    "agreesWithPrimary",
+    "explanation",
+    "warningSigns",
+    "externalSourcesChecked",
+  ];
+
+  if (
+    completeKeys.length !== expectedCompleteKeys.length ||
+    !completeKeys.every((key) => expectedCompleteKeys.includes(key)) ||
+    review.status !== "complete" ||
+    typeof review.model !== "string" ||
+    review.model.length === 0 ||
+    review.model.length > 100 ||
+    review.promptVersion !== "misinfo-review-v1" ||
+    !isGeminiLabel(review.label) ||
+    !isGeminiCertainty(review.certainty) ||
+    typeof review.explanation !== "string" ||
+    review.explanation.length < 10 ||
+    review.explanation.length > 1_200 ||
+    !Array.isArray(review.warningSigns) ||
+    review.warningSigns.length > 5 ||
+    review.externalSourcesChecked !== false
+  ) {
+    return null;
+  }
+
+  const explanation = review.explanation.trim();
+  if (explanation.length < 10 || explanation.length > 1_200) {
+    return null;
+  }
+
+  const expectedAgreement =
+    review.label === "UNSURE" ? null : review.label === primaryLabel;
+  if (review.agreesWithPrimary !== expectedAgreement) {
+    return null;
+  }
+
+  const warningSigns: string[] = [];
+  for (const item of review.warningSigns) {
+    if (typeof item !== "string") {
+      return null;
+    }
+    const normalized = item.trim();
+    if (!normalized || normalized.length > 220) {
+      return null;
+    }
+    warningSigns.push(normalized);
+  }
+
+  return {
+    status: "complete",
+    provider: "gemini",
+    model: review.model,
+    promptVersion: "misinfo-review-v1",
+    label: review.label,
+    certainty: review.certainty,
+    agreesWithPrimary: expectedAgreement,
+    explanation,
+    warningSigns,
+    externalSourcesChecked: false,
+  };
+}
+
 function sanitizeAnalysisResponse(
   value: unknown,
   analyzedText: string,
@@ -389,6 +519,16 @@ function sanitizeAnalysisResponse(
     }
   }
 
+  if (candidate.geminiReview) {
+    const geminiReview = sanitizeGeminiReview(
+      candidate.geminiReview,
+      response.label,
+    );
+    if (geminiReview) {
+      response.geminiReview = geminiReview;
+    }
+  }
+
   return response;
 }
 
@@ -447,7 +587,10 @@ export function getMockAnalysis(text: string): AnalysisResponse {
  * ML_API_URL setting and proxies FastAPI without exposing backend topology to browsers.
  * When ML_API_URL is absent, the route explicitly returns the labelled demo engine.
  */
-export async function analyzeText(text: string): Promise<AnalysisResponse> {
+export async function analyzeText(
+  text: string,
+  options: GeminiReviewRequestOptions = {},
+): Promise<AnalysisResponse> {
   if (typeof text !== "string" || text.trim().length === 0) {
     throw new Error("Введите текст для проверки.");
   }
@@ -465,7 +608,10 @@ export async function analyzeText(text: string): Promise<AnalysisResponse> {
     const response = await fetch("/api/analyze", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: normalizedText }),
+      body: JSON.stringify({
+        text: normalizedText,
+        useGemini: options.useGemini === true,
+      }),
       cache: "no-store",
       signal: controller.signal,
     });

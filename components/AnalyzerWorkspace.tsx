@@ -12,6 +12,10 @@ import { TextAnalyzer } from "./TextAnalyzer";
 
 const INITIAL_RESULT: AnalysisResponse = getMockAnalysis(DEFAULT_TEXT);
 
+interface AnalyzerWorkspaceProps {
+  geminiConfigured: boolean;
+}
+
 function formatTimestamp(date: Date) {
   return new Intl.DateTimeFormat("ru-RU", {
     day: "numeric",
@@ -24,7 +28,7 @@ function formatTimestamp(date: Date) {
     .replace(" г.", "");
 }
 
-export function AnalyzerWorkspace() {
+export function AnalyzerWorkspace({ geminiConfigured }: AnalyzerWorkspaceProps) {
   const history = useAnalysisHistory();
   const [text, setText] = useState(DEFAULT_TEXT);
   const [activeExampleId, setActiveExampleId] = useState<string | null>("medical");
@@ -35,10 +39,12 @@ export function AnalyzerWorkspace() {
   const [validationMessage, setValidationMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [useGemini, setUseGemini] = useState(false);
 
   const handleTextChange = (value: string) => {
     setText(value);
     setActiveExampleId(null);
+    setUseGemini(false);
     if (value.trim()) {
       setValidationMessage(null);
     }
@@ -48,6 +54,7 @@ export function AnalyzerWorkspace() {
     setText("");
     setActiveExampleId(null);
     setValidationMessage(null);
+    setUseGemini(false);
   };
 
   const handleExampleSelect = (example: TextExample) => {
@@ -55,6 +62,7 @@ export function AnalyzerWorkspace() {
     setActiveExampleId(example.id);
     setValidationMessage(null);
     setErrorMessage(null);
+    setUseGemini(false);
   };
 
   const handleSubmit = async () => {
@@ -71,12 +79,13 @@ export function AnalyzerWorkspace() {
     setStatus("loading");
 
     try {
-      const nextResult = await analyzeText(normalizedText);
+      const nextResult = await analyzeText(normalizedText, { useGemini });
       const analyzedAt = new Date();
       setResult(nextResult);
       setAnalyzedText(normalizedText);
       setTimestamp(formatTimestamp(analyzedAt));
       setStatus("success");
+      setUseGemini(false);
 
       history.add({
         source: "user",
@@ -119,6 +128,7 @@ export function AnalyzerWorkspace() {
     setTimestamp(formatTimestamp(new Date(item.analyzedAt)));
     setValidationMessage(null);
     setErrorMessage(null);
+    setUseGemini(false);
     setStatus("success");
     setIsHistoryOpen(false);
   };
@@ -139,11 +149,14 @@ export function AnalyzerWorkspace() {
           historyOpen={isHistoryOpen}
           historyEnabled={history.enabled}
           historyCount={history.items.length}
+          geminiConfigured={geminiConfigured}
+          useGemini={useGemini}
           onTextChange={handleTextChange}
           onClear={handleClear}
           onExampleSelect={handleExampleSelect}
           onSubmit={handleSubmit}
           onOpenHistory={() => setIsHistoryOpen(true)}
+          onUseGeminiChange={setUseGemini}
         />
 
         <div className="lg:-mt-[72px] xl:-mt-[104px]">

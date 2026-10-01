@@ -2,6 +2,7 @@
   "name": "rufact",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "dev:ml": "uv run --project ml uvicorn rufact_ml.main:app --app-dir ml/src --reload --port 8000",
@@ -9,6 +10,7 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
+    "test:gemini": "node --test --experimental-strip-types tests/gemini-review.test.mjs",
     "train:ml": "uv run --project ml rufact-train",
     "test:ml": "uv run --project ml pytest",
     "lint:ml": "uv run --project ml ruff check ml"

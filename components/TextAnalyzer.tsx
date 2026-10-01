@@ -20,11 +20,14 @@ interface TextAnalyzerProps {
   historyOpen: boolean;
   historyEnabled: boolean;
   historyCount: number;
+  geminiConfigured: boolean;
+  useGemini: boolean;
   onTextChange: (value: string) => void;
   onClear: () => void;
   onExampleSelect: (example: TextExample) => void;
   onSubmit: () => void;
   onOpenHistory: () => void;
+  onUseGeminiChange: (enabled: boolean) => void;
 }
 
 const MAX_LENGTH = 5000;
@@ -38,11 +41,14 @@ export function TextAnalyzer({
   historyOpen,
   historyEnabled,
   historyCount,
+  geminiConfigured,
+  useGemini,
   onTextChange,
   onClear,
   onExampleSelect,
   onSubmit,
   onOpenHistory,
+  onUseGeminiChange,
 }: TextAnalyzerProps) {
   return (
     <motion.article
@@ -125,6 +131,74 @@ export function TextAnalyzer({
         disabled={isLoading}
         onSelect={onExampleSelect}
       />
+
+      <section
+        aria-labelledby="gemini-option-heading"
+        className="mt-4 rounded-[13px] border border-[#cfdae6] bg-[#eef4f8]/75 px-3.5 py-3"
+      >
+        <label
+          htmlFor="use-gemini"
+          className={`flex items-start gap-3 ${
+            geminiConfigured ? "cursor-pointer" : "cursor-not-allowed"
+          }`}
+        >
+          <input
+            id="use-gemini"
+            type="checkbox"
+            role="switch"
+            checked={useGemini}
+            disabled={isLoading || !geminiConfigured}
+            aria-describedby="gemini-option-description gemini-privacy-note"
+            onChange={(event) => onUseGeminiChange(event.target.checked)}
+            className="focus-ring mt-0.5 h-4 w-4 shrink-0 accent-[#285b87] disabled:cursor-not-allowed"
+          />
+          <span className="min-w-0">
+            <span className="flex flex-wrap items-center gap-2">
+              <span
+                id="gemini-option-heading"
+                className="text-[12.5px] font-extrabold text-[#163957]"
+              >
+                Второе мнение Gemini
+              </span>
+              <span className="rounded bg-[#d9e6f1] px-1.5 py-0.5 text-[8px] font-extrabold uppercase tracking-[0.08em] text-[#496b88]">
+                Экспериментально
+              </span>
+            </span>
+            <span
+              id="gemini-option-description"
+              className="mt-0.5 block text-[10.5px] leading-[1.45] text-[#60768a]"
+            >
+              {geminiConfigured
+                ? useGemini
+                  ? "Включено для этой проверки; основной ML-вердикт не изменится."
+                  : "Необязательный независимый анализ без поиска в интернете."
+                : "Сейчас не настроено; основной ML-анализ работает как обычно."}
+            </span>
+          </span>
+        </label>
+        <p
+          id="gemini-privacy-note"
+          className="mt-2 pl-7 text-[9.5px] leading-[1.45] text-[#718092]"
+        >
+          {geminiConfigured ? (
+            <>
+              При включении полный текст передаётся Google. В бесплатном тарифе запросы
+              и ответы могут использоваться для улучшения продуктов и обрабатываться
+              специалистами. Не отправляйте личные или конфиденциальные данные. {" "}
+              <a
+                href="https://ai.google.dev/gemini-api/terms"
+                target="_blank"
+                rel="noreferrer"
+                className="focus-ring rounded-sm font-bold text-[#315f87] underline decoration-[#8aa5bd] underline-offset-2"
+              >
+                Условия Google
+              </a>
+            </>
+          ) : (
+            "Для включения нужен новый серверный GEMINI_API_KEY; ключ из интерфейса в браузер не передаётся."
+          )}
+        </p>
+      </section>
 
       <div className="mt-6 flex flex-col items-stretch gap-4 sm:flex-row sm:items-center sm:gap-7">
         <motion.button

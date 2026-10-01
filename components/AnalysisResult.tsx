@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import type { AnalysisResponse } from "@/lib/api";
 import { ConfidenceRing } from "./ConfidenceRing";
+import { GeminiReviewPanel } from "./GeminiReviewPanel";
 import { LoadingState } from "./LoadingState";
 import { ResultExplanation } from "./ResultExplanation";
 
@@ -166,6 +167,13 @@ export function AnalysisResult({
 
               <ConfidenceRing value={result.confidence} label="уверенность в ответе" tone={tone} />
             </section>
+
+            {result.geminiReview ? (
+              <GeminiReviewPanel
+                review={result.geminiReview}
+                primaryLabel={result.label}
+              />
+            ) : null}
 
             <ResultExplanation result={result} analyzedText={analyzedText} />
 

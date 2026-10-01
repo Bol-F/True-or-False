@@ -1,48 +1,214 @@
 import { NextResponse } from "next/server";
 
-import { getMockAnalysis } from "@/lib/api";
+import {
+  getMockAnalysis,
+  type AnalysisLabel,
+  type AnalysisResponse,
+} from "@/lib/api";
+import type {
+  GeminiReview,
+  GeminiReviewUnavailable,
+} from "@/lib/gemini-review";
+import { getGeminiAssessment } from "@/lib/server/gemini-review";
 
 const MAX_TEXT_LENGTH = 5_000;
+const MAX_BODY_BYTES = 24_000;
 const MOCK_LATENCY_MS = 900;
 const ML_TIMEOUT_MS = 8_000;
+const NO_STORE_HEADERS = { "Cache-Control": "private, no-store" } as const;
+
+type MlSuccess = {
+  ok: true;
+  payload: AnalysisResponse;
+};
+
+type MlFailure = {
+  ok: false;
+  status: 502 | 503;
+  message: string;
+};
 
 const wait = (milliseconds: number) =>
   new Promise<void>((resolve) => setTimeout(resolve, milliseconds));
 
-export async function POST(request: Request) {
-  let body: unknown;
+function jsonResponse(payload: unknown, status = 200) {
+  return NextResponse.json(payload, {
+    status,
+    headers: NO_STORE_HEADERS,
+  });
+}
+
+function unavailable(
+  reason: GeminiReviewUnavailable["reason"],
+): GeminiReviewUnavailable {
+  return { status: "unavailable", provider: "gemini", reason };
+}
+
+function isSameOriginRequest(request: Request) {
+  const fetchSite = request.headers.get("sec-fetch-site");
+  if (fetchSite && fetchSite !== "same-origin" && fetchSite !== "same-site") {
+    return false;
+  }
+
+  const origin = request.headers.get("origin");
+  if (!origin) {
+    return true;
+  }
+
+  const forwardedHost = request.headers.get("x-forwarded-host");
+  const host = forwardedHost ?? request.headers.get("host");
+  if (!host) {
+    return false;
+  }
 
   try {
-    body = await request.json();
+    return new URL(origin).host === host;
   } catch {
-    return NextResponse.json(
+    return false;
+  }
+}
+
+function isAnalysisPayload(value: unknown): value is AnalysisResponse {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const payload = value as Record<string, unknown>;
+  return (
+    (payload.label === "REAL" || payload.label === "FAKE") &&
+    typeof payload.confidence === "number" &&
+    Number.isFinite(payload.confidence) &&
+    payload.confidence >= 0 &&
+    payload.confidence <= 1
+  );
+}
+
+async function requestMlPrediction(
+  endpoint: string,
+  text: string,
+): Promise<MlSuccess | MlFailure> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), ML_TIMEOUT_MS);
+
+  try {
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text }),
+      cache: "no-store",
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      return {
+        ok: false,
+        status: 502,
+        message: "ML-сервис вернул ошибку. Попробуйте повторить запрос позже.",
+      };
+    }
+
+    const payload: unknown = await response.json();
+    if (!isAnalysisPayload(payload)) {
+      return {
+        ok: false,
+        status: 502,
+        message: "ML-сервис вернул некорректный ответ.",
+      };
+    }
+
+    return { ok: true, payload };
+  } catch {
+    return {
+      ok: false,
+      status: 503,
+      message:
+        "ML-сервис временно недоступен. Проверьте его состояние и повторите запрос.",
+    };
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+function attachAgreement(
+  assessment: Awaited<ReturnType<typeof getGeminiAssessment>>,
+  primaryLabel: AnalysisLabel,
+): GeminiReview {
+  if (assessment.status === "unavailable") {
+    return assessment;
+  }
+
+  return {
+    ...assessment,
+    agreesWithPrimary:
+      assessment.label === "UNSURE"
+        ? null
+        : assessment.label === primaryLabel,
+  };
+}
+
+export async function POST(request: Request) {
+  if (!isSameOriginRequest(request)) {
+    return jsonResponse({ error: "Запрос отклонён." }, 403);
+  }
+
+  const contentType =
+    request.headers.get("content-type")?.split(";", 1)[0]?.trim().toLowerCase() ??
+    "";
+  if (contentType !== "application/json") {
+    return jsonResponse(
+      { error: "Используйте Content-Type application/json." },
+      415,
+    );
+  }
+
+  const declaredLength = Number(request.headers.get("content-length"));
+  if (Number.isFinite(declaredLength) && declaredLength > MAX_BODY_BYTES) {
+    return jsonResponse({ error: "Тело запроса слишком большое." }, 413);
+  }
+
+  let body: unknown;
+  try {
+    const rawBody = await request.text();
+    if (new TextEncoder().encode(rawBody).byteLength > MAX_BODY_BYTES) {
+      return jsonResponse({ error: "Тело запроса слишком большое." }, 413);
+    }
+    body = JSON.parse(rawBody);
+  } catch {
+    return jsonResponse(
       { error: "Тело запроса должно содержать JSON." },
-      { status: 400 },
+      400,
     );
   }
 
   if (!body || typeof body !== "object" || !("text" in body)) {
-    return NextResponse.json(
-      { error: "Добавьте поле text в запрос." },
-      { status: 400 },
+    return jsonResponse({ error: "Добавьте поле text в запрос." }, 400);
+  }
+
+  const { text, useGemini } = body as {
+    text?: unknown;
+    useGemini?: unknown;
+  };
+
+  if (
+    typeof useGemini !== "undefined" &&
+    typeof useGemini !== "boolean"
+  ) {
+    return jsonResponse(
+      { error: "Поле useGemini должно быть логическим значением." },
+      400,
     );
   }
 
-  const { text } = body as { text?: unknown };
-
   if (typeof text !== "string" || text.trim().length === 0) {
-    return NextResponse.json(
-      { error: "Введите текст для проверки." },
-      { status: 400 },
-    );
+    return jsonResponse({ error: "Введите текст для проверки." }, 400);
   }
 
   const normalizedText = text.trim();
 
   if (normalizedText.length > MAX_TEXT_LENGTH) {
-    return NextResponse.json(
+    return jsonResponse(
       { error: "Текст не должен превышать 5000 символов." },
-      { status: 400 },
+      400,
     );
   }
 
@@ -50,43 +216,41 @@ export async function POST(request: Request) {
 
   if (!mlEndpoint) {
     await wait(MOCK_LATENCY_MS);
-    return NextResponse.json(getMockAnalysis(normalizedText));
-  }
-
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), ML_TIMEOUT_MS);
-
-  try {
-    const response = await fetch(mlEndpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: normalizedText }),
-      cache: "no-store",
-      signal: controller.signal,
-    });
-
-    if (!response.ok) {
-      return NextResponse.json(
-        { error: "ML-сервис вернул ошибку. Попробуйте повторить запрос позже." },
-        { status: 502 },
-      );
-    }
-
-    const payload: unknown = await response.json();
-    if (!payload || typeof payload !== "object") {
-      return NextResponse.json(
-        { error: "ML-сервис вернул некорректный ответ." },
-        { status: 502 },
-      );
-    }
-
-    return NextResponse.json(payload);
-  } catch {
-    return NextResponse.json(
-      { error: "ML-сервис временно недоступен. Проверьте его состояние и повторите запрос." },
-      { status: 503 },
+    const demoResult = getMockAnalysis(normalizedText);
+    return jsonResponse(
+      useGemini
+        ? {
+            ...demoResult,
+            geminiReview: unavailable("primary-unavailable"),
+          }
+        : demoResult,
     );
-  } finally {
-    clearTimeout(timeoutId);
   }
+
+  const geminiPromise = useGemini
+    ? getGeminiAssessment(normalizedText).catch(() =>
+        unavailable("upstream-error"),
+      )
+    : Promise.resolve(null);
+
+  const [mlResult, geminiAssessment] = await Promise.all([
+    requestMlPrediction(mlEndpoint, normalizedText),
+    geminiPromise,
+  ]);
+
+  if (!mlResult.ok) {
+    return jsonResponse({ error: mlResult.message }, mlResult.status);
+  }
+
+  if (!geminiAssessment) {
+    return jsonResponse(mlResult.payload);
+  }
+
+  return jsonResponse({
+    ...mlResult.payload,
+    geminiReview: attachAgreement(
+      geminiAssessment,
+      mlResult.payload.label,
+    ),
+  });
 }
