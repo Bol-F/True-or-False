@@ -2,13 +2,14 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import { Brand } from "./Brand";
 
 const navigation = [
-  { label: "Как это работает", href: "#how-it-works" },
-  { label: "О модели", href: "#model-quality" },
-  { label: "Вопросы и ответы", href: "#questions" },
+  { label: "Как это работает", href: "/#how-it-works" },
+  { label: "О модели", href: "/model" },
+  { label: "Вопросы и ответы", href: "/#questions" },
 ];
 
 export function Header() {
@@ -23,12 +24,12 @@ export function Header() {
           <ul className="flex items-center gap-10 text-[14px] font-medium text-[#173552] xl:gap-12">
             {navigation.map((item) => (
               <li key={item.href}>
-                <a
+                <Link
                   className="focus-ring rounded-md transition-colors hover:text-accent"
                   href={item.href}
                 >
                   {item.label}
-                </a>
+                </Link>
               </li>
             ))}
           </ul>
@@ -73,13 +74,13 @@ export function Header() {
             <ul className="grid gap-1 text-[14px] font-semibold">
               {navigation.map((item) => (
                 <li key={item.href}>
-                  <a
+                  <Link
                     href={item.href}
                     onClick={() => setIsOpen(false)}
                     className="focus-ring block rounded-xl px-4 py-3 hover:bg-[#f0ece4]"
                   >
                     {item.label}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>

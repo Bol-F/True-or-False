@@ -134,7 +134,7 @@ export function TextAnalyzer({
 
       <section
         aria-labelledby="gemini-option-heading"
-        className="mt-4 rounded-[13px] border border-[#cfdae6] bg-[#eef4f8]/75 px-3.5 py-3"
+        className="mt-4 rounded-[13px] border border-[#cfdae6] bg-[#eef4f8]/75 px-3.5 py-2.5"
       >
         <label
           htmlFor="use-gemini"
@@ -178,13 +178,11 @@ export function TextAnalyzer({
         </label>
         <p
           id="gemini-privacy-note"
-          className="mt-2 pl-7 text-[9.5px] leading-[1.45] text-[#718092]"
+          className="mt-1.5 pl-7 text-[9.5px] leading-[1.45] text-[#718092]"
         >
           {geminiConfigured ? (
             <>
-              При включении полный текст передаётся Google. В бесплатном тарифе запросы
-              и ответы могут использоваться для улучшения продуктов и обрабатываться
-              специалистами. Не отправляйте личные или конфиденциальные данные. {" "}
+              Текст передаётся Google. Не отправляйте личные или конфиденциальные данные. {" "}
               <a
                 href="https://ai.google.dev/gemini-api/terms"
                 target="_blank"
@@ -195,7 +193,7 @@ export function TextAnalyzer({
               </a>
             </>
           ) : (
-            "Для включения нужен новый серверный GEMINI_API_KEY; ключ из интерфейса в браузер не передаётся."
+            "Для включения добавьте серверный GEMINI_API_KEY; ключ в браузер не передаётся."
           )}
         </p>
       </section>

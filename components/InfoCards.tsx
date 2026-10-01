@@ -21,7 +21,7 @@ const cards = [
     annotation: "Технологии на службе здравого смысла",
     action: {
       label: "Подробнее о модели",
-      href: "#model-quality",
+      href: "/model#model-quality",
     },
   },
   {

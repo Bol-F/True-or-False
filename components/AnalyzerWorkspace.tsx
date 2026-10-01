@@ -137,7 +137,7 @@ export function AnalyzerWorkspace({ geminiConfigured }: AnalyzerWorkspaceProps) 
     <section
       id="analyzer"
       aria-label="Проверка текста"
-      className="tool-gutter relative z-10 pb-0 pt-[11px]"
+      className="tool-gutter relative z-10 pb-6 pt-[11px]"
     >
       <div className="grid items-start gap-[18px] lg:grid-cols-[minmax(0,1.25fr)_minmax(390px,0.95fr)]">
         <TextAnalyzer

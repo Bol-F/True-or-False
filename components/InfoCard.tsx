@@ -2,6 +2,7 @@
 
 import { motion, useReducedMotion } from "framer-motion";
 import Image from "next/image";
+import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 import { ArrowRight } from "lucide-react";
 
@@ -146,13 +147,13 @@ export function InfoCard({
         <p className={`text-[12.5px] leading-[1.45] sm:text-[13px] ${styles.body}`}>{description}</p>
 
         {action ? (
-          <a
+          <Link
             href={action.href}
             className="focus-ring mt-2 inline-flex w-fit items-center gap-2 rounded-xl bg-[#fffdf9]/90 px-3.5 py-2 text-[12px] font-bold text-ink shadow-[0_5px_14px_rgba(33,44,52,0.06)] transition-colors hover:bg-white"
           >
             {action.label}
             <ArrowRight size={15} strokeWidth={2} aria-hidden="true" />
-          </a>
+          </Link>
         ) : null}
       </div>
 

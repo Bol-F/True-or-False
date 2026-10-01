@@ -1,7 +1,9 @@
+import Link from "next/link";
+
 export function Brand() {
   return (
-    <a
-      href="#top"
+    <Link
+      href="/"
       aria-label="RuFact — на главную"
       className="focus-ring inline-flex items-center gap-3 rounded-lg text-ink no-underline"
     >
@@ -12,6 +14,6 @@ export function Brand() {
       <span className="font-serif text-[30px] font-bold tracking-[-0.045em] sm:text-[32px]">
         RuFact
       </span>
-    </a>
+    </Link>
   );
 }
