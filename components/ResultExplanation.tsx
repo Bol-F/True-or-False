@@ -93,7 +93,7 @@ export function ResultExplanation({ result, analyzedText }: ResultExplanationPro
   return (
     <div>
       <section
-        id="questions"
+        id="result-explanation"
         aria-labelledby="explanation-title"
         className="mt-3 flex scroll-mt-24 gap-3"
       >

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
 import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 import { InfoCards } from "@/components/InfoCards";
 import { ModelEvaluationDetails } from "@/components/ModelEvaluationDetails";
 import { ModelTransparency } from "@/components/ModelTransparency";
@@ -48,6 +49,7 @@ export default function ModelPage() {
         <ModelTransparency />
         <ModelEvaluationDetails />
       </main>
+      <Footer />
     </div>
   );
 }
