@@ -2,6 +2,7 @@ import { AlertTriangle, CircleHelp, Sparkles } from "lucide-react";
 
 import type { AnalysisLabel } from "@/lib/api";
 import type { GeminiReview } from "@/lib/gemini-review";
+import { GeminiClaimsPanel } from "./GeminiClaimsPanel";
 
 interface GeminiReviewPanelProps {
   review: GeminiReview;
@@ -136,6 +137,8 @@ export function GeminiReviewPanel({
               ))}
             </ul>
           ) : null}
+
+          <GeminiClaimsPanel claims={review.claims} />
 
           <p className="mt-3 border-t border-[#cbd8e2]/80 pt-2 text-[9.5px] leading-[1.45] text-[#758696]">
             Качественная уверенность Gemini: {certaintyCopy[review.certainty]}; она не
