@@ -12,6 +12,7 @@ import type { AnalysisResponse } from "@/lib/api";
 import { ConfidenceRing } from "./ConfidenceRing";
 import { GeminiReviewPanel } from "./GeminiReviewPanel";
 import { LoadingState } from "./LoadingState";
+import { ResultActions } from "./ResultActions";
 import { ResultExplanation } from "./ResultExplanation";
 
 export type AnalysisStatus = "initial" | "loading" | "success" | "error";
@@ -185,6 +186,12 @@ export function AnalysisResult({
                 критическое мышление.
               </p>
             </aside>
+
+            <ResultActions
+              result={result}
+              analyzedText={analyzedText}
+              timestamp={timestamp}
+            />
           </motion.div>
         )}
       </AnimatePresence>
