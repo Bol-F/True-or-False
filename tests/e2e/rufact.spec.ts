@@ -16,6 +16,7 @@ test("desktop analysis workflow and guidance", async ({ page }, testInfo) => {
   ).toBeVisible();
   await expect(page.getByLabel("Русскоязычный текст для анализа")).toBeVisible();
   await expect(page.getByRole("switch", { name: /Второе мнение Gemini/u })).toBeVisible();
+  await expect(page.getByText("Бета-версия", { exact: true })).toHaveCount(0);
 
   await page.getByRole("button", { name: "Новость", exact: true }).click();
   await expect(page.getByLabel("Русскоязычный текст для анализа")).toHaveValue(
@@ -43,6 +44,59 @@ test("desktop analysis workflow and guidance", async ({ page }, testInfo) => {
   expect(consoleErrors).toEqual([]);
 });
 
+test("result actions and feedback dialog work", async ({ page, context }, testInfo) => {
+  test.skip(!testInfo.project.name.startsWith("desktop"), "Desktop-only check");
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, "share", {
+      configurable: true,
+      value: undefined,
+    });
+  });
+
+  await page.goto("/");
+  const actions = page.getByRole("region", { name: "Действия с результатом" });
+
+  await actions.getByRole("button", { name: "Копировать отчёт" }).click();
+  await expect(actions.getByRole("status")).toContainText("Отчёт скопирован");
+
+  const downloadPromise = page.waitForEvent("download");
+  await actions.getByRole("button", { name: "Скачать .txt" }).click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toMatch(/^rufact-\d{4}-\d{2}-\d{2}\.txt$/u);
+  await expect(actions.getByRole("status")).toContainText("сохранён на устройство");
+
+  await actions.getByRole("button", { name: "Поделиться" }).click();
+  await expect(actions.getByRole("status")).toContainText(
+    "Системное меню недоступно — отчёт скопирован",
+  );
+
+  await page.getByRole("button", { name: "Обратная связь" }).first().click();
+  const dialog = page.getByRole("dialog", { name: "Обратная связь" });
+  await expect(dialog).toBeVisible();
+  const githubLink = dialog.getByRole("link", { name: /Открыть форму на GitHub/u });
+  await expect(githubLink).toHaveAttribute("aria-disabled", "true");
+  await dialog.getByLabel("Сообщение").fill(
+    "Кнопка работает, но я хочу предложить улучшение интерфейса.",
+  );
+  await expect(githubLink).toHaveAttribute("href", /github\.com\/Bol-F\/True-or-False\/issues\/new/u);
+  await dialog.getByRole("button", { name: "Скопировать" }).click();
+  await expect(dialog.getByRole("status")).toContainText("Сообщение скопировано");
+
+  if (process.env.CAPTURE_QA === "1") {
+    await page.screenshot({
+      path: join(tmpdir(), "rufact-feedback-desktop.png"),
+      fullPage: false,
+    });
+  }
+
+  await dialog.getByRole("button", { name: "Закрыть обратную связь" }).click();
+  await expect(dialog).toBeHidden();
+
+  await actions.getByRole("button", { name: "Сообщить об ошибке" }).click();
+  await expect(dialog).toBeVisible();
+});
+
 test("mobile layout, menu and FAQ navigation", async ({ page }, testInfo) => {
   test.skip(!testInfo.project.name.startsWith("mobile"), "Mobile-only check");
 
@@ -58,6 +112,14 @@ test("mobile layout, menu and FAQ navigation", async ({ page }, testInfo) => {
   const mobileNavigation = page.getByRole("navigation", {
     name: "Мобильная навигация",
   });
+  await expect(mobileNavigation).toBeVisible();
+  await expect(page.getByText("Бета-версия", { exact: true })).toHaveCount(0);
+  await mobileNavigation.getByRole("button", { name: "Обратная связь" }).click();
+  const feedbackDialog = page.getByRole("dialog", { name: "Обратная связь" });
+  await expect(feedbackDialog).toBeVisible();
+  await feedbackDialog.getByRole("button", { name: "Закрыть обратную связь" }).click();
+
+  await page.getByRole("button", { name: "Открыть меню" }).click();
   await expect(mobileNavigation).toBeVisible();
   await mobileNavigation.getByRole("link", { name: "Вопросы и ответы" }).click();
   await expect(page).toHaveURL(/#questions$/u);

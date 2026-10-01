@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Caveat, Lora, Manrope } from "next/font/google";
+import { FeedbackProvider } from "@/components/FeedbackProvider";
 import "./globals.css";
 
 const lora = Lora({
@@ -36,7 +37,7 @@ export default function RootLayout({
       <body
         className={`${lora.variable} ${manrope.variable} ${caveat.variable}`}
       >
-        {children}
+        <FeedbackProvider>{children}</FeedbackProvider>
       </body>
     </html>
   );

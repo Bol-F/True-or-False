@@ -5,6 +5,7 @@ import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { Brand } from "./Brand";
+import { useFeedback } from "./FeedbackProvider";
 
 const navigation = [
   { label: "Как это работает", href: "/#how-it-works" },
@@ -14,6 +15,7 @@ const navigation = [
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
+  const { openFeedback } = useFeedback();
 
   return (
     <header id="top" className="content-gutter relative z-50">
@@ -35,17 +37,14 @@ export function Header() {
           </ul>
         </nav>
 
-        <div className="hidden items-center gap-4 md:flex">
-          <span className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-[#eaebe2] px-4 text-[13px] font-medium text-[#31543b]">
-            <span className="h-2.5 w-2.5 rounded-full bg-[#2f8744] shadow-[0_0_0_4px_rgba(47,135,68,0.08)]" />
-            Бета-версия
-          </span>
-          <a
+        <div className="hidden items-center md:flex">
+          <button
+            type="button"
+            onClick={() => openFeedback({ source: "header" })}
             className="focus-ring inline-flex min-h-11 items-center rounded-[13px] bg-ink-deep px-6 text-[14px] font-semibold text-white shadow-[0_7px_18px_rgba(10,41,73,0.16)] transition-transform hover:-translate-y-0.5"
-            href="mailto:hello@rufact.ru"
           >
             Обратная связь
-          </a>
+          </button>
         </div>
 
         <button
@@ -84,14 +83,17 @@ export function Header() {
                 </li>
               ))}
             </ul>
-            <div className="mt-2 flex items-center justify-between gap-3 border-t border-[#e3dfd7] px-3 pt-3">
-              <span className="inline-flex items-center gap-2 text-xs font-medium text-[#31543b]">
-                <span className="h-2 w-2 rounded-full bg-[#2f8744]" />
-                Бета-версия
-              </span>
-              <a href="mailto:hello@rufact.ru" className="text-xs font-bold text-accent">
+            <div className="mt-2 border-t border-[#e3dfd7] px-3 pt-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsOpen(false);
+                  openFeedback({ source: "header" });
+                }}
+                className="focus-ring min-h-9 rounded-lg text-xs font-bold text-accent"
+              >
                 Обратная связь
-              </a>
+              </button>
             </div>
           </motion.nav>
         ) : null}

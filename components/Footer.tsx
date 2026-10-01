@@ -1,8 +1,13 @@
+"use client";
+
 import Link from "next/link";
 
 import { Brand } from "./Brand";
+import { useFeedback } from "./FeedbackProvider";
 
 export function Footer() {
+  const { openFeedback } = useFeedback();
+
   return (
     <footer className="content-gutter pb-6 pt-2">
       <div className="flex flex-col gap-5 rounded-[18px] bg-[#102f50] px-5 py-5 text-white sm:flex-row sm:items-center sm:justify-between sm:px-7">
@@ -25,9 +30,13 @@ export function Footer() {
               </Link>
             </li>
             <li>
-              <a className="focus-ring rounded hover:text-white" href="mailto:hello@rufact.ru">
+              <button
+                type="button"
+                onClick={() => openFeedback({ source: "footer" })}
+                className="focus-ring rounded hover:text-white"
+              >
                 Обратная связь
-              </a>
+              </button>
             </li>
           </ul>
         </nav>
