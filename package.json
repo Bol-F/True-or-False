@@ -10,6 +10,7 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
+    "check:gemini": "node --env-file=.env.local --experimental-strip-types scripts/check-gemini.mjs",
     "test:gemini": "node --test --experimental-strip-types tests/gemini-review.test.mjs",
     "train:ml": "uv run --project ml rufact-train",
     "test:ml": "uv run --project ml pytest",

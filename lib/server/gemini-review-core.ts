@@ -47,7 +47,6 @@ const SYSTEM_INSTRUCTION = [
 
 const RESPONSE_SCHEMA = {
   type: "object",
-  additionalProperties: false,
   properties: {
     label: {
       type: "string",
@@ -250,12 +249,8 @@ export async function requestGeminiAssessment({
           generationConfig: {
             temperature: 0.1,
             maxOutputTokens: 640,
-            responseFormat: {
-              text: {
-                mimeType: "application/json",
-                schema: RESPONSE_SCHEMA,
-              },
-            },
+            responseMimeType: "application/json",
+            responseSchema: RESPONSE_SCHEMA,
           },
         }),
         cache: "no-store",

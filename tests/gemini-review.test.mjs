@@ -66,9 +66,10 @@ test("sends a server-authenticated structured request and parses a valid review"
   assert.equal(bodyText.includes(TEST_KEY), false);
   assert.equal(body.tools, undefined);
   assert.equal(
-    body.generationConfig.responseFormat.text.mimeType,
+    body.generationConfig.responseMimeType,
     "application/json",
   );
+  assert.equal(body.generationConfig.responseSchema.type, "object");
   assert.equal(
     body.contents[0].parts[0].text.includes(TEST_TEXT),
     true,
