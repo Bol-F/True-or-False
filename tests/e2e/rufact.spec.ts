@@ -138,6 +138,10 @@ test("model page exposes measured errors and limitations", async ({ page }, test
 
   await page.goto("/model");
   await expect(page.getByRole("heading", { name: "О модели RuFact" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Accuracy на внешней выборке: 81%" }),
+  ).toBeVisible();
+  await expect(page.getByText(/tfidf-word-char-logreg-ru-v2/u)).toBeVisible();
   await expect(page.getByRole("heading", { name: "Где модель ошибается" })).toBeVisible();
   await expect(
     page.getByRole("table", { name: "Матрица ошибок для классов REAL и FAKE" }),

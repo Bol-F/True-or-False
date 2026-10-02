@@ -6,6 +6,9 @@ function formatMetric(value: number | null) {
 }
 
 export function ModelTransparency() {
+  const accuracy = MODEL_QUALITY.metrics.find((metric) => metric.key === "accuracy")?.value;
+  const accuracyLabel = formatMetric(accuracy ?? null);
+
   return (
     <section
       id="model-quality"
@@ -58,7 +61,7 @@ export function ModelTransparency() {
               </span>
               <div>
                 <h3 className="text-[17px] font-extrabold tracking-[-0.02em] text-ink">
-                  Accuracy на внешней выборке: 72%
+                  Accuracy на внешней выборке: {accuracyLabel}
                 </h3>
                 <p className="mt-1.5 max-w-[620px] text-[12.5px] leading-[1.55] text-[#687689] sm:text-[13px]">
                   {MODEL_QUALITY.dataset.samples} русскоязычных текстов · {MODEL_QUALITY.dataset.split}.
@@ -105,7 +108,7 @@ export function ModelTransparency() {
                 На похожей внутренней выборке модель получила 99,7%, но этот результат
                 завышен различиями между официальными и синтетическими текстами. Поэтому
                 выше показана более строгая внешняя оценка. Экспериментальное второе
-                мнение Gemini в эти 72% не входит: качество связки пока не измерено.
+                мнение Gemini в эти {accuracyLabel} не входит: качество связки пока не измерено.
               </p>
             </div>
           </div>

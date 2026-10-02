@@ -3,12 +3,16 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 
+import { MODEL_QUALITY } from "@/lib/model-quality";
+
 const enter = {
   hidden: { opacity: 0, y: 16 },
   visible: { opacity: 1, y: 0 },
 };
 
 export function Hero() {
+  const accuracy = MODEL_QUALITY.metrics.find((metric) => metric.key === "accuracy")?.value;
+
   return (
     <section
       id="how-it-works"
@@ -50,7 +54,7 @@ export function Hero() {
           className="mt-3 max-w-[615px] text-[15px] leading-[1.52] text-[#607087] sm:text-[16px]"
         >
           Доступна обученная ML-модель для вероятностного анализа языковых признаков.
-          Она показывает 72% accuracy на отдельной внешней выборке, но не проверяет
+          Она показывает {Math.round((accuracy ?? 0) * 100)}% accuracy на отдельной внешней выборке, но не проверяет
           источники и не заменяет профессиональный фактчекинг.
         </motion.p>
       </motion.div>

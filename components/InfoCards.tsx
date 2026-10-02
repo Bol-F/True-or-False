@@ -1,7 +1,10 @@
 "use client";
 
 import { BookOpen, Cpu, ShieldCheck } from "lucide-react";
+import { MODEL_QUALITY } from "@/lib/model-quality";
 import { InfoCard } from "./InfoCard";
+
+const accuracy = MODEL_QUALITY.metrics.find((metric) => metric.key === "accuracy")?.value;
 
 const cards = [
   {
@@ -15,9 +18,9 @@ const cards = [
   {
     variant: "model" as const,
     icon: Cpu,
-    title: "ML-модель v1",
+    title: "ML-модель v2",
     description:
-      "TF-IDF и логистическая регрессия обучены на русских текстах. Внешняя OOF-оценка: 72% accuracy.",
+      `TF-IDF слов и символов обучен на русских текстах. Внешняя OOF-оценка: ${Math.round((accuracy ?? 0) * 100)}% accuracy.`,
     annotation: "Технологии на службе здравого смысла",
     action: {
       label: "Подробнее о модели",

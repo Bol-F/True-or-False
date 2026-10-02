@@ -7,14 +7,22 @@ resembles the labelled `REAL` or `FAKE` examples in its training data.
 ## What is trained
 
 - word TF-IDF features with 1–2 word n-grams;
+- character TF-IDF features with 3–5 character n-grams;
 - balanced logistic regression;
 - a second sigmoid calibration layer fitted on authentic, out-of-domain examples;
 - exact phrase contributions from the linear model for local explanations.
 
-The pipeline uses the Russian subset of
+The core pipeline uses the Russian subset of
 [KazFakeCorpus](https://github.com/Anargul-Aimuratovna/news-veracity-corpus)
 at commit `bd9bdd36d1171f0031cc448c808ebee6ecacd6d0`. The dataset is CC BY 4.0.
-Raw data is downloaded into ignored `data/raw/` files and checksum-verified.
+It adds 834 Panorama satire articles and a deterministic 834-article Lenta news
+sample from the
+[Taiga corpus](https://tatianashavrina.github.io/taiga_site/downloads), whose site
+limits the data to personal and research use. The combined training set has 3,707
+unique texts. Raw data is downloaded into ignored `data/raw/` files and
+checksum-verified. Extracting Taiga's RAR file requires `bsdtar`/`libarchive-tools`.
+The selection audit and rejected alternatives are recorded in
+[`DATASET_RESEARCH.md`](DATASET_RESEARCH.md).
 
 ## Train and evaluate
 
@@ -31,10 +39,11 @@ Training writes:
 - `artifacts/metrics.json` — full evaluation protocol and metrics;
 - `artifacts/artifact-manifest.json` — model checksum and compatibility metadata.
 
-The headline score is produced from out-of-fold predictions on 157 authentic
-Russian examples. Each outer fold is held out while calibration strength is chosen
-inside the remaining data. The much easier synthetic/official-news score is reported
-separately and must not be presented as real-world accuracy.
+The v2 headline accuracy is 80.89% (macro F1 80.88%) from out-of-fold predictions
+on 157 authentic Russian examples. Each outer fold is held out while calibration
+strength is chosen inside the remaining data. The much easier
+synthetic/official-news score is reported separately and must not be presented as
+real-world accuracy.
 
 ## Run the API
 
@@ -58,8 +67,10 @@ uv run --project ml ruff check ml
 
 ## Important limitations
 
-- The main FAKE class is synthetic and the REAL class is mostly official news.
-- The external Russian evaluation set is small (157 texts) and Kazakhstan-focused.
+- The core FAKE class is synthetic; auxiliary data contrasts Panorama satire with a
+  deterministic Lenta news sample.
+- The external Russian evaluation set is small (157 texts), Kazakhstan-focused, and
+  its labels are confounded with source.
 - The model learns statistical wording patterns; it does not retrieve evidence or
   establish whether a real-world claim is true.
 - Confidence is calibrated for this dataset and can drift on new topics and sources.

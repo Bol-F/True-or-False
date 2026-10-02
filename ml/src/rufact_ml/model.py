@@ -84,30 +84,44 @@ class ModelBundle:
     def calibrator(self) -> Any:
         return self.artifact["calibrator"]
 
-    def _fake_probability(self, text: str) -> tuple[float, Any]:
+    def _fake_probability(self, text: str) -> float:
         normalized = normalize_for_model(text)
         raw_probability = float(self.base_model.predict_proba([normalized])[0, 1])
         clipped = min(max(raw_probability, 1e-8), 1 - 1e-8)
         log_odds = math.log(clipped / (1 - clipped))
         calibrated = float(self.calibrator.predict_proba([[log_odds]])[0, 1])
-        vector = self.base_model.named_steps["tfidf"].transform([normalized])
-        return min(max(calibrated, 0.0), 1.0), vector
+        return min(max(calibrated, 0.0), 1.0)
+
+    def _word_explanation_features(self, text: str) -> tuple[Any, np.ndarray, np.ndarray]:
+        classifier = self.base_model.named_steps["classifier"]
+        steps = self.base_model.named_steps
+        if "tfidf" in steps:
+            vectorizer = steps["tfidf"]
+            return (
+                vectorizer.transform([text]),
+                vectorizer.get_feature_names_out(),
+                classifier.coef_[0],
+            )
+
+        features = steps["features"]
+        transformers = dict(features.transformer_list)
+        vectorizer = transformers["word"]
+        names = vectorizer.get_feature_names_out()
+        weight = float((features.transformer_weights or {}).get("word", 1.0))
+        return vectorizer.transform([text]), names, classifier.coef_[0][: len(names)] * weight
 
     def _explanations(
         self,
         original_text: str,
-        vector: Any,
+        normalized_text: str,
         label: str,
         limit: int = 4,
     ) -> tuple[list[AnalysisSignal], list[EvidenceSpan]]:
-        classifier = self.base_model.named_steps["classifier"]
-        vectorizer = self.base_model.named_steps["tfidf"]
-        coefficients = classifier.coef_[0]
+        vector, feature_names, coefficients = self._word_explanation_features(normalized_text)
         row = vector.tocsr()
         contributions = row.data * coefficients[row.indices]
         direction = 1 if label == "FAKE" else -1
         ranked = np.argsort(-(contributions * direction))
-        feature_names = vectorizer.get_feature_names_out()
         tone = "risk" if label == "FAKE" else "reassuring"
         signals: list[AnalysisSignal] = []
         evidence: list[EvidenceSpan] = []
@@ -159,10 +173,11 @@ class ModelBundle:
         return signals, evidence
 
     def predict(self, text: str) -> PredictionResponse:
-        fake_probability, vector = self._fake_probability(text)
+        normalized = normalize_for_model(text)
+        fake_probability = self._fake_probability(normalized)
         label = "FAKE" if fake_probability >= 0.5 else "REAL"
         confidence = fake_probability if label == "FAKE" else 1 - fake_probability
-        signals, evidence = self._explanations(text, vector, label)
+        signals, evidence = self._explanations(text, normalized, label)
         explanation = (
             f"ML-классификатор отнёс текст к классу {label} по статистическому сочетанию "
             "слов и фраз. Выделенные фрагменты показывают вклад признаков модели; "

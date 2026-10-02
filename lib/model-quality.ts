@@ -36,7 +36,7 @@ const headline = evaluationData.evaluation.externalNestedCrossValidation;
 
 export const MODEL_QUALITY: ModelQuality = {
   status: "evaluated",
-  modelName: "TF-IDF + логистическая регрессия",
+  modelName: "TF-IDF слов и символов + логистическая регрессия",
   modelVersion: evaluationData.modelVersion,
   evaluatedAt: evaluationData.generatedAt,
   dataset: {
@@ -77,7 +77,8 @@ export const MODEL_QUALITY: ModelQuality = {
   ],
   limitations: [
     "Модель анализирует статистические языковые признаки, но не проверяет факты в интернете.",
-    "Основной обучающий класс FAKE синтетический, а внешняя выборка содержит только 157 текстов.",
-    "Оценка отражает казахстанский новостной домен и может снижаться на других темах и источниках.",
+    "Дополнительные данные сопоставляют сатиру Panorama с новостями Lenta, поэтому модель может изучать жанровые признаки.",
+    "Внешняя выборка содержит только 157 текстов, а её источники связаны с классами REAL и FAKE.",
+    "Оценка отражает казахстанский новостной домен и может заметно снижаться на других темах и источниках.",
   ],
 };

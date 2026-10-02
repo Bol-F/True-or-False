@@ -23,7 +23,7 @@ def test_health_and_prediction_contract() -> None:
         assert 0.5 <= payload["confidence"] <= 1
         assert payload["meta"] == {
             "engine": "external-model",
-            "engineVersion": "tfidf-logreg-ru-v1",
+            "engineVersion": "tfidf-word-char-logreg-ru-v2",
             "externalSourcesChecked": False,
         }
         for evidence in payload["evidence"]:
@@ -44,4 +44,5 @@ def test_model_info_exposes_measured_quality() -> None:
         payload = response.json()
         headline = payload["evaluation"]["externalNestedCrossValidation"]
         assert headline["samples"] == 157
-        assert 0 < headline["metrics"]["accuracy"] < 1
+        assert headline["metrics"]["accuracy"] == 0.808917
+        assert headline["metrics"]["confusionMatrix"] == [[65, 11], [19, 62]]

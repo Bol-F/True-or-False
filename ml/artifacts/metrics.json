@@ -1,19 +1,45 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-09-29T12:50:05Z",
-  "modelName": "RuFact TF-IDF + Logistic Regression (RU)",
-  "modelVersion": "tfidf-logreg-ru-v1",
+  "generatedAt": "2026-10-02T05:46:20Z",
+  "modelName": "RuFact Word + Character TF-IDF Logistic Regression (RU)",
+  "modelVersion": "tfidf-word-char-logreg-ru-v2",
   "maxTextLength": 5000,
   "dataset": {
-    "name": "KazFakeCorpus Russian subset",
+    "name": "KazFakeCorpus Russian subset + balanced Taiga news sample",
     "revision": "bd9bdd36d1171f0031cc448c808ebee6ecacd6d0",
-    "license": "CC BY 4.0",
+    "licenses": [
+      "KazFakeCorpus: CC BY 4.0",
+      "Taiga: personal/research use"
+    ],
+    "training": {
+      "samples": 3707,
+      "real": 1820,
+      "fake": 1887
+    },
     "main": {
       "rawSamples": 2106,
       "samples": 2039,
       "real": 986,
       "fake": 1053,
       "exactDuplicatesRemoved": 67
+    },
+    "auxiliary": {
+      "fake": {
+        "rawSamples": 834,
+        "samples": 834,
+        "fake": 834,
+        "exactDuplicatesRemoved": 0,
+        "name": "Taiga Panorama satire collection",
+        "archiveSha256": "5a522a810548fd31a0e96f678da0195a036ed78efbed09dcf4bd28572736633d"
+      },
+      "real": {
+        "availableSamples": 36445,
+        "samples": 834,
+        "real": 834,
+        "selectionSeed": 20260929,
+        "name": "Deterministic sample from Taiga Lenta",
+        "archiveSha256": "3db0f1ac1ff2dbfa30b41a511473d369278411a2aa5d6478ea49ef6347cb53c0"
+      }
     },
     "external": {
       "samples": 157,
@@ -34,23 +60,23 @@
       "protocol": "5-fold stratified group cross-validation; paired REAL/FAKE source IDs stay in the same fold; exact normalized duplicates removed",
       "samples": 2039,
       "metrics": {
-        "accuracy": 0.996567,
-        "macroF1": 0.996564,
+        "accuracy": 0.997548,
+        "macroF1": 0.997546,
         "precisionFake": 1.0,
-        "recallFake": 0.993352,
-        "precisionReal": 0.992951,
+        "recallFake": 0.995252,
+        "precisionReal": 0.994955,
         "recallReal": 1.0,
         "rocAuc": 1.0,
-        "brierScore": 0.011377,
-        "logLoss": 0.08086,
+        "brierScore": 0.009055,
+        "logLoss": 0.067282,
         "confusionMatrix": [
           [
             986,
             0
           ],
           [
-            7,
-            1046
+            5,
+            1048
           ]
         ]
       }
@@ -60,57 +86,57 @@
       "samples": 157,
       "outerFolds": 5,
       "selectedCalibrationC": [
+        1.0,
+        1.0,
         10.0,
-        10.0,
-        10.0,
-        10.0,
-        10.0
+        1.0,
+        1.0
       ],
       "metrics": {
-        "accuracy": 0.719745,
-        "macroF1": 0.719461,
-        "precisionFake": 0.760563,
-        "recallFake": 0.666667,
-        "precisionReal": 0.686047,
-        "recallReal": 0.776316,
-        "rocAuc": 0.786225,
-        "brierScore": 0.194538,
-        "logLoss": 0.573181,
+        "accuracy": 0.808917,
+        "macroF1": 0.808847,
+        "precisionFake": 0.849315,
+        "recallFake": 0.765432,
+        "precisionReal": 0.77381,
+        "recallReal": 0.855263,
+        "rocAuc": 0.890026,
+        "brierScore": 0.138155,
+        "logLoss": 0.433156,
         "confusionMatrix": [
           [
-            59,
-            17
+            65,
+            11
           ],
           [
-            27,
-            54
+            19,
+            62
           ]
         ]
       },
       "confidenceIntervals": {
         "accuracy95": [
-          0.656051,
-          0.783439
+          0.745223,
+          0.866242
         ],
         "macroF195": [
-          0.655355,
-          0.783431
+          0.744373,
+          0.866221
         ]
       }
     },
     "finalCalibration": {
       "method": "sigmoid over base-model log-odds",
-      "selectedC": 10.0,
+      "selectedC": 1.0,
       "crossValidatedMacroF1ByC": {
-        "1.0": 0.667387,
-        "10.0": 0.719461,
-        "100.0": 0.713329
+        "1.0": 0.808847,
+        "10.0": 0.802516,
+        "100.0": 0.808847
       }
     }
   },
   "limitations": [
-    "The main FAKE class is synthetic while the REAL class is mostly official news.",
-    "The external Russian evaluation set has 157 Kazakhstan-focused texts.",
+    "The core FAKE class is synthetic; auxiliary data contrasts Panorama satire with a deterministic Lenta news sample.",
+    "The external Russian evaluation set has only 157 Kazakhstan-focused texts and its labels are confounded with source.",
     "The model classifies wording patterns and does not retrieve or verify evidence.",
     "Confidence can become miscalibrated on new topics, sources, or adversarial paraphrases.",
     "Binary REAL/FAKE labels do not represent satire, opinion, or partially true claims."

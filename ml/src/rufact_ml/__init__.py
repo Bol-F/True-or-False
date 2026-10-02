@@ -1,5 +1,5 @@
 """RuFact's Russian-language text classification service."""
 
-MODEL_VERSION = "tfidf-logreg-ru-v1"
+MODEL_VERSION = "tfidf-word-char-logreg-ru-v2"
 
 __all__ = ["MODEL_VERSION"]

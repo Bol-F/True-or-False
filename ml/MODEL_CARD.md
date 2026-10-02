@@ -1,4 +1,4 @@
-# Model card: RuFact TF-IDF Logistic Regression RU v1
+# Model card: RuFact Word + Character TF-IDF Logistic Regression RU v2
 
 ## Intended use
 
@@ -9,8 +9,9 @@ source-based fact-checking.
 
 ## Model
 
-- Model ID: `tfidf-logreg-ru-v1`
-- Features: lowercase word TF-IDF, 1–2 word n-grams, maximum 50,000 features
+- Model ID: `tfidf-word-char-logreg-ru-v2`
+- Features: lowercase word TF-IDF (1–2 word n-grams, up to 60,000 features) plus
+  character TF-IDF (3–5 character n-grams, up to 100,000 features)
 - Classifier: balanced logistic regression
 - Calibration: sigmoid mapping over the base-model log-odds
 - Maximum evaluated input: 5,000 characters
@@ -21,16 +22,25 @@ classifier's decision, not the truth or falsity of the highlighted phrase.
 
 ## Data
 
-The training and calibration data comes from KazFakeCorpus, pinned to Git commit
-`bd9bdd36d1171f0031cc448c808ebee6ecacd6d0` and released under CC BY 4.0.
+The core training and calibration data comes from KazFakeCorpus, pinned to Git commit
+`bd9bdd36d1171f0031cc448c808ebee6ecacd6d0` and released under CC BY 4.0. The
+training set also includes the checksum-pinned Panorama satire collection and a
+deterministic Lenta news sample from Taiga, which is available for personal and
+research use.
 
 - Main Russian subset: 2,106 rows before normalization; 2,039 unique texts after
   truncation-aware exact deduplication (986 REAL, 1,053 FAKE).
+- Auxiliary Taiga subset: 834 unique satire texts labelled FAKE.
+- Auxiliary Taiga REAL subset: 834 unique Lenta articles selected deterministically.
+- Combined training set: 3,707 texts (1,820 REAL, 1,887 FAKE).
 - External Russian subset: 157 unique texts (76 REAL, 81 FAKE).
 
 The main REAL texts are official/news publications and the main FAKE examples are
-primarily synthetic. The external set contains authentic fact-checked misinformation
-and real news from Kazakhstan-based sources.
+primarily synthetic. The auxiliary pair contrasts satire with Lenta reporting, so it
+still teaches genre and source cues as well as veracity-related wording. The external
+set contains authentic fact-checked misinformation and real news from
+Kazakhstan-based sources, but its class labels are fully confounded with source, so
+the headline metric can still overestimate generalization.
 
 Dataset authors: Zhanar Lamasheva, Anargul Nekessova, Mansiya Kantureyeva,
 Madina Sambetbayeva, Mira Kaldarova, and Aksaule Nazymkhan. See the accompanying
@@ -47,7 +57,9 @@ The generated `artifacts/metrics.json` is authoritative. It records:
 3. calibration metrics, a confusion matrix, and bootstrap confidence intervals.
 
 The external score is the headline quality estimate. Internal performance is known
-to be inflated by the synthetic-vs-official construction of the main corpus.
+to be inflated by the synthetic/satire-vs-official construction of the training data.
+Version 2 scores 80.89% accuracy and 80.88% macro F1 on the 157-text external OOF
+evaluation, with a bootstrap 95% accuracy interval of 74.52–86.62%.
 
 ## Known risks
 

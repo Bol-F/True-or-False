@@ -1,10 +1,14 @@
 import { ChevronDown, HelpCircle } from "lucide-react";
+import { MODEL_QUALITY } from "@/lib/model-quality";
+
+const measuredAccuracy = MODEL_QUALITY.metrics.find(
+  (metric) => metric.key === "accuracy",
+)?.value;
 
 const questions = [
   {
     question: "Что означает процент в результате?",
-    answer:
-      "Это уверенность модели в конкретном ответе, а не общая точность RuFact. Измеренная accuracy основной модели на внешней выборке составляет 71,97%.",
+    answer: `Это уверенность модели в конкретном ответе, а не общая точность RuFact. Измеренная accuracy основной модели на внешней выборке составляет ${((measuredAccuracy ?? 0) * 100).toFixed(2).replace(".", ",")}%.`,
   },
   {
     question: "RuFact проверяет факты в интернете?",

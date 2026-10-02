@@ -1,14 +1,19 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import hashlib
 import json
 import re
+import shutil
+import sqlite3
+import subprocess
 import urllib.request
+import zipfile
 from collections import Counter
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any
 
 import joblib
@@ -27,15 +32,18 @@ from sklearn.metrics import (
     roc_auc_score,
 )
 from sklearn.model_selection import StratifiedGroupKFold, StratifiedKFold, cross_val_predict
-from sklearn.pipeline import Pipeline
+from sklearn.pipeline import FeatureUnion, Pipeline
 
 from rufact_ml import MODEL_VERSION
 from rufact_ml.model import MAX_TEXT_LENGTH, normalize_for_model
 
 SEED = 20260929
 DATASET_REVISION = "bd9bdd36d1171f0031cc448c808ebee6ecacd6d0"
-MODEL_NAME = "RuFact TF-IDF + Logistic Regression (RU)"
+MODEL_NAME = "RuFact Word + Character TF-IDF Logistic Regression (RU)"
 CALIBRATION_CANDIDATES = (1.0, 10.0, 100.0)
+TAIGA_ARCHIVE_SHA256 = "5a522a810548fd31a0e96f678da0195a036ed78efbed09dcf4bd28572736633d"
+TAIGA_LENTA_SHA256 = "3db0f1ac1ff2dbfa30b41a511473d369278411a2aa5d6478ea49ef6347cb53c0"
+TAIGA_EXPECTED_SAMPLES = 834
 
 ML_ROOT = Path(__file__).resolve().parents[2]
 RAW_DIR = ML_ROOT / "data" / "raw"
@@ -46,22 +54,34 @@ ARTIFACT_DIR = ML_ROOT / "artifacts"
 class DatasetFile:
     filename: str
     sha256: str
-
-    @property
-    def url(self) -> str:
-        return (
-            "https://raw.githubusercontent.com/Anargul-Aimuratovna/"
-            f"news-veracity-corpus/{DATASET_REVISION}/data/{self.filename}"
-        )
+    url: str
 
 
 MAIN_FILE = DatasetFile(
     filename="corpus_labelstudio_export.json",
     sha256="aa632a5e2f17389d0eba55823d8bc9b625e7572ac74101f99a67dcb5d24bad3f",
+    url=(
+        "https://raw.githubusercontent.com/Anargul-Aimuratovna/"
+        f"news-veracity-corpus/{DATASET_REVISION}/data/corpus_labelstudio_export.json"
+    ),
 )
 EXTERNAL_FILE = DatasetFile(
     filename="external_validation_set.json",
     sha256="38ef928eaab90188013f9cc2ec9432f5d28b680491885a40837aa666f000b2b0",
+    url=(
+        "https://raw.githubusercontent.com/Anargul-Aimuratovna/"
+        f"news-veracity-corpus/{DATASET_REVISION}/data/external_validation_set.json"
+    ),
+)
+TAIGA_FILE = DatasetFile(
+    filename="taiga_fake_news.rar",
+    sha256=TAIGA_ARCHIVE_SHA256,
+    url="https://linghub.ru/static/Taiga/Fake_news.rar",
+)
+TAIGA_LENTA_FILE = DatasetFile(
+    filename="taiga_lenta.db.zip",
+    sha256=TAIGA_LENTA_SHA256,
+    url="https://linghub.ru/static/Taiga/Lenta.db.zip",
 )
 
 
@@ -92,6 +112,71 @@ def ensure_dataset_file(spec: DatasetFile, force: bool = False) -> Path:
             f"Checksum mismatch for {spec.filename}: expected {spec.sha256}, got {actual_hash}."
         )
     temporary.replace(destination)
+    return destination
+
+
+def _archive_tool() -> str:
+    for candidate in ("bsdtar", "tar"):
+        executable = shutil.which(candidate)
+        if executable:
+            return executable
+    raise RuntimeError(
+        "Taiga extraction requires bsdtar/libarchive. Install libarchive-tools and retry."
+    )
+
+
+def ensure_taiga_directory(archive_path: Path, force: bool = False) -> Path:
+    destination = RAW_DIR / "taiga_fake_news"
+    metadata_path = destination / "Panorama" / "metatable.csv"
+    if metadata_path.is_file() and not force:
+        return destination / "Panorama"
+
+    tool = _archive_tool()
+    try:
+        listing = subprocess.run(
+            [tool, "-tf", str(archive_path)],
+            check=True,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+        ).stdout.splitlines()
+    except subprocess.CalledProcessError as error:
+        raise RuntimeError(
+            "The available tar command cannot read Taiga's RAR archive. "
+            "Install bsdtar/libarchive-tools and retry."
+        ) from error
+
+    for member in listing:
+        path = PurePosixPath(member.replace("\\", "/"))
+        if path.is_absolute() or ".." in path.parts:
+            raise RuntimeError(f"Unsafe path in Taiga archive: {member}")
+
+    if destination.exists():
+        shutil.rmtree(destination)
+    destination.mkdir(parents=True)
+    subprocess.run(
+        [tool, "-xf", str(archive_path), "-C", str(destination)],
+        check=True,
+        capture_output=True,
+    )
+    if not metadata_path.is_file():
+        raise RuntimeError("Taiga archive does not contain Panorama/metatable.csv.")
+    return destination / "Panorama"
+
+
+def ensure_lenta_database(archive_path: Path, force: bool = False) -> Path:
+    destination = RAW_DIR / "taiga_lenta" / "Lenta.db"
+    if destination.is_file() and not force:
+        return destination
+
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    with zipfile.ZipFile(archive_path) as archive:
+        names = archive.namelist()
+        if names != ["Lenta.db"]:
+            raise RuntimeError(f"Unexpected files in Taiga Lenta archive: {names}")
+        archive.extract("Lenta.db", destination.parent)
+    if not destination.is_file():
+        raise RuntimeError("Taiga Lenta archive did not produce Lenta.db.")
     return destination
 
 
@@ -159,19 +244,123 @@ def load_external_dataset(path: Path) -> tuple[np.ndarray, np.ndarray, np.ndarra
     return texts, labels, sources, summary
 
 
+def load_taiga_dataset(path: Path) -> tuple[np.ndarray, dict[str, int]]:
+    metadata: dict[str, str] = {}
+    with (path / "metatable.csv").open(encoding="utf-8", newline="") as handle:
+        for row in csv.DictReader(handle, delimiter="\t"):
+            metadata[str(row["text_id"])] = str(row["title"])
+
+    texts: list[str] = []
+    for tagged_path in sorted(
+        (path / "tagged_texts").glob("*.txt"), key=lambda item: int(item.stem)
+    ):
+        sentences = [
+            line.removeprefix("# text = ")
+            for line in tagged_path.read_text(encoding="utf-8").splitlines()
+            if line.startswith("# text = ")
+        ]
+        text = normalize_for_model(f"{metadata.get(tagged_path.stem, '')} {' '.join(sentences)}")
+        if text:
+            texts.append(text)
+
+    unique_texts = list(dict.fromkeys(texts))
+    if len(unique_texts) != TAIGA_EXPECTED_SAMPLES:
+        raise RuntimeError(
+            f"Expected {TAIGA_EXPECTED_SAMPLES} Taiga samples, found {len(unique_texts)}."
+        )
+    return np.asarray(unique_texts, dtype=object), {
+        "rawSamples": len(texts),
+        "samples": len(unique_texts),
+        "fake": len(unique_texts),
+        "exactDuplicatesRemoved": len(texts) - len(unique_texts),
+    }
+
+
+def _text_from_tagged_document(title: str, tagged: str) -> str:
+    sentences = [
+        line.removeprefix("# text = ")
+        for line in tagged.splitlines()
+        if line.startswith("# text = ")
+        and not line.removeprefix("# text = ").startswith("#")
+    ]
+    return normalize_for_model(f"{title} {' '.join(sentences)}")
+
+
+def load_lenta_dataset(
+    path: Path,
+    excluded_texts: set[str],
+    sample_size: int = TAIGA_EXPECTED_SAMPLES,
+) -> tuple[np.ndarray, dict[str, int]]:
+    texts: list[str] = []
+    seen = set(excluded_texts)
+    with sqlite3.connect(path) as connection:
+        ids = [str(row[0]) for row in connection.execute("SELECT id FROM tagged_texts")]
+        ranked_ids = sorted(
+            ids, key=lambda text_id: hashlib.sha256(f"{SEED}:{text_id}".encode()).digest()
+        )
+        for text_id in ranked_ids:
+            row = connection.execute(
+                """
+                SELECT COALESCE(meta.textname, ''), tagged_texts.text
+                FROM tagged_texts
+                LEFT JOIN meta ON meta.textid = tagged_texts.id
+                WHERE tagged_texts.id = ?
+                """,
+                (text_id,),
+            ).fetchone()
+            if row is None:
+                continue
+            text = _text_from_tagged_document(str(row[0]), str(row[1]))
+            if not text or text in seen:
+                continue
+            seen.add(text)
+            texts.append(text)
+            if len(texts) == sample_size:
+                break
+
+    if len(texts) != sample_size:
+        raise RuntimeError(f"Expected {sample_size} Taiga Lenta samples, found {len(texts)}.")
+    return np.asarray(texts, dtype=object), {
+        "availableSamples": len(ids),
+        "samples": len(texts),
+        "real": len(texts),
+        "selectionSeed": SEED,
+    }
+
+
 def build_base_model() -> Pipeline:
     return Pipeline(
         [
             (
-                "tfidf",
-                TfidfVectorizer(
-                    lowercase=True,
-                    ngram_range=(1, 2),
-                    min_df=2,
-                    max_df=0.98,
-                    max_features=50_000,
-                    sublinear_tf=True,
-                    norm="l2",
+                "features",
+                FeatureUnion(
+                    [
+                        (
+                            "word",
+                            TfidfVectorizer(
+                                lowercase=True,
+                                ngram_range=(1, 2),
+                                min_df=2,
+                                max_df=0.98,
+                                max_features=60_000,
+                                sublinear_tf=True,
+                                norm="l2",
+                            ),
+                        ),
+                        (
+                            "char",
+                            TfidfVectorizer(
+                                analyzer="char_wb",
+                                lowercase=True,
+                                ngram_range=(3, 5),
+                                min_df=2,
+                                max_features=100_000,
+                                sublinear_tf=True,
+                                norm="l2",
+                            ),
+                        ),
+                    ],
+                    transformer_weights={"word": 1.0, "char": 0.6},
                 ),
             ),
             (
@@ -352,19 +541,46 @@ def fit_final_calibrator(
 def train(force_download: bool = False) -> dict[str, Any]:
     main_path = ensure_dataset_file(MAIN_FILE, force=force_download)
     external_path = ensure_dataset_file(EXTERNAL_FILE, force=force_download)
+    taiga_archive = ensure_dataset_file(TAIGA_FILE, force=force_download)
+    taiga_path = ensure_taiga_directory(taiga_archive, force=force_download)
+    lenta_archive = ensure_dataset_file(TAIGA_LENTA_FILE, force=force_download)
+    lenta_path = ensure_lenta_database(lenta_archive, force=force_download)
     main_texts, main_labels, main_groups, main_summary = load_main_dataset(main_path)
     external_texts, external_labels, external_sources, external_summary = load_external_dataset(
         external_path
     )
-    if set(main_texts.tolist()).intersection(external_texts.tolist()):
+    taiga_texts, taiga_summary = load_taiga_dataset(taiga_path)
+    main_set = set(main_texts.tolist())
+    external_set = set(external_texts.tolist())
+    taiga_set = set(taiga_texts.tolist())
+    if main_set.intersection(external_set):
         raise RuntimeError("Main and external datasets overlap after normalization.")
+    if taiga_set.intersection(main_set) or taiga_set.intersection(external_set):
+        raise RuntimeError("Taiga data overlaps another dataset after normalization.")
+    lenta_texts, lenta_summary = load_lenta_dataset(
+        lenta_path, main_set | external_set | taiga_set
+    )
+
+    training_texts = np.concatenate([main_texts, taiga_texts, lenta_texts])
+    training_labels = np.concatenate(
+        [
+            main_labels,
+            np.ones(len(taiga_texts), dtype=main_labels.dtype),
+            np.zeros(len(lenta_texts), dtype=main_labels.dtype),
+        ]
+    )
+    training_summary = {
+        "samples": int(len(training_texts)),
+        "real": int(np.count_nonzero(training_labels == 0)),
+        "fake": int(np.count_nonzero(training_labels == 1)),
+    }
 
     print("Evaluating grouped in-domain performance...", flush=True)
     internal_evaluation = evaluate_internal(main_texts, main_labels, main_groups)
 
     print("Fitting base model...", flush=True)
     base_model = build_base_model()
-    base_model.fit(main_texts, main_labels)
+    base_model.fit(training_texts, training_labels)
     raw_external = base_model.predict_proba(external_texts)[:, 1]
 
     print("Running nested external calibration evaluation...", flush=True)
@@ -373,8 +589,14 @@ def train(force_download: bool = False) -> dict[str, Any]:
 
     trained_at = datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
     limitations = [
-        "The main FAKE class is synthetic while the REAL class is mostly official news.",
-        "The external Russian evaluation set has 157 Kazakhstan-focused texts.",
+        (
+            "The core FAKE class is synthetic; auxiliary data contrasts Panorama satire "
+            "with a deterministic Lenta news sample."
+        ),
+        (
+            "The external Russian evaluation set has only 157 Kazakhstan-focused texts "
+            "and its labels are confounded with source."
+        ),
         "The model classifies wording patterns and does not retrieve or verify evidence.",
         "Confidence can become miscalibrated on new topics, sources, or adversarial paraphrases.",
         "Binary REAL/FAKE labels do not represent satire, opinion, or partially true claims.",
@@ -386,10 +608,23 @@ def train(force_download: bool = False) -> dict[str, Any]:
         "modelVersion": MODEL_VERSION,
         "maxTextLength": MAX_TEXT_LENGTH,
         "dataset": {
-            "name": "KazFakeCorpus Russian subset",
+            "name": "KazFakeCorpus Russian subset + balanced Taiga news sample",
             "revision": DATASET_REVISION,
-            "license": "CC BY 4.0",
+            "licenses": ["KazFakeCorpus: CC BY 4.0", "Taiga: personal/research use"],
+            "training": training_summary,
             "main": main_summary,
+            "auxiliary": {
+                "fake": {
+                    **taiga_summary,
+                    "name": "Taiga Panorama satire collection",
+                    "archiveSha256": TAIGA_ARCHIVE_SHA256,
+                },
+                "real": {
+                    **lenta_summary,
+                    "name": "Deterministic sample from Taiga Lenta",
+                    "archiveSha256": TAIGA_LENTA_SHA256,
+                },
+            },
             "external": {**external_summary, "sources": sorted(set(external_sources.tolist()))},
         },
         "evaluation": {
