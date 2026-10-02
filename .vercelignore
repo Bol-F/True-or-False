@@ -1,5 +1,8 @@
 # The production frontend is deployed separately from the Render ML service.
-ml/
+ml/*
+!ml/artifacts/
+ml/artifacts/*
+!ml/artifacts/metrics.json
 
 # Development, test, and provider-local files are not needed at runtime.
 .agents/
