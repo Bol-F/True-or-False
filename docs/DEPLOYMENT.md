@@ -95,6 +95,11 @@ RuFact допускает по умолчанию 10 запросов за 60 с
 production Next.js требует общий Upstash Redis. Локальная память используется
 только в development, потому что разные serverless-инстансы не разделяют её.
 
+При установке Upstash через Vercel Marketplace переменные называются
+`KV_REST_API_URL` и `KV_REST_API_TOKEN`; RuFact принимает их автоматически.
+При прямом подключении Upstash используйте имена `UPSTASH_REDIS_REST_URL` и
+`UPSTASH_REDIS_REST_TOKEN`.
+
 Создайте Redis в Upstash по
 [официальной инструкции](https://upstash.com/docs/redis/sdks/ratelimit-ts/overview)
 и добавьте на Vercel:

@@ -38,6 +38,17 @@ function rateLimitSettings() {
   };
 }
 
+export function redisCredentials(env: NodeJS.ProcessEnv = process.env) {
+  const url = (
+    env.UPSTASH_REDIS_REST_URL ?? env.KV_REST_API_URL
+  )?.trim();
+  const token = (
+    env.UPSTASH_REDIS_REST_TOKEN ?? env.KV_REST_API_TOKEN
+  )?.trim();
+
+  return url && token ? { url, token } : null;
+}
+
 function clientAddress(request: Request) {
   const forwarded = request.headers.get("x-forwarded-for")?.split(",", 1)[0]?.trim();
   return forwarded || request.headers.get("x-real-ip")?.trim() || "local";
@@ -88,12 +99,11 @@ export function consumeMemoryLimit(
 function getDistributedLimiter(limit: number, windowSeconds: number) {
   if (distributedLimiter) return distributedLimiter;
 
-  const url = process.env.UPSTASH_REDIS_REST_URL?.trim();
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN?.trim();
-  if (!url || !token) return null;
+  const credentials = redisCredentials();
+  if (!credentials) return null;
 
   distributedLimiter = new Ratelimit({
-    redis: new Redis({ url, token }),
+    redis: new Redis(credentials),
     limiter: Ratelimit.slidingWindow(limit, `${windowSeconds} s`),
     prefix: RATE_LIMIT_PREFIX,
     analytics: false,

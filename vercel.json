@@ -1,0 +1,17 @@
+{
+  "services": {
+    "rufact-ml-api": {
+      "root": ".",
+      "framework": "nextjs"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": {
+        "type": "service",
+        "service": "rufact-ml-api"
+      }
+    }
+  ]
+}

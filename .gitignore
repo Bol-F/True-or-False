@@ -37,3 +37,10 @@ pnpm-debug.log*
 
 # typescript
 *.tsbuildinfo
+
+# provider CLI helpers (not application source)
+/.agents/
+/skills-lock.json
+
+.vercel
+.env*

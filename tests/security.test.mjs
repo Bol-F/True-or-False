@@ -3,7 +3,10 @@ import { createHash, createHmac } from "node:crypto";
 import test from "node:test";
 
 import { createMlServiceAuthorization } from "../lib/server/ml-service-auth.ts";
-import { consumeMemoryLimit } from "../lib/server/rate-limit.ts";
+import {
+  consumeMemoryLimit,
+  redisCredentials,
+} from "../lib/server/rate-limit.ts";
 
 test("ML service JWT is short-lived, signed, and bound to the request body", () => {
   const secret = "test-only-service-secret-with-at-least-32-bytes";
@@ -42,4 +45,30 @@ test("local limiter denies requests after the configured window allowance", () =
   assert.equal(blocked.allowed, false);
   assert.equal(blocked.remaining, 0);
   assert.equal(consumeMemoryLimit(identifier, now + 60_001, 2, 60).allowed, true);
+});
+
+test("rate limiter accepts Vercel Marketplace Redis credentials", () => {
+  assert.deepEqual(
+    redisCredentials({
+      KV_REST_API_URL: "https://marketplace-redis.example",
+      KV_REST_API_TOKEN: "marketplace-token",
+    }),
+    {
+      url: "https://marketplace-redis.example",
+      token: "marketplace-token",
+    },
+  );
+  assert.deepEqual(
+    redisCredentials({
+      UPSTASH_REDIS_REST_URL: "https://direct-redis.example",
+      UPSTASH_REDIS_REST_TOKEN: "direct-token",
+      KV_REST_API_URL: "https://marketplace-redis.example",
+      KV_REST_API_TOKEN: "marketplace-token",
+    }),
+    {
+      url: "https://direct-redis.example",
+      token: "direct-token",
+    },
+  );
+  assert.equal(redisCredentials({ KV_REST_API_URL: "https://missing-token" }), null);
 });
