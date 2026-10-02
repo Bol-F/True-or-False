@@ -51,12 +51,24 @@ real-world accuracy.
 uv run --project ml uvicorn rufact_ml.main:app --app-dir ml/src --reload --port 8000
 ```
 
+The API loads the repository-root `.env.local` for local development. Set a shared
+`ML_API_JWT_SECRET` of at least 32 bytes there. The Next.js server creates a
+30-second HS256 token for every prediction; the token is bound to the exact body
+SHA-256 and `X-Request-ID`. `/predict` rejects unsigned, replay-modified, expired,
+or incorrectly addressed requests. This JWT is service-to-service authentication,
+not end-user login.
+
 Endpoints:
 
 - `GET /health`
 - `GET /model-info`
-- `POST /predict` with `{ "text": "..." }`
+- authenticated `POST /predict` with `{ "text": "..." }`
 - interactive API documentation at `http://127.0.0.1:8000/docs`
+
+The production container runs as an unprivileged user, verifies its model checksum,
+disables API documentation unless explicitly enabled, exposes a Docker health check,
+honors `PORT`, and limits concurrent predictions. See
+[`../docs/DEPLOYMENT.md`](../docs/DEPLOYMENT.md) for all required environment values.
 
 ## Test and lint
 
@@ -64,6 +76,9 @@ Endpoints:
 uv run --project ml pytest
 uv run --project ml ruff check ml
 ```
+
+The runtime dependency set and JavaScript production dependencies are audited in
+the release checklist. Development-only packages are not copied into the container.
 
 ## Important limitations
 

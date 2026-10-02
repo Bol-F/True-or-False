@@ -59,4 +59,3 @@ export function createMlServiceAuthorization(
 
   return { token: `${unsignedToken}.${signature}`, requestId };
 }
-

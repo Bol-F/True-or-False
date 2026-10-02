@@ -43,4 +43,3 @@ test("local limiter denies requests after the configured window allowance", () =
   assert.equal(blocked.remaining, 0);
   assert.equal(consumeMemoryLimit(identifier, now + 60_001, 2, 60).allowed, true);
 });
-

@@ -147,4 +147,3 @@ export function rateLimitHeaders(result: AnalysisRateLimit) {
   }
   return headers;
 }
-

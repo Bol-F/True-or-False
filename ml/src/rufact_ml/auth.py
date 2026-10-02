@@ -99,4 +99,3 @@ async def require_service_jwt(request: Request) -> None:
         expected_digest, body_digest
     ):
         raise _unauthorized()
-

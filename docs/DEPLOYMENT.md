@@ -1,61 +1,169 @@
-# Развёртывание RuFact
+# Production-развёртывание RuFact
 
 RuFact состоит из двух сервисов:
 
-1. Next.js-приложение: интерфейс и same-origin route `POST /api/analyze`.
-2. FastAPI-контейнер: модель и закрытый endpoint `POST /predict`.
+1. Next.js на Vercel: интерфейс, проверка входа, общий rate limit, Gemini и
+   same-origin `POST /api/analyze`.
+2. FastAPI в Docker: загруженная ML-модель и защищённый `POST /predict`.
 
-Браузер обращается только к Next.js. Адрес ML-сервиса и ключ Gemini остаются серверными переменными.
+Браузер никогда не обращается к FastAPI или Gemini напрямую. `ML_API_URL`, JWT,
+Redis token и Gemini key остаются только на сервере.
 
-## 1. ML-сервис
+## 1. Production-секреты
 
-Соберите контейнер из каталога `ml`:
+Создайте два независимых случайных значения длиной не менее 32 байт:
+
+- `ML_API_JWT_SECRET` — одинаковое значение на Vercel и ML-хосте;
+- `RATE_LIMIT_HASH_SECRET` — только на Vercel, для необратимого хеширования IP в
+  ключах rate limit.
+
+Пример генерации через OpenSSL:
 
 ```bash
-docker build -t rufact-ml ./ml
-docker run --rm -p 8000:8000 rufact-ml
+openssl rand -base64 48
 ```
 
-Платформа контейнерного хостинга должна запускать порт из команды Dockerfile и иметь достаточно памяти для загрузки `artifacts/model.joblib`.
+Не коммитьте значения и не добавляйте к ним префикс `NEXT_PUBLIC_`. Production
+секреты не должны совпадать с development/CI значениями или значениями, которые
+когда-либо публиковались.
 
-Проверки после запуска:
+## 2. ML-сервис в Docker
+
+Docker Desktop должен быть запущен. Сборка из корня репозитория:
+
+```bash
+docker build --pull -t rufact-ml:2 ./ml
+```
+
+Для локального production-smoke создайте игнорируемый `.env.production.local`:
+
+```dotenv
+ML_API_JWT_SECRET=GENERATED_SHARED_SECRET
+RUFACT_ALLOWED_HOSTS=localhost,127.0.0.1
+RUFACT_MAX_CONCURRENT_PREDICTIONS=4
+RUFACT_API_DOCS_ENABLED=false
+```
+
+Запуск:
+
+```bash
+docker run --rm --env-file .env.production.local -p 8000:8000 rufact-ml:2
+```
+
+Образ:
+
+- запускается непривилегированным пользователем `rufact`;
+- проверяет SHA-256 артефакта модели;
+- использует `PORT`, если хостинг задаёт его;
+- содержит Docker `HEALTHCHECK`;
+- не устанавливает dev-зависимости;
+- отключает Uvicorn server banner и production OpenAPI;
+- ограничивает параллельные предсказания.
+
+На контейнерном хостинге задайте:
+
+```dotenv
+ML_API_JWT_SECRET=THE_SAME_SHARED_SECRET_AS_VERCEL
+RUFACT_ENV=production
+RUFACT_ALLOWED_HOSTS=YOUR-ML-HOST
+RUFACT_API_DOCS_ENABLED=false
+RUFACT_MAX_CONCURRENT_PREDICTIONS=4
+```
+
+Проверка готовности не требует JWT:
 
 ```bash
 curl https://YOUR-ML-HOST/health
 curl https://YOUR-ML-HOST/model-info
 ```
 
-Ожидается `ready: true` и версия `tfidf-logreg-ru-v1`. Endpoint `/predict` не должен публиковать ключи или внутренние трассировки ошибок.
+Ожидаются `ready: true` и `tfidf-word-char-logreg-ru-v2`. `/predict` без
+авторизации должен вернуть `401`; если JWT-секрет на ML-хосте отсутствует — `503`.
 
-## 2. Next.js на Vercel
+## 3. Общий rate limit
 
-Подключите GitHub-репозиторий как Next.js-проект. Для preview и production задайте серверные переменные:
+Публичный rate limit отвечает на вопрос: «сколько дорогих анализов один клиент
+может запустить за короткое время?». Без него бот может исчерпать Gemini quota,
+загрузить CPU модели и сделать сервис недоступным другим пользователям.
+
+RuFact допускает по умолчанию 10 запросов за 60 секунд на хешированный IP. В
+production Next.js требует общий Upstash Redis. Локальная память используется
+только в development, потому что разные serverless-инстансы не разделяют её.
+
+Создайте Redis в Upstash по
+[официальной инструкции](https://upstash.com/docs/redis/sdks/ratelimit-ts/overview)
+и добавьте на Vercel:
+
+```dotenv
+UPSTASH_REDIS_REST_URL=https://YOUR-DATABASE.upstash.io
+UPSTASH_REDIS_REST_TOKEN=SERVER_ONLY_STANDARD_TOKEN
+RATE_LIMIT_HASH_SECRET=SEPARATE_GENERATED_SECRET
+RATE_LIMIT_MAX_REQUESTS=10
+RATE_LIMIT_WINDOW_SECONDS=60
+```
+
+При превышении лимита API возвращает `429` и `Retry-After`. Если production Redis
+или hash secret отсутствует/недоступен, API закрывается с `503`: дорогостоящий
+анализ не выполняется без защиты.
+
+## 4. Next.js на Vercel
+
+Подключите GitHub-репозиторий как Next.js-проект и задайте переменные отдельно для
+Preview и Production:
 
 ```dotenv
 ML_API_URL=https://YOUR-ML-HOST/predict
-GEMINI_REVIEW_ENABLED=true
-GEMINI_API_KEY=NEW_SERVER_ONLY_KEY
+ML_API_JWT_SECRET=THE_SAME_SHARED_SECRET_AS_ML_HOST
+UPSTASH_REDIS_REST_URL=https://YOUR-DATABASE.upstash.io
+UPSTASH_REDIS_REST_TOKEN=SERVER_ONLY_STANDARD_TOKEN
+RATE_LIMIT_HASH_SECRET=SEPARATE_GENERATED_SECRET
+RATE_LIMIT_MAX_REQUESTS=10
+RATE_LIMIT_WINDOW_SECONDS=60
+GEMINI_REVIEW_ENABLED=false
+GEMINI_API_KEY=
 GEMINI_MODEL=gemini-3.5-flash-lite
 ```
 
-- Не добавляйте префикс `NEXT_PUBLIC_` к этим переменным.
-- Не переносите `.env.local` в репозиторий или настройки сборки как файл.
-- Для production используйте новый ключ, ограниченный только нужным API и проектом.
-- Если Gemini не нужен, задайте `GEMINI_REVIEW_ENABLED=false` и не добавляйте ключ.
+Если Gemini включается, задайте новый server-only key и выполните
+`npm run check:gemini` локально. Ключ не должен попадать в browser bundle, логи или
+Git. `ML_API_URL` в production обязан быть HTTPS.
 
-Каждый push в ветку создаёт preview при включённой Git-интеграции Vercel. После проверки preview можно продвигать без повторной сборки:
+Каждый push создаёт Preview при включённой Git-интеграции. Проверенный Preview
+можно продвинуть без повторной сборки:
 
 ```bash
 vercel promote DEPLOYMENT_URL
 ```
 
-Откат:
+## 5. Дополнительный Vercel Firewall
+
+Встроенный Redis limiter является обязательной прикладной защитой.
+[Vercel Firewall](https://vercel.com/docs/vercel-firewall)
+может раньше отсекать массовый трафик и не расходовать function invocations.
+Разворачивайте правило постепенно: сначала только логирование, затем Preview, затем
+production после проверки реального трафика.
+
+Пример первого безопасного шага для связанного Vercel-проекта:
 
 ```bash
-vercel rollback
+vercel firewall rules add "Observe analyze traffic" \
+  --condition '{"type":"path","op":"eq","value":"/api/analyze"}' \
+  --condition '{"type":"method","op":"eq","value":"POST"}' \
+  --action log --yes
+vercel firewall diff
 ```
 
-## 3. Проверка перед публикацией
+Публикация firewall draft — отдельное production-действие владельца проекта:
+
+```bash
+vercel firewall publish --yes
+```
+
+Не переключайте правило сразу на deny/rate-limit без периода наблюдения: общие IP
+мобильных операторов и организаций могут объединять много нормальных пользователей.
+Автоматическая DDoS-защита Vercel остаётся включённой.
+
+## 6. Проверка перед публикацией
 
 ```bash
 npm ci
@@ -63,32 +171,54 @@ uv sync --project ml --frozen
 npm run check
 npx playwright install chromium
 npm run test:e2e
-npm run check:gemini
+docker build --pull -t rufact-ml:2 ./ml
 ```
 
-Последняя команда делает реальный запрос и расходует квоту. Она нужна только при настроенном Gemini; CI использует подставной `fetch` и не получает секрет.
+`npm run check:gemini` добавьте только при включённом Gemini: команда выполняет
+реальный запрос и расходует quota.
 
-Ручной smoke-тест:
+Полный smoke-test:
 
-1. Открыть главную страницу на desktop и телефоне.
-2. Выбрать пример «Новость» и получить ответ основной ML-модели.
-3. Отдельно включить Gemini и убедиться, что появились утверждения или понятное сообщение о недоступности.
-4. Проверить скачивание отчёта, мобильное меню, FAQ и страницу `/model`.
-5. Убедиться, что DevTools не показывает `GEMINI_API_KEY`, `ML_API_URL` или необработанные ошибки провайдеров.
+1. `/health` ML-хоста показывает `ready: true` и модель v2.
+2. `/predict` без JWT отвечает `401`.
+3. Desktop и mobile выполняют анализ через `/api/analyze`.
+4. Одиннадцатый быстрый запрос одного клиента получает `429` при лимите `10/60s`.
+5. Ответы страниц содержат CSP, HSTS, `X-Content-Type-Options: nosniff` и
+   `X-Frame-Options: DENY`.
+6. DevTools не показывает JWT secret, Redis token, Gemini key или `ML_API_URL`.
+7. `/model` показывает внешнюю accuracy 80,89%, а не confidence отдельного ответа.
+8. Ошибки внешних сервисов не содержат stack trace или provider response body.
 
-## 4. Эксплуатационные ограничения
+## 7. Наблюдаемость и откат
 
-- Встроенная история хранится только в браузере пользователя.
-- Gemini вызывается только после явного включения для текущего текста.
-- Автоматический Google Search grounding не используется; ссылки поиска открываются только пользователем.
-- Для публичной нагрузки добавьте общий rate limit перед Gemini через выбранное внешнее хранилище. Локальный in-memory limiter не подходит для нескольких serverless-инстансов.
-- Следите отдельно за доступностью `/health`, ошибками `/api/analyze`, задержкой Gemini и расходом квоты.
+Минимально отслеживайте:
 
-## 5. Критерии готовности
+- доступность и latency `/health`;
+- долю `429`, `502` и `503` на `/api/analyze`;
+- latency FastAPI и Gemini;
+- CPU/RAM контейнера и Gemini quota;
+- ошибки JWT-конфигурации без записи самого токена.
 
-- CI зелёный на commit, который разворачивается.
-- ML `/health` возвращает `ready: true`.
-- `ML_API_URL` указывает на HTTPS endpoint `/predict`.
-- Gemini выключен или реальный health-check успешен.
-- В репозитории и browser bundle нет ключей.
-- На странице модели остаётся честная внешняя accuracy 71,97%; её не заменяет уверенность отдельного ответа.
+Откат Vercel:
+
+```bash
+vercel rollback
+```
+
+Для ML держите предыдущий immutable image tag и переключайте deployment на него.
+JWT-секреты меняйте согласованно: сначала временно поддержите окно развёртывания или
+переключите оба сервиса атомарно, иначе все предсказания будут отклоняться.
+
+## 8. Критерии готовности
+
+- CI зелёный на разворачиваемом commit.
+- Docker image собирается и становится `healthy` непривилегированным пользователем.
+- Runtime dependency audit не находит известных уязвимостей.
+- ML доступен только по HTTPS, `/predict` требует JWT.
+- Upstash и hash secret настроены в Preview и Production.
+- Gemini выключен или его live health-check успешен.
+- В Git и browser bundle нет секретов.
+- Preview прошёл desktop/mobile smoke-test.
+- На `/model` честно указаны 80,89% и ограничения выборки.
+
+Подробная модель угроз находится в [`SECURITY.md`](SECURITY.md).
