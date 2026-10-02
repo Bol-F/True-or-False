@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: rufact-ml-api
+    runtime: docker
+    plan: free
+    region: frankfurt
+    branch: main
+    dockerfilePath: ./ml/Dockerfile
+    dockerContext: ./ml
+    healthCheckPath: /health
+    autoDeployTrigger: checksPass
+    envVars:
+      - key: ML_API_JWT_SECRET
+        sync: false
+      - key: RUFACT_ENV
+        value: production
+      - key: RUFACT_ALLOWED_HOSTS
+        fromService:
+          type: web
+          name: rufact-ml-api
+          envVarKey: RENDER_EXTERNAL_HOSTNAME
+      - key: RUFACT_API_DOCS_ENABLED
+        value: "false"
+      - key: RUFACT_MAX_CONCURRENT_PREDICTIONS
+        value: "2"

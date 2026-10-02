@@ -29,6 +29,11 @@ openssl rand -base64 48
 
 ## 2. ML-сервис в Docker
 
+Репозиторий содержит [`render.yaml`](../render.yaml). Blueprint создаёт Docker-сервис
+на бесплатном плане Render во Франкфурте, проверяет `/health` и запускает
+автодеплой только после успешных GitHub Checks. При создании Blueprint укажите
+`ML_API_JWT_SECRET`; это же значение нужно добавить в Vercel.
+
 Docker Desktop должен быть запущен. Сборка из корня репозитория:
 
 ```bash
