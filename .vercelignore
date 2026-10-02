@@ -1,0 +1,13 @@
+# The production frontend is deployed separately from the Render ML service.
+ml/
+
+# Development, test, and provider-local files are not needed at runtime.
+.agents/
+.github/
+design/
+docs/
+scripts/
+tests/
+playwright.config.ts
+render.yaml
+skills-lock.json
