@@ -1,8 +1,12 @@
 # The production frontend is deployed separately from the Render ML service.
-ml/*
-!ml/artifacts/
-ml/artifacts/*
-!ml/artifacts/metrics.json
+ml/.ruff_cache/
+ml/.venv/
+ml/__pycache__/
+ml/data/
+ml/src/
+ml/tests/
+ml/artifacts/artifact-manifest.json
+ml/artifacts/model.joblib
 
 # Development, test, and provider-local files are not needed at runtime.
 .agents/
