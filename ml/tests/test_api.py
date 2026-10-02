@@ -1,6 +1,58 @@
+import base64
+import hashlib
+import hmac
+import json
+import time
+import uuid
+
+import pytest
 from fastapi.testclient import TestClient
 
 from rufact_ml.main import app
+
+TEST_JWT_SECRET = "test-only-service-secret-with-at-least-32-bytes"
+
+
+@pytest.fixture(autouse=True)
+def service_secret(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("ML_API_JWT_SECRET", TEST_JWT_SECRET)
+
+
+def _encode_json(value: dict[str, object]) -> str:
+    raw = json.dumps(value, separators=(",", ":")).encode()
+    return base64.urlsafe_b64encode(raw).rstrip(b"=").decode()
+
+
+def _authorized_request(payload: dict[str, str], secret: str = TEST_JWT_SECRET):
+    body = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode()
+    now = int(time.time())
+    request_id = str(uuid.uuid4())
+    header = _encode_json({"alg": "HS256", "typ": "JWT"})
+    claims = _encode_json(
+        {
+            "iss": "rufact-web",
+            "aud": "rufact-ml",
+            "sub": "/predict",
+            "iat": now,
+            "exp": now + 30,
+            "jti": request_id,
+            "bodySha256": hashlib.sha256(body).hexdigest(),
+        }
+    )
+    unsigned = f"{header}.{claims}"
+    signature = base64.urlsafe_b64encode(
+        hmac.new(secret.encode(), unsigned.encode(), hashlib.sha256).digest()
+    ).rstrip(b"=").decode()
+    return body, {
+        "Authorization": f"Bearer {unsigned}.{signature}",
+        "Content-Type": "application/json",
+        "X-Request-ID": request_id,
+    }
+
+
+def _post_prediction(client: TestClient, text: str):
+    body, headers = _authorized_request({"text": text})
+    return client.post("/predict", content=body, headers=headers)
 
 
 def test_health_and_prediction_contract() -> None:
@@ -13,10 +65,7 @@ def test_health_and_prediction_contract() -> None:
         assert health.status_code == 200
         assert health.json()["ready"] is True
 
-        response = client.post(
-            "/predict",
-            json={"text": analyzed_text},
-        )
+        response = _post_prediction(client, analyzed_text)
         assert response.status_code == 200
         payload = response.json()
         assert payload["label"] in {"REAL", "FAKE"}
@@ -33,8 +82,30 @@ def test_health_and_prediction_contract() -> None:
 
 def test_prediction_validation() -> None:
     with TestClient(app) as client:
-        assert client.post("/predict", json={"text": "   "}).status_code == 422
-        assert client.post("/predict", json={"text": "а" * 5001}).status_code == 422
+        assert _post_prediction(client, "   ").status_code == 422
+        assert _post_prediction(client, "а" * 5001).status_code == 422
+
+
+def test_prediction_requires_valid_body_bound_jwt() -> None:
+    with TestClient(app) as client:
+        assert client.post("/predict", json={"text": "Тест"}).status_code == 401
+
+        body, headers = _authorized_request({"text": "Исходный текст"})
+        tampered = json.dumps(
+            {"text": "Изменённый текст"}, ensure_ascii=False, separators=(",", ":")
+        ).encode()
+        assert body != tampered
+        assert client.post("/predict", content=tampered, headers=headers).status_code == 401
+
+
+def test_prediction_rejects_oversized_declared_body() -> None:
+    with TestClient(app) as client:
+        response = client.post(
+            "/predict",
+            content=b"{}",
+            headers={"Content-Length": "24001"},
+        )
+        assert response.status_code == 413
 
 
 def test_model_info_exposes_measured_quality() -> None:

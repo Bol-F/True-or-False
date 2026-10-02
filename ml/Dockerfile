@@ -1,17 +1,30 @@
 FROM python:3.12-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    RUFACT_ENV=production \
+    RUFACT_MODEL_PATH=/app/artifacts/model.joblib \
+    PATH="/app/.venv/bin:$PATH"
 
 WORKDIR /app
 
 COPY pyproject.toml uv.lock README.md ./
-COPY src ./src
-COPY artifacts ./artifacts
 
 RUN pip install --no-cache-dir uv \
-    && uv sync --frozen --no-dev
+    && uv sync --frozen --no-dev --no-install-project \
+    && groupadd --system rufact \
+    && useradd --system --gid rufact --home-dir /app --no-create-home rufact
+
+COPY --chown=rufact:rufact src ./src
+COPY --chown=rufact:rufact artifacts ./artifacts
+
+RUN uv sync --frozen --no-dev --no-editable
 
 EXPOSE 8000
 
-CMD ["uv", "run", "--no-sync", "uvicorn", "rufact_ml.main:app", "--host", "0.0.0.0", "--port", "8000"]
+USER rufact
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=20s --retries=3 \
+  CMD ["python", "-c", "import os, urllib.request; urllib.request.urlopen(f\"http://127.0.0.1:{os.getenv('PORT', '8000')}/health\", timeout=2).read()"]
+
+CMD ["sh", "-c", "exec uvicorn rufact_ml.main:app --host 0.0.0.0 --port ${PORT:-8000} --no-server-header"]

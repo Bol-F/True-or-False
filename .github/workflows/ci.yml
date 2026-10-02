@@ -11,6 +11,7 @@ jobs:
     timeout-minutes: 20
     env:
       ML_API_URL: http://127.0.0.1:8000/predict
+      ML_API_JWT_SECRET: ci-only-service-secret-with-at-least-32-bytes
       GEMINI_REVIEW_ENABLED: "false"
 
     steps:

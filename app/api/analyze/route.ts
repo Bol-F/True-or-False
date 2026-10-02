@@ -10,6 +10,11 @@ import type {
   GeminiReviewUnavailable,
 } from "@/lib/gemini-review";
 import { getGeminiAssessment } from "@/lib/server/gemini-review";
+import { createMlServiceAuthorization } from "@/lib/server/ml-service-auth";
+import {
+  rateLimitAnalysisRequest,
+  rateLimitHeaders,
+} from "@/lib/server/rate-limit";
 
 const MAX_TEXT_LENGTH = 5_000;
 const MAX_BODY_BYTES = 24_000;
@@ -31,10 +36,14 @@ type MlFailure = {
 const wait = (milliseconds: number) =>
   new Promise<void>((resolve) => setTimeout(resolve, milliseconds));
 
-function jsonResponse(payload: unknown, status = 200) {
+function jsonResponse(
+  payload: unknown,
+  status = 200,
+  additionalHeaders?: HeadersInit,
+) {
   return NextResponse.json(payload, {
     status,
-    headers: NO_STORE_HEADERS,
+    headers: { ...NO_STORE_HEADERS, ...Object.fromEntries(new Headers(additionalHeaders)) },
   });
 }
 
@@ -89,12 +98,29 @@ async function requestMlPrediction(
 ): Promise<MlSuccess | MlFailure> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), ML_TIMEOUT_MS);
+  const requestBody = JSON.stringify({ text });
+
+  let authorization: ReturnType<typeof createMlServiceAuthorization>;
+  try {
+    authorization = createMlServiceAuthorization(requestBody);
+  } catch {
+    clearTimeout(timeoutId);
+    return {
+      ok: false,
+      status: 503,
+      message: "ML-сервис не настроен безопасным образом.",
+    };
+  }
 
   try {
     const response = await fetch(endpoint, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text }),
+      headers: {
+        Authorization: `Bearer ${authorization.token}`,
+        "Content-Type": "application/json",
+        "X-Request-ID": authorization.requestId,
+      },
+      body: requestBody,
       cache: "no-store",
       signal: controller.signal,
     });
@@ -149,6 +175,28 @@ function attachAgreement(
 export async function POST(request: Request) {
   if (!isSameOriginRequest(request)) {
     return jsonResponse({ error: "Запрос отклонён." }, 403);
+  }
+
+  const rateLimit = await rateLimitAnalysisRequest(request);
+  if (!rateLimit.configured) {
+    return jsonResponse(
+      { error: "Защита от перегрузки временно недоступна." },
+      503,
+    );
+  }
+  if (!rateLimit.allowed) {
+    const retryAfter = Math.max(
+      1,
+      Math.ceil((rateLimit.reset - Date.now()) / 1_000),
+    );
+    return jsonResponse(
+      { error: "Слишком много запросов. Попробуйте немного позже." },
+      429,
+      {
+        ...rateLimitHeaders(rateLimit),
+        "Retry-After": String(retryAfter),
+      },
+    );
   }
 
   const contentType =
