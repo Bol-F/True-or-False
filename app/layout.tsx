@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Caveat, Lora, Manrope } from "next/font/google";
 import { FeedbackProvider } from "@/components/FeedbackProvider";
 import "./globals.css";
@@ -22,9 +22,23 @@ const caveat = Caveat({
 });
 
 export const metadata: Metadata = {
+  applicationName: "RuFact",
   title: "RuFact — проверка русскоязычных текстов",
   description:
     "Образовательный сервис для вероятностной оценки признаков недостоверной информации в русскоязычных текстах.",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "RuFact",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+};
+
+export const viewport: Viewport = {
+  colorScheme: "light",
+  themeColor: "#0b2b4b",
 };
 
 export default function RootLayout({

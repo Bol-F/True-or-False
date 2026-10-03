@@ -49,6 +49,48 @@ test("hero artwork loads from the public asset", async ({ page }, testInfo) => {
   expect(consoleErrors).toEqual([]);
 });
 
+test("publishes an Android-installable web app manifest", async ({ page }, testInfo) => {
+  test.skip(!testInfo.project.name.startsWith("mobile"), "Mobile installability check");
+
+  await page.goto("/");
+
+  const manifestHref = await page.locator('link[rel="manifest"]').getAttribute("href");
+  expect(manifestHref).toBeTruthy();
+  await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute(
+    "content",
+    "#0b2b4b",
+  );
+
+  const manifestUrl = new URL(manifestHref!, page.url()).toString();
+  const manifestResponse = await page.request.get(manifestUrl);
+  expect(manifestResponse.ok()).toBe(true);
+  expect(manifestResponse.headers()["content-type"]).toContain("application/manifest+json");
+
+  const manifest = (await manifestResponse.json()) as {
+    name?: string;
+    short_name?: string;
+    start_url?: string;
+    scope?: string;
+    display?: string;
+    icons?: Array<{ src: string; sizes?: string; type?: string }>;
+  };
+
+  expect(manifest.name).toContain("RuFact");
+  expect(manifest.short_name).toBe("RuFact");
+  expect(manifest.start_url).toBe("/");
+  expect(manifest.scope).toBe("/");
+  expect(manifest.display).toBe("standalone");
+  expect(manifest.icons?.map((icon) => icon.sizes)).toEqual(
+    expect.arrayContaining(["192x192", "512x512"]),
+  );
+
+  for (const icon of manifest.icons ?? []) {
+    const iconResponse = await page.request.get(new URL(icon.src, page.url()).toString());
+    expect(iconResponse.ok()).toBe(true);
+    expect(iconResponse.headers()["content-type"]).toContain("image/png");
+  }
+});
+
 test("desktop analysis workflow and guidance", async ({ page }, testInfo) => {
   const consoleErrors: string[] = [];
   page.on("console", (message) => {
