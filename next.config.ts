@@ -44,6 +44,12 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  images: {
+    // The current Vercel deployment does not expose /_next/image.
+    // Serve the already-local public assets directly instead of generating
+    // URLs that resolve to the deployment's 404 page.
+    unoptimized: true,
+  },
   async headers() {
     return [
       {

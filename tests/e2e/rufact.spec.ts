@@ -2,6 +2,53 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { expect, test } from "@playwright/test";
 
+test("hero artwork loads from the public asset", async ({ page }, testInfo) => {
+  const failedArtworkResponses: string[] = [];
+  const consoleErrors: string[] = [];
+
+  page.on("response", (response) => {
+    if (response.url().includes("hero-collage") && !response.ok()) {
+      failedArtworkResponses.push(`${response.status()} ${response.url()}`);
+    }
+  });
+  page.on("console", (message) => {
+    if (message.type() === "error") consoleErrors.push(message.text());
+  });
+
+  await page.goto("/");
+
+  await expect(page).toHaveTitle(/RuFact/u);
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  const frameworkPortal = page.locator("nextjs-portal");
+  const frameworkOverlayText = (await frameworkPortal.count())
+    ? await frameworkPortal.evaluate((portal) => portal.shadowRoot?.textContent ?? "")
+    : "";
+  expect(frameworkOverlayText).not.toMatch(/Build Error|Runtime Error/u);
+
+  const heroArtwork = page.locator('img[src="/hero-collage.png"]').first();
+  await expect(heroArtwork).toBeVisible();
+  await expect
+    .poll(() =>
+      heroArtwork.evaluate(
+        (image) => {
+          const artwork = image as HTMLImageElement;
+          return artwork.complete && artwork.naturalWidth > 0 && artwork.naturalHeight > 0;
+        },
+      ),
+    )
+    .toBe(true);
+
+  if (process.env.CAPTURE_QA === "1") {
+    await page.screenshot({
+      path: join(tmpdir(), `rufact-hero-${testInfo.project.name}.png`),
+      fullPage: false,
+    });
+  }
+
+  expect(failedArtworkResponses).toEqual([]);
+  expect(consoleErrors).toEqual([]);
+});
+
 test("desktop analysis workflow and guidance", async ({ page }, testInfo) => {
   const consoleErrors: string[] = [];
   page.on("console", (message) => {
