@@ -11,6 +11,8 @@ ml/artifacts/model.joblib
 # Development, test, and provider-local files are not needed at runtime.
 .agents/
 .github/
+.pytest_cache/
+.ruff_cache/
 design/
 docs/
 scripts/
