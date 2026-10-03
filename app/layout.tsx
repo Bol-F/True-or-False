@@ -22,9 +22,36 @@ const caveat = Caveat({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://rufact.vercel.app"),
   title: "RuFact — проверка русскоязычных текстов",
   description:
     "Образовательный сервис для вероятностной оценки признаков недостоверной информации в русскоязычных текстах.",
+  applicationName: "RuFact",
+  alternates: {
+    canonical: "/",
+  },
+  keywords: [
+    "проверка фактов",
+    "анализ текста",
+    "недостоверная информация",
+    "русский язык",
+    "машинное обучение",
+  ],
+  openGraph: {
+    type: "website",
+    locale: "ru_RU",
+    url: "/",
+    siteName: "RuFact",
+    title: "RuFact — проверяйте факты осознанно",
+    description:
+      "ML-анализ русскоязычных текстов: вероятность недостоверности, ключевые признаки и второе мнение Gemini.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "RuFact — проверяйте факты осознанно",
+    description:
+      "Вероятностная оценка русскоязычных текстов с понятным объяснением результата.",
+  },
 };
 
 export default function RootLayout({
