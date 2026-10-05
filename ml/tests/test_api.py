@@ -1,3 +1,4 @@
+import asyncio
 import base64
 import hashlib
 import hmac
@@ -96,6 +97,22 @@ def test_prediction_requires_valid_body_bound_jwt() -> None:
         ).encode()
         assert body != tampered
         assert client.post("/predict", content=tampered, headers=headers).status_code == 401
+
+
+def test_prediction_rejects_replayed_jwt() -> None:
+    with TestClient(app) as client:
+        body, headers = _authorized_request({"text": "Проверяем повтор токена"})
+        assert client.post("/predict", content=body, headers=headers).status_code == 200
+        assert client.post("/predict", content=body, headers=headers).status_code == 401
+
+
+def test_prediction_rejects_when_capacity_is_exhausted() -> None:
+    with TestClient(app) as client:
+        client.app.state.predict_semaphore = asyncio.Semaphore(0)
+        client.app.state.prediction_queue_timeout_seconds = 0.01
+        response = _post_prediction(client, "Проверяем перегрузку сервиса")
+        assert response.status_code == 503
+        assert response.headers["retry-after"] == "1"
 
 
 def test_prediction_rejects_oversized_declared_body() -> None:

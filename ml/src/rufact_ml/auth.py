@@ -16,6 +16,7 @@ JWT_SUBJECT = "/predict"
 MAX_TOKEN_LIFETIME_SECONDS = 60
 CLOCK_SKEW_SECONDS = 5
 MIN_SECRET_BYTES = 32
+MAX_BODY_BYTES = 24_000
 
 
 def _unauthorized() -> HTTPException:
@@ -93,9 +94,23 @@ async def require_service_jwt(request: Request) -> None:
         raise _unauthorized()
 
     raw_body = await request.body()
+    if len(raw_body) > MAX_BODY_BYTES:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail="Request body is too large.",
+        )
     expected_digest = hashlib.sha256(raw_body).hexdigest()
     body_digest = claims.get("bodySha256")
     if not isinstance(body_digest, str) or not hmac.compare_digest(
         expected_digest, body_digest
     ):
         raise _unauthorized()
+
+    replay_cache: dict[str, int] = request.app.state.jwt_replay_cache
+    async with request.app.state.jwt_replay_lock:
+        expired = [key for key, expiry in replay_cache.items() if expiry <= now]
+        for key in expired:
+            replay_cache.pop(key, None)
+        if request_id in replay_cache:
+            raise _unauthorized()
+        replay_cache[request_id] = expires_at + CLOCK_SKEW_SECONDS

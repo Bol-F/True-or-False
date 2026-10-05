@@ -9,12 +9,17 @@ import type {
   GeminiReview,
   GeminiReviewUnavailable,
 } from "@/lib/gemini-review";
-import { getGeminiAssessment } from "@/lib/server/gemini-review";
+import {
+  getGeminiAssessment,
+  isGeminiReviewConfigured,
+} from "@/lib/server/gemini-review";
 import { createMlServiceAuthorization } from "@/lib/server/ml-service-auth";
 import {
   rateLimitAnalysisRequest,
   rateLimitHeaders,
+  rateLimitInternetRequest,
 } from "@/lib/server/rate-limit";
+import { createAbortScope } from "@/lib/server/abort-scope";
 
 const MAX_TEXT_LENGTH = 5_000;
 const MAX_BODY_BYTES = 24_000;
@@ -97,16 +102,16 @@ function isAnalysisPayload(value: unknown): value is AnalysisResponse {
 async function requestMlPrediction(
   endpoint: string,
   text: string,
+  requestSignal?: AbortSignal,
 ): Promise<MlSuccess | MlFailure> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), ML_TIMEOUT_MS);
+  const abortScope = createAbortScope(requestSignal, ML_TIMEOUT_MS);
   const requestBody = JSON.stringify({ text });
 
   let authorization: ReturnType<typeof createMlServiceAuthorization>;
   try {
     authorization = createMlServiceAuthorization(requestBody);
   } catch {
-    clearTimeout(timeoutId);
+    abortScope.cleanup();
     return {
       ok: false,
       status: 503,
@@ -124,7 +129,7 @@ async function requestMlPrediction(
       },
       body: requestBody,
       cache: "no-store",
-      signal: controller.signal,
+      signal: abortScope.signal,
     });
 
     if (!response.ok) {
@@ -153,8 +158,23 @@ async function requestMlPrediction(
         "ML-сервис временно недоступен. Проверьте его состояние и повторите запрос.",
     };
   } finally {
-    clearTimeout(timeoutId);
+    abortScope.cleanup();
   }
+}
+
+async function getRateLimitedGeminiAssessment(
+  request: Request,
+  text: string,
+) {
+  if (!isGeminiReviewConfigured()) {
+    return getGeminiAssessment(text, request.signal);
+  }
+
+  const sourceLimit = await rateLimitInternetRequest(request);
+  if (!sourceLimit.configured) return unavailable("search-error");
+  if (!sourceLimit.allowed) return unavailable("search-rate-limited");
+
+  return getGeminiAssessment(text, request.signal);
 }
 
 function attachAgreement(
@@ -278,13 +298,13 @@ export async function POST(request: Request) {
   }
 
   const geminiPromise = useGemini
-    ? getGeminiAssessment(normalizedText).catch(() =>
+    ? getRateLimitedGeminiAssessment(request, normalizedText).catch(() =>
         unavailable("upstream-error"),
       )
     : Promise.resolve(null);
 
   const [mlResult, geminiAssessment] = await Promise.all([
-    requestMlPrediction(mlEndpoint, normalizedText),
+    requestMlPrediction(mlEndpoint, normalizedText, request.signal),
     geminiPromise,
   ]);
 

@@ -10,6 +10,7 @@ const eslintConfig = [
       "node_modules/**",
       "out/**",
       "build/**",
+      ".pytest_cache/**",
       "ml/.venv/**",
       "ml/.pytest_cache/**",
       "ml/.ruff_cache/**",

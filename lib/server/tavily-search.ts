@@ -1,4 +1,5 @@
 import type { GeminiSource } from "../gemini-review";
+import { createAbortScope } from "./abort-scope.ts";
 
 const TAVILY_SEARCH_ENDPOINT = "https://api.tavily.com/search";
 const DEFAULT_TIMEOUT_MS = 8_000;
@@ -37,6 +38,7 @@ interface TavilyRequest {
   apiKey: string;
   timeoutMs?: number;
   fetchImpl?: FetchImplementation;
+  signal?: AbortSignal;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -103,9 +105,9 @@ export async function requestTavilyEvidence({
   apiKey,
   timeoutMs = DEFAULT_TIMEOUT_MS,
   fetchImpl = fetch,
+  signal,
 }: TavilyRequest): Promise<TavilySearchResult> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), Math.max(1, timeoutMs));
+  const abortScope = createAbortScope(signal, timeoutMs);
 
   try {
     const response = await fetchImpl(TAVILY_SEARCH_ENDPOINT, {
@@ -130,7 +132,7 @@ export async function requestTavilyEvidence({
         safe_search: true,
       }),
       cache: "no-store",
-      signal: controller.signal,
+      signal: abortScope.signal,
     });
 
     if ([429, 432, 433].includes(response.status)) {
@@ -162,6 +164,6 @@ export async function requestTavilyEvidence({
   } catch {
     return { ok: false, reason: "search-error" };
   } finally {
-    clearTimeout(timeoutId);
+    abortScope.cleanup();
   }
 }

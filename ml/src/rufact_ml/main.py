@@ -7,7 +7,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from dotenv import load_dotenv
-from fastapi import Depends, FastAPI, Request
+from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.responses import JSONResponse
 from starlette.concurrency import run_in_threadpool
 from starlette.middleware.trustedhost import TrustedHostMiddleware
@@ -40,6 +40,11 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     app.state.predict_semaphore = asyncio.Semaphore(
         _positive_int("RUFACT_MAX_CONCURRENT_PREDICTIONS", 4)
     )
+    app.state.prediction_queue_timeout_seconds = (
+        _positive_int("RUFACT_PREDICTION_QUEUE_TIMEOUT_MS", 500) / 1000
+    )
+    app.state.jwt_replay_cache = {}
+    app.state.jwt_replay_lock = asyncio.Lock()
     yield
     app.state.model = None
 
@@ -111,5 +116,20 @@ async def model_info(request: Request) -> ModelInfoResponse:
     dependencies=[Depends(require_service_jwt)],
 )
 async def predict(payload: PredictionRequest, request: Request) -> PredictionResponse:
-    async with request.app.state.predict_semaphore:
+    semaphore = request.app.state.predict_semaphore
+    try:
+        await asyncio.wait_for(
+            semaphore.acquire(),
+            timeout=request.app.state.prediction_queue_timeout_seconds,
+        )
+    except TimeoutError as error:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Prediction capacity is temporarily exhausted.",
+            headers={"Retry-After": "1"},
+        ) from error
+
+    try:
         return await run_in_threadpool(_model(request).predict, payload.text)
+    finally:
+        semaphore.release()

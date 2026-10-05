@@ -5,7 +5,15 @@ import { Redis } from "@upstash/redis";
 
 const DEFAULT_LIMIT = 10;
 const DEFAULT_WINDOW_SECONDS = 60;
-const RATE_LIMIT_PREFIX = "rufact:analyze";
+const DEFAULT_EXTRACT_LIMIT = 4;
+const DEFAULT_EXTRACT_WINDOW_SECONDS = 60;
+const DEFAULT_INTERNET_LIMIT = 5;
+const DEFAULT_INTERNET_WINDOW_SECONDS = 300;
+const DEFAULT_INTERNET_DAILY_LIMIT = 30;
+const REDIS_REQUEST_TIMEOUT_MS = 2_500;
+const RATE_LIMIT_TIMEOUT_MS = 3_000;
+
+type RateLimitScope = "analyze" | "extract" | "internet" | "internet-global";
 
 interface MemoryWindow {
   count: number;
@@ -21,14 +29,47 @@ export interface AnalysisRateLimit {
 }
 
 const memoryWindows = new Map<string, MemoryWindow>();
-let distributedLimiter: Ratelimit | null = null;
+const distributedLimiters = new Map<string, Ratelimit>();
 
 function positiveInteger(value: string | undefined, fallback: number) {
   const parsed = Number.parseInt(value ?? "", 10);
   return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : fallback;
 }
 
-function rateLimitSettings() {
+function rateLimitSettings(scope: RateLimitScope) {
+  if (scope === "extract") {
+    return {
+      limit: positiveInteger(
+        process.env.EXTRACT_RATE_LIMIT_MAX_REQUESTS,
+        DEFAULT_EXTRACT_LIMIT,
+      ),
+      windowSeconds: positiveInteger(
+        process.env.EXTRACT_RATE_LIMIT_WINDOW_SECONDS,
+        DEFAULT_EXTRACT_WINDOW_SECONDS,
+      ),
+    };
+  }
+  if (scope === "internet") {
+    return {
+      limit: positiveInteger(
+        process.env.INTERNET_RATE_LIMIT_MAX_REQUESTS,
+        DEFAULT_INTERNET_LIMIT,
+      ),
+      windowSeconds: positiveInteger(
+        process.env.INTERNET_RATE_LIMIT_WINDOW_SECONDS,
+        DEFAULT_INTERNET_WINDOW_SECONDS,
+      ),
+    };
+  }
+  if (scope === "internet-global") {
+    return {
+      limit: positiveInteger(
+        process.env.INTERNET_DAILY_MAX_REQUESTS,
+        DEFAULT_INTERNET_DAILY_LIMIT,
+      ),
+      windowSeconds: 86_400,
+    };
+  }
   return {
     limit: positiveInteger(process.env.RATE_LIMIT_MAX_REQUESTS, DEFAULT_LIMIT),
     windowSeconds: positiveInteger(
@@ -49,8 +90,13 @@ export function redisCredentials(env: NodeJS.ProcessEnv = process.env) {
   return url && token ? { url, token } : null;
 }
 
-function clientAddress(request: Request) {
-  const forwarded = request.headers.get("x-forwarded-for")?.split(",", 1)[0]?.trim();
+export function clientAddress(request: Request) {
+  const forwarded = (
+    request.headers.get("x-vercel-forwarded-for") ??
+    request.headers.get("x-forwarded-for")
+  )
+    ?.split(",", 1)[0]
+    ?.trim();
   return forwarded || request.headers.get("x-real-ip")?.trim() || "local";
 }
 
@@ -96,35 +142,55 @@ export function consumeMemoryLimit(
   };
 }
 
-function getDistributedLimiter(limit: number, windowSeconds: number) {
-  if (distributedLimiter) return distributedLimiter;
+function getDistributedLimiter(
+  scope: RateLimitScope,
+  limit: number,
+  windowSeconds: number,
+) {
+  const namespace =
+    process.env.RATE_LIMIT_NAMESPACE?.trim().replace(/[^a-zA-Z0-9_-]/g, "-").slice(0, 48) ||
+    "rufact";
+  const cacheKey = `${namespace}:${scope}:${limit}:${windowSeconds}`;
+  const existing = distributedLimiters.get(cacheKey);
+  if (existing) return existing;
 
   const credentials = redisCredentials();
   if (!credentials) return null;
 
-  distributedLimiter = new Ratelimit({
-    redis: new Redis(credentials),
-    limiter: Ratelimit.slidingWindow(limit, `${windowSeconds} s`),
-    prefix: RATE_LIMIT_PREFIX,
+  const limiter = new Ratelimit({
+    redis: new Redis({
+      ...credentials,
+      retry: false,
+      signal: () => AbortSignal.timeout(REDIS_REQUEST_TIMEOUT_MS),
+    }),
+    limiter:
+      scope === "internet-global"
+        ? Ratelimit.fixedWindow(limit, `${windowSeconds} s`)
+        : Ratelimit.slidingWindow(limit, `${windowSeconds} s`),
+    prefix: `${namespace}:${scope}`,
     analytics: false,
-    timeout: 1_500,
+    timeout: RATE_LIMIT_TIMEOUT_MS,
   });
-  return distributedLimiter;
+  distributedLimiters.set(cacheKey, limiter);
+  return limiter;
 }
 
-export async function rateLimitAnalysisRequest(
+async function rateLimitRequest(
   request: Request,
+  scope: RateLimitScope,
+  identifierOverride?: string,
 ): Promise<AnalysisRateLimit> {
-  const { limit, windowSeconds } = rateLimitSettings();
-  const identifier = identifierFor(request);
+  const { limit, windowSeconds } = rateLimitSettings(scope);
+  const identifier = identifierOverride ?? identifierFor(request);
   if (!identifier) {
     return { allowed: false, configured: false, limit, remaining: 0, reset: 0 };
   }
 
-  const limiter = getDistributedLimiter(limit, windowSeconds);
+  const scopedIdentifier = `${scope}:${identifier}`;
+  const limiter = getDistributedLimiter(scope, limit, windowSeconds);
   if (limiter) {
     try {
-      const result = await limiter.limit(identifier);
+      const result = await limiter.limit(scopedIdentifier);
       if (result.reason === "timeout") {
         return { allowed: false, configured: false, limit, remaining: 0, reset: 0 };
       }
@@ -144,7 +210,27 @@ export async function rateLimitAnalysisRequest(
     return { allowed: false, configured: false, limit, remaining: 0, reset: 0 };
   }
 
-  return consumeMemoryLimit(identifier, Date.now(), limit, windowSeconds);
+  return consumeMemoryLimit(
+    scopedIdentifier,
+    Date.now(),
+    limit,
+    windowSeconds,
+  );
+}
+
+export function rateLimitAnalysisRequest(request: Request) {
+  return rateLimitRequest(request, "analyze");
+}
+
+export function rateLimitExtractRequest(request: Request) {
+  return rateLimitRequest(request, "extract");
+}
+
+export async function rateLimitInternetRequest(request: Request) {
+  const perClient = await rateLimitRequest(request, "internet");
+  if (!perClient.configured || !perClient.allowed) return perClient;
+
+  return rateLimitRequest(request, "internet-global", "daily-provider-budget");
 }
 
 export function rateLimitHeaders(result: AnalysisRateLimit) {

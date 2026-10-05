@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 import { MAX_DOCUMENT_BYTES } from "@/lib/document-upload";
 import {
-  rateLimitAnalysisRequest,
+  rateLimitExtractRequest,
   rateLimitHeaders,
 } from "@/lib/server/rate-limit";
 
@@ -190,7 +190,7 @@ export async function POST(request: Request) {
     return jsonResponse({ error: "Запрос отклонён." }, 403);
   }
 
-  const rateLimit = await rateLimitAnalysisRequest(request);
+  const rateLimit = await rateLimitExtractRequest(request);
   if (!rateLimit.configured) {
     return jsonResponse(
       { error: "Защита от перегрузки временно недоступна." },

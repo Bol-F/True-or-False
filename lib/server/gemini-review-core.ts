@@ -8,6 +8,7 @@ import type {
   GeminiReviewUnavailable,
 } from "../gemini-review";
 import type { TavilyEvidence } from "./tavily-search";
+import { createAbortScope } from "./abort-scope.ts";
 
 export const DEFAULT_GEMINI_MODEL = "gemini-3.5-flash-lite";
 export const GEMINI_PROMPT_VERSION = "misinfo-tavily-v3" as const;
@@ -43,6 +44,7 @@ interface ReviewRequest {
   evidence: TavilyEvidence;
   timeoutMs?: number;
   fetchImpl?: FetchImplementation;
+  signal?: AbortSignal;
 }
 
 const SYSTEM_INSTRUCTION = [
@@ -341,12 +343,9 @@ export async function requestGeminiAssessment({
   evidence,
   timeoutMs = DEFAULT_TIMEOUT_MS,
   fetchImpl = fetch,
+  signal,
 }: ReviewRequest): Promise<GeminiAssessment> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(
-    () => controller.abort(),
-    Math.max(1, timeoutMs),
-  );
+  const abortScope = createAbortScope(signal, timeoutMs);
 
   try {
     const response = await fetchImpl(
@@ -388,7 +387,7 @@ export async function requestGeminiAssessment({
           },
         }),
         cache: "no-store",
-        signal: controller.signal,
+        signal: abortScope.signal,
       },
     );
 
@@ -441,8 +440,8 @@ export async function requestGeminiAssessment({
 
     return parseAssessment(parsed, model, text, evidence) ?? unavailable("invalid-response");
   } catch {
-    return unavailable(controller.signal.aborted ? "timeout" : "upstream-error");
+    return unavailable(abortScope.signal.aborted ? "timeout" : "upstream-error");
   } finally {
-    clearTimeout(timeoutId);
+    abortScope.cleanup();
   }
 }

@@ -46,6 +46,9 @@ docker build --pull -t rufact-ml:2 ./ml
 ML_API_JWT_SECRET=GENERATED_SHARED_SECRET
 RUFACT_ALLOWED_HOSTS=localhost,127.0.0.1
 RUFACT_MAX_CONCURRENT_PREDICTIONS=4
+RUFACT_PREDICTION_QUEUE_TIMEOUT_MS=500
+RUFACT_UVICORN_LIMIT_CONCURRENCY=16
+RUFACT_UVICORN_BACKLOG=64
 RUFACT_API_DOCS_ENABLED=false
 ```
 
@@ -63,7 +66,7 @@ docker run --rm --env-file .env.production.local -p 8000:8000 rufact-ml:2
 - содержит Docker `HEALTHCHECK`;
 - не устанавливает dev-зависимости;
 - отключает Uvicorn server banner и production OpenAPI;
-- ограничивает параллельные предсказания.
+- ограничивает HTTP concurrency/backlog, параллельные предсказания и время ожидания очереди.
 
 На контейнерном хостинге задайте:
 
@@ -73,6 +76,9 @@ RUFACT_ENV=production
 RUFACT_ALLOWED_HOSTS=YOUR-ML-HOST
 RUFACT_API_DOCS_ENABLED=false
 RUFACT_MAX_CONCURRENT_PREDICTIONS=4
+RUFACT_PREDICTION_QUEUE_TIMEOUT_MS=500
+RUFACT_UVICORN_LIMIT_CONCURRENCY=16
+RUFACT_UVICORN_BACKLOG=64
 ```
 
 Проверка готовности не требует JWT:
@@ -91,7 +97,10 @@ curl https://YOUR-ML-HOST/model-info
 может запустить за короткое время?». Без него бот может исчерпать Gemini quota,
 загрузить CPU модели и сделать сервис недоступным другим пользователям.
 
-RuFact допускает по умолчанию 10 запросов за 60 секунд на хешированный IP. В
+RuFact допускает по умолчанию 10 анализов за 60 секунд, 4 извлечения файла за
+60 секунд и 5 интернет-проверок за 300 секунд на хешированный IP. Дополнительно
+общий бюджет 30 интернет-проверок в день защищает бесплатную provider quota от
+распределённого расходования. В
 production Next.js требует общий Upstash Redis. Локальная память используется
 только в development, потому что разные serverless-инстансы не разделяют её.
 
@@ -108,8 +117,14 @@ production Next.js требует общий Upstash Redis. Локальная �
 UPSTASH_REDIS_REST_URL=https://YOUR-DATABASE.upstash.io
 UPSTASH_REDIS_REST_TOKEN=SERVER_ONLY_STANDARD_TOKEN
 RATE_LIMIT_HASH_SECRET=SEPARATE_GENERATED_SECRET
+RATE_LIMIT_NAMESPACE=rufact
 RATE_LIMIT_MAX_REQUESTS=10
 RATE_LIMIT_WINDOW_SECONDS=60
+EXTRACT_RATE_LIMIT_MAX_REQUESTS=4
+EXTRACT_RATE_LIMIT_WINDOW_SECONDS=60
+INTERNET_RATE_LIMIT_MAX_REQUESTS=5
+INTERNET_RATE_LIMIT_WINDOW_SECONDS=300
+INTERNET_DAILY_MAX_REQUESTS=30
 ```
 
 При превышении лимита API возвращает `429` и `Retry-After`. Если production Redis
@@ -127,8 +142,14 @@ ML_API_JWT_SECRET=THE_SAME_SHARED_SECRET_AS_ML_HOST
 UPSTASH_REDIS_REST_URL=https://YOUR-DATABASE.upstash.io
 UPSTASH_REDIS_REST_TOKEN=SERVER_ONLY_STANDARD_TOKEN
 RATE_LIMIT_HASH_SECRET=SEPARATE_GENERATED_SECRET
+RATE_LIMIT_NAMESPACE=rufact
 RATE_LIMIT_MAX_REQUESTS=10
 RATE_LIMIT_WINDOW_SECONDS=60
+EXTRACT_RATE_LIMIT_MAX_REQUESTS=4
+EXTRACT_RATE_LIMIT_WINDOW_SECONDS=60
+INTERNET_RATE_LIMIT_MAX_REQUESTS=5
+INTERNET_RATE_LIMIT_WINDOW_SECONDS=300
+INTERNET_DAILY_MAX_REQUESTS=30
 GEMINI_REVIEW_ENABLED=false
 GEMINI_API_KEY=
 GEMINI_MODEL=gemini-3.5-flash-lite
@@ -139,7 +160,8 @@ TAVILY_API_KEY=
 `TAVILY_API_KEY`, затем выполните `npm run check:gemini` локально. Ключи не должны
 попадать в browser bundle, логи или Git. Gemini выполняет структурированный анализ
 результатов, а поиск делает Tavily `basic` (один credit на анализ). Бесплатный план
-Tavily даёт 1000 credits в месяц без карты; контролируйте остаток в dashboard.
+Tavily даёт 1000 credits в месяц без карты; лимит `30/день` оставляет небольшой
+месячный запас, но остаток всё равно нужно контролировать в dashboard.
 `ML_API_URL` в production обязан быть HTTPS.
 
 Каждый push создаёт Preview при включённой Git-интеграции. Проверенный Preview
@@ -196,7 +218,8 @@ docker build --pull -t rufact-ml:2 ./ml
 1. `/health` ML-хоста показывает `ready: true` и модель v2.
 2. `/predict` без JWT отвечает `401`.
 3. Desktop и mobile выполняют анализ через `/api/analyze`.
-4. Одиннадцатый быстрый запрос одного клиента получает `429` при лимите `10/60s`.
+4. Одиннадцатый быстрый анализ одного клиента получает `429` при лимите `10/60s`;
+   исчерпание интернет-бюджета не блокирует основной ML-результат.
 5. Ответы страниц содержат CSP, HSTS, `X-Content-Type-Options: nosniff` и
    `X-Frame-Options: DENY`.
 6. DevTools не показывает JWT secret, Redis token, Gemini key или `ML_API_URL`.

@@ -4,9 +4,11 @@ import test from "node:test";
 
 import { createMlServiceAuthorization } from "../lib/server/ml-service-auth.ts";
 import {
+  clientAddress,
   consumeMemoryLimit,
   redisCredentials,
 } from "../lib/server/rate-limit.ts";
+import { createAbortScope } from "../lib/server/abort-scope.ts";
 
 test("ML service JWT is short-lived, signed, and bound to the request body", () => {
   const secret = "test-only-service-secret-with-at-least-32-bytes";
@@ -71,4 +73,26 @@ test("rate limiter accepts Vercel Marketplace Redis credentials", () => {
     },
   );
   assert.equal(redisCredentials({ KV_REST_API_URL: "https://missing-token" }), null);
+});
+
+test("client IP prefers the Vercel-controlled forwarding header", () => {
+  const request = new Request("https://rufact.example/api/analyze", {
+    headers: {
+      "x-vercel-forwarded-for": "203.0.113.10, 10.0.0.1",
+      "x-forwarded-for": "198.51.100.99",
+      "x-real-ip": "192.0.2.5",
+    },
+  });
+
+  assert.equal(clientAddress(request), "203.0.113.10");
+});
+
+test("abort scope propagates an abandoned client request", () => {
+  const parent = new AbortController();
+  const scope = createAbortScope(parent.signal, 60_000);
+
+  assert.equal(scope.signal.aborted, false);
+  parent.abort();
+  assert.equal(scope.signal.aborted, true);
+  scope.cleanup();
 });

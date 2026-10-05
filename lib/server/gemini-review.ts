@@ -44,6 +44,7 @@ export function isGeminiReviewConfigured() {
 
 export async function getGeminiAssessment(
   text: string,
+  signal?: AbortSignal,
 ): Promise<GeminiAssessment> {
   const apiKey = process.env.GEMINI_API_KEY?.trim();
   if (!isEnabled() || !apiKey) return unavailable("not-configured");
@@ -51,7 +52,11 @@ export async function getGeminiAssessment(
   const tavilyApiKey = process.env.TAVILY_API_KEY?.trim();
   if (!tavilyApiKey) return unavailable("search-not-configured");
 
-  const search = await requestTavilyEvidence({ text, apiKey: tavilyApiKey });
+  const search = await requestTavilyEvidence({
+    text,
+    apiKey: tavilyApiKey,
+    signal,
+  });
   if (!search.ok) return unavailable(search.reason);
 
   return requestGeminiAssessment({
@@ -59,5 +64,6 @@ export async function getGeminiAssessment(
     apiKey,
     model: configuredModel(),
     evidence: search.evidence,
+    signal,
   });
 }

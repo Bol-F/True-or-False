@@ -30,7 +30,7 @@ const unavailableCopy: Record<
   "search-not-configured":
     "Tavily не настроен на сервере. Добавьте TAVILY_API_KEY для интернет-проверки.",
   "search-rate-limited":
-    "Месячный лимит Tavily временно исчерпан. Основной результат RuFact остаётся доступен.",
+    "Лимит интернет-проверок временно достигнут. Основной результат RuFact остаётся доступен.",
   "no-search-results":
     "Tavily не нашёл достаточно источников для этого текста.",
   "search-error":

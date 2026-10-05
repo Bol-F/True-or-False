@@ -10,11 +10,17 @@ const inheritedEnvironment = Object.fromEntries(
 const testServiceEnvironment = {
   ...inheritedEnvironment,
   ML_API_JWT_SECRET: "playwright-only-service-secret-with-at-least-32-bytes",
+  RATE_LIMIT_HASH_SECRET:
+    "playwright-only-rate-limit-secret-with-at-least-32-bytes",
+  RATE_LIMIT_NAMESPACE: `rufact-e2e-${process.pid}`,
   GEMINI_REVIEW_ENABLED:
     process.env.LIVE_GEMINI_E2E === "1"
       ? inheritedEnvironment.GEMINI_REVIEW_ENABLED ?? "true"
       : "false",
 };
+const webPort = process.env.PLAYWRIGHT_PORT ?? "3000";
+const baseURL = `http://localhost:${webPort}`;
+const useProductionServer = process.env.PLAYWRIGHT_USE_START === "1";
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -25,7 +31,7 @@ export default defineConfig({
   reporter: "list",
   outputDir: join(tmpdir(), "rufact-playwright-results"),
   use: {
-    baseURL: "http://localhost:3000",
+    baseURL,
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
   },
@@ -54,13 +60,13 @@ export default defineConfig({
       timeout: 120_000,
     },
     {
-      command: "npm run dev",
-      url: "http://localhost:3000",
+      command: `${useProductionServer ? "npm run start" : "npm run dev"} -- --port ${webPort}`,
+      url: baseURL,
       env: {
         ...testServiceEnvironment,
         ML_API_URL: "http://127.0.0.1:8010/predict",
       },
-      reuseExistingServer: true,
+      reuseExistingServer: !useProductionServer && webPort === "3000",
       timeout: 120_000,
     },
   ],

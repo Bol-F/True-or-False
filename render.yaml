@@ -23,3 +23,9 @@ services:
         value: "false"
       - key: RUFACT_MAX_CONCURRENT_PREDICTIONS
         value: "2"
+      - key: RUFACT_PREDICTION_QUEUE_TIMEOUT_MS
+        value: "500"
+      - key: RUFACT_UVICORN_LIMIT_CONCURRENCY
+        value: "16"
+      - key: RUFACT_UVICORN_BACKLOG
+        value: "64"
