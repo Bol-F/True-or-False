@@ -22,6 +22,8 @@ const MOCK_LATENCY_MS = 900;
 const ML_TIMEOUT_MS = 8_000;
 const NO_STORE_HEADERS = { "Cache-Control": "private, no-store" } as const;
 
+export const maxDuration = 30;
+
 type MlSuccess = {
   ok: true;
   payload: AnalysisResponse;

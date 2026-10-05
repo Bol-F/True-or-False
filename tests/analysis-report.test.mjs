@@ -25,7 +25,7 @@ test("builds a plain-text report with claims and safety wording", () => {
         status: "complete",
         provider: "gemini",
         model: "test-model",
-        promptVersion: "misinfo-review-v2",
+        promptVersion: "misinfo-tavily-v3",
         label: "UNSURE",
         certainty: "low",
         agreesWithPrimary: null,
@@ -36,12 +36,20 @@ test("builds a plain-text report with claims and safety wording", () => {
             id: "claim-1",
             quote: "Проверяемое утверждение",
             kind: "FACTUAL",
-            assessment: "UNSUPPORTED",
+            assessment: "UNVERIFIED",
             explanation: "В самом тексте нет подтверждения.",
             needsExternalVerification: true,
           },
         ],
-        externalSourcesChecked: false,
+        externalSourcesChecked: true,
+        searchQueries: ["Проверяемое утверждение источник"],
+        sources: [
+          {
+            id: "source-1",
+            title: "Официальный источник",
+            url: "https://example.org/source",
+          },
+        ],
       },
     },
   });
@@ -49,9 +57,11 @@ test("builds a plain-text report with claims and safety wording", () => {
   assert.match(report, /Результат: FAKE/u);
   assert.match(report, /Уверенность модели в этом ответе: 72%/u);
   assert.match(report, /Проверяемое утверждение/u);
-  assert.match(report, /FACTUAL \/ UNSUPPORTED/u);
+  assert.match(report, /FACTUAL \/ UNVERIFIED/u);
+  assert.match(report, /Официальный источник/u);
+  assert.match(report, /https:\/\/example\.org\/source/u);
   assert.match(report, /не окончательный фактологический вердикт/u);
-  assert.match(report, /Внешние источники автоматически не проверялись/u);
+  assert.match(report, /Tavily выполнил интернет-поиск/u);
 });
 
 test("clamps confidence in exported reports", () => {

@@ -48,7 +48,7 @@ export async function extractDocumentText(file: File): Promise<ExtractedDocument
   formData.set("file", file);
 
   const controller = new AbortController();
-  const timeoutId = window.setTimeout(() => controller.abort(), 20_000);
+  const timeoutId = window.setTimeout(() => controller.abort(), 30_000);
 
   try {
     const response = await fetch("/api/extract", {

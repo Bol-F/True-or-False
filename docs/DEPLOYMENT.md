@@ -132,11 +132,15 @@ RATE_LIMIT_WINDOW_SECONDS=60
 GEMINI_REVIEW_ENABLED=false
 GEMINI_API_KEY=
 GEMINI_MODEL=gemini-3.5-flash-lite
+TAVILY_API_KEY=
 ```
 
-Если Gemini включается, задайте новый server-only key и выполните
-`npm run check:gemini` локально. Ключ не должен попадать в browser bundle, логи или
-Git. `ML_API_URL` в production обязан быть HTTPS.
+Для интернет-проверки задайте новые server-only `GEMINI_API_KEY` и
+`TAVILY_API_KEY`, затем выполните `npm run check:gemini` локально. Ключи не должны
+попадать в browser bundle, логи или Git. Gemini выполняет структурированный анализ
+результатов, а поиск делает Tavily `basic` (один credit на анализ). Бесплатный план
+Tavily даёт 1000 credits в месяц без карты; контролируйте остаток в dashboard.
+`ML_API_URL` в production обязан быть HTTPS.
 
 Каждый push создаёт Preview при включённой Git-интеграции. Проверенный Preview
 можно продвинуть без повторной сборки:
@@ -197,7 +201,8 @@ docker build --pull -t rufact-ml:2 ./ml
    `X-Frame-Options: DENY`.
 6. DevTools не показывает JWT secret, Redis token, Gemini key или `ML_API_URL`.
 7. `/model` показывает внешнюю accuracy 80,89%, а не confidence отдельного ответа.
-8. Ошибки внешних сервисов не содержат stack trace или provider response body.
+8. Ответ Tavily + Gemini содержит поисковый запрос и хотя бы одну кликабельную HTTPS-ссылку.
+9. Ошибки внешних сервисов не содержат stack trace или provider response body.
 
 ## 7. Наблюдаемость и откат
 

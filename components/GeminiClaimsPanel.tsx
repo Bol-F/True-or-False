@@ -15,18 +15,18 @@ interface GeminiClaimsPanelProps {
 }
 
 const assessmentCopy: Record<GeminiClaimAssessment, string> = {
-  PLAUSIBLE: "Правдоподобно",
-  SUSPICIOUS: "Есть сомнения",
-  UNSUPPORTED: "Нет опоры в тексте",
-  UNSURE: "Недостаточно данных",
+  SUPPORTED: "Подтверждается",
+  CONTRADICTED: "Опровергается",
+  MIXED: "Источники расходятся",
+  UNVERIFIED: "Не удалось проверить",
   NOT_APPLICABLE: "Субъективная оценка",
 };
 
 const assessmentTone: Record<GeminiClaimAssessment, string> = {
-  PLAUSIBLE: "bg-[#dcecdf] text-[#306d45]",
-  SUSPICIOUS: "bg-[#f7dfd3] text-[#a34f35]",
-  UNSUPPORTED: "bg-[#f4d9d6] text-[#a63c43]",
-  UNSURE: "bg-[#e5e8eb] text-[#526475]",
+  SUPPORTED: "bg-[#dcecdf] text-[#306d45]",
+  CONTRADICTED: "bg-[#f4d9d6] text-[#a63c43]",
+  MIXED: "bg-[#f7dfd3] text-[#92502f]",
+  UNVERIFIED: "bg-[#e5e8eb] text-[#526475]",
   NOT_APPLICABLE: "bg-[#e8e2f0] text-[#66547a]",
 };
 
@@ -37,14 +37,14 @@ function buildVerificationUrl(quote: string) {
 
 function factualClaimSummary(count: number) {
   if (count === 1) {
-    return "Одно фактологическое утверждение требует проверки по внешним источникам.";
+    return "Одно фактологическое утверждение сопоставлено с результатами поиска.";
   }
 
   if (count > 1 && count < 5) {
-    return `${count} фактологических утверждения требуют проверки по внешним источникам.`;
+    return `${count} фактологических утверждения сопоставлены с результатами поиска.`;
   }
 
-  return `${count} фактологических утверждений требуют проверки по внешним источникам.`;
+  return `${count} фактологических утверждений сопоставлены с результатами поиска.`;
 }
 
 export function GeminiClaimsPanel({ claims }: GeminiClaimsPanelProps) {
@@ -116,7 +116,7 @@ export function GeminiClaimsPanel({ claims }: GeminiClaimsPanelProps) {
                   className="focus-ring mt-2.5 inline-flex min-h-8 items-center gap-1.5 rounded-lg border border-[#d7e0e5] bg-[#f7fafb] px-2.5 text-[9.5px] font-extrabold text-[#315d7b] transition-colors hover:bg-white"
                 >
                   <Search size={12} strokeWidth={2} aria-hidden="true" />
-                  Искать первоисточник
+                  Проверить дополнительно
                   <ExternalLink size={11} strokeWidth={2} aria-hidden="true" />
                 </a>
               ) : null}

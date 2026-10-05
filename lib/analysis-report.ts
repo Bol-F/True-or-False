@@ -60,13 +60,21 @@ export function buildAnalysisReport({
         `   ${claim.explanation}`,
       );
     }
+
+    lines.push("", "ИСТОЧНИКИ ИЗ TAVILY");
+    for (const [index, source] of review.sources.entries()) {
+      lines.push(`${index + 1}. ${source.title}`, `   ${source.url}`);
+    }
+    lines.push("", `Поисковые запросы: ${review.searchQueries.join(" · ")}`);
   }
 
   lines.push(
     "",
     "ВАЖНО",
     "RuFact показывает вероятностную оценку, а не окончательный фактологический вердикт. Проверяйте ключевые утверждения по независимым первоисточникам.",
-    "Внешние источники автоматически не проверялись.",
+    result.geminiReview?.status === "complete"
+      ? "Tavily выполнил интернет-поиск, а Gemini сопоставил текст с результатами; качество вывода зависит от найденных источников и их контекста."
+      : "Внешние источники автоматически не проверялись.",
   );
 
   return `${lines.join("\n")}\n`;

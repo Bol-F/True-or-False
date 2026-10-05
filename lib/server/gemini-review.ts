@@ -6,17 +6,20 @@ import {
   requestGeminiAssessment,
   type GeminiAssessment,
 } from "./gemini-review-core";
+import { requestTavilyEvidence } from "./tavily-search";
 
 const ALLOWED_GEMINI_MODELS = new Set([
   DEFAULT_GEMINI_MODEL,
   "gemini-3.8-flash",
 ]);
 
-function notConfigured(): GeminiReviewUnavailable {
+function unavailable(
+  reason: GeminiReviewUnavailable["reason"],
+): GeminiReviewUnavailable {
   return {
     status: "unavailable",
     provider: "gemini",
-    reason: "not-configured",
+    reason,
   };
 }
 
@@ -32,20 +35,29 @@ function configuredModel() {
 }
 
 export function isGeminiReviewConfigured() {
-  return isEnabled() && Boolean(process.env.GEMINI_API_KEY?.trim());
+  return (
+    isEnabled() &&
+    Boolean(process.env.GEMINI_API_KEY?.trim()) &&
+    Boolean(process.env.TAVILY_API_KEY?.trim())
+  );
 }
 
 export async function getGeminiAssessment(
   text: string,
 ): Promise<GeminiAssessment> {
   const apiKey = process.env.GEMINI_API_KEY?.trim();
-  if (!isEnabled() || !apiKey) {
-    return notConfigured();
-  }
+  if (!isEnabled() || !apiKey) return unavailable("not-configured");
+
+  const tavilyApiKey = process.env.TAVILY_API_KEY?.trim();
+  if (!tavilyApiKey) return unavailable("search-not-configured");
+
+  const search = await requestTavilyEvidence({ text, apiKey: tavilyApiKey });
+  if (!search.ok) return unavailable(search.reason);
 
   return requestGeminiAssessment({
     text,
     apiKey,
     model: configuredModel(),
+    evidence: search.evidence,
   });
 }

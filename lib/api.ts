@@ -6,6 +6,7 @@ import type {
   GeminiReviewCertainty,
   GeminiReviewLabel,
   GeminiReviewRequestOptions,
+  GeminiSource,
   GeminiUnavailableReason,
 } from "@/lib/gemini-review";
 
@@ -74,7 +75,7 @@ type DetectorSpec = {
 };
 
 const MAX_TEXT_LENGTH = 5_000;
-const REQUEST_TIMEOUT_MS = 12_000;
+const REQUEST_TIMEOUT_MS = 32_000;
 const DEMO_ENGINE_VERSION = "demo-heuristic-v1";
 
 const riskDetectors: readonly DetectorSpec[] = [
@@ -280,10 +281,10 @@ function isGeminiClaimAssessment(
   value: unknown,
 ): value is GeminiClaimAssessment {
   return (
-    value === "PLAUSIBLE" ||
-    value === "SUSPICIOUS" ||
-    value === "UNSUPPORTED" ||
-    value === "UNSURE" ||
+    value === "SUPPORTED" ||
+    value === "CONTRADICTED" ||
+    value === "MIXED" ||
+    value === "UNVERIFIED" ||
     value === "NOT_APPLICABLE"
   );
 }
@@ -293,6 +294,10 @@ function isGeminiUnavailableReason(
 ): value is GeminiUnavailableReason {
   return (
     value === "not-configured" ||
+    value === "search-not-configured" ||
+    value === "search-rate-limited" ||
+    value === "no-search-results" ||
+    value === "search-error" ||
     value === "primary-unavailable" ||
     value === "timeout" ||
     value === "rate-limited" ||
@@ -342,6 +347,8 @@ function sanitizeGeminiReview(
     "warningSigns",
     "claims",
     "externalSourcesChecked",
+    "searchQueries",
+    "sources",
   ];
 
   if (
@@ -351,7 +358,7 @@ function sanitizeGeminiReview(
     typeof review.model !== "string" ||
     review.model.length === 0 ||
     review.model.length > 100 ||
-    review.promptVersion !== "misinfo-review-v2" ||
+    review.promptVersion !== "misinfo-tavily-v3" ||
     !isGeminiLabel(review.label) ||
     !isGeminiCertainty(review.certainty) ||
     typeof review.explanation !== "string" ||
@@ -362,7 +369,13 @@ function sanitizeGeminiReview(
     !Array.isArray(review.claims) ||
     review.claims.length < 1 ||
     review.claims.length > 6 ||
-    review.externalSourcesChecked !== false
+    review.externalSourcesChecked !== true ||
+    !Array.isArray(review.searchQueries) ||
+    review.searchQueries.length < 1 ||
+    review.searchQueries.length > 8 ||
+    !Array.isArray(review.sources) ||
+    review.sources.length < 1 ||
+    review.sources.length > 8
   ) {
     return null;
   }
@@ -426,7 +439,9 @@ function sanitizeGeminiReview(
       claim.kind === "OPINION"
         ? claim.assessment === "NOT_APPLICABLE"
         : claim.assessment !== "NOT_APPLICABLE";
-    const expectedVerification = claim.kind === "FACTUAL";
+    const expectedVerification =
+      claim.kind === "FACTUAL" &&
+      (claim.assessment === "MIXED" || claim.assessment === "UNVERIFIED");
 
     if (
       quote.length < 4 ||
@@ -450,18 +465,59 @@ function sanitizeGeminiReview(
     });
   }
 
+  const searchQueries: string[] = [];
+  for (const query of review.searchQueries) {
+    if (typeof query !== "string") return null;
+    const normalized = query.trim();
+    if (!normalized || normalized.length > 300 || searchQueries.includes(normalized)) {
+      return null;
+    }
+    searchQueries.push(normalized);
+  }
+
+  const sources: GeminiSource[] = [];
+  const sourceUrls = new Set<string>();
+  for (const [index, sourceValue] of review.sources.entries()) {
+    if (!sourceValue || typeof sourceValue !== "object") return null;
+    const source = sourceValue as Record<string, unknown>;
+    const sourceKeys = Object.keys(source);
+    if (
+      sourceKeys.length !== 3 ||
+      !sourceKeys.every((key) => ["id", "title", "url"].includes(key)) ||
+      source.id !== `source-${index + 1}` ||
+      typeof source.title !== "string" ||
+      typeof source.url !== "string"
+    ) {
+      return null;
+    }
+    const title = source.title.trim();
+    const url = source.url.trim();
+    if (!title || title.length > 240 || url.length > 2_048 || sourceUrls.has(url)) {
+      return null;
+    }
+    try {
+      if (new URL(url).protocol !== "https:") return null;
+    } catch {
+      return null;
+    }
+    sourceUrls.add(url);
+    sources.push({ id: source.id, title, url });
+  }
+
   return {
     status: "complete",
     provider: "gemini",
     model: review.model,
-    promptVersion: "misinfo-review-v2",
+    promptVersion: "misinfo-tavily-v3",
     label: review.label,
     certainty: review.certainty,
     agreesWithPrimary: expectedAgreement,
     explanation,
     warningSigns,
     claims,
-    externalSourcesChecked: false,
+    externalSourcesChecked: true,
+    searchQueries,
+    sources,
   };
 }
 

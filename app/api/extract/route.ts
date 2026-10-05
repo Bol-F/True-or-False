@@ -1,6 +1,4 @@
 import { NextResponse } from "next/server";
-import mammoth from "mammoth";
-import { extractText, getDocumentProxy } from "unpdf";
 
 import { MAX_DOCUMENT_BYTES } from "@/lib/document-upload";
 import {
@@ -153,6 +151,7 @@ async function withTimeout<T>(promise: Promise<T>, milliseconds: number) {
 }
 
 async function readPdf(bytes: Uint8Array) {
+  const { extractText, getDocumentProxy } = await import("unpdf");
   const pdf = await getDocumentProxy(bytes, { maxImageSize: 16_777_216 });
   try {
     if (pdf.numPages > MAX_PDF_PAGES) {
@@ -178,6 +177,7 @@ async function extractFromFile(file: File, format: DocumentFormat) {
 
   if (format === "pdf") return readPdf(bytes);
   if (format === "docx") {
+    const { default: mammoth } = await import("mammoth");
     const result = await mammoth.extractRawText({ buffer: Buffer.from(bytes) });
     return { text: result.value };
   }

@@ -40,7 +40,7 @@ export function AnalyzerWorkspace({ geminiConfigured }: AnalyzerWorkspaceProps) 
   const [validationMessage, setValidationMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-  const [useGemini, setUseGemini] = useState(false);
+  const [useGemini, setUseGemini] = useState(geminiConfigured);
   const [isExtracting, setIsExtracting] = useState(false);
   const [documentMessage, setDocumentMessage] = useState<{
     kind: "success" | "warning" | "error";
@@ -50,7 +50,6 @@ export function AnalyzerWorkspace({ geminiConfigured }: AnalyzerWorkspaceProps) 
   const handleTextChange = (value: string) => {
     setText(value);
     setActiveExampleId(null);
-    setUseGemini(false);
     setDocumentMessage(null);
     if (value.trim()) {
       setValidationMessage(null);
@@ -61,7 +60,6 @@ export function AnalyzerWorkspace({ geminiConfigured }: AnalyzerWorkspaceProps) 
     setText("");
     setActiveExampleId(null);
     setValidationMessage(null);
-    setUseGemini(false);
     setDocumentMessage(null);
   };
 
@@ -70,7 +68,6 @@ export function AnalyzerWorkspace({ geminiConfigured }: AnalyzerWorkspaceProps) 
     setActiveExampleId(example.id);
     setValidationMessage(null);
     setErrorMessage(null);
-    setUseGemini(false);
     setDocumentMessage(null);
   };
 
@@ -84,7 +81,6 @@ export function AnalyzerWorkspace({ geminiConfigured }: AnalyzerWorkspaceProps) 
       const extractedDocument = await extractDocumentText(file);
       setText(extractedDocument.text);
       setActiveExampleId(null);
-      setUseGemini(false);
       setDocumentMessage({
         kind: extractedDocument.truncated ? "warning" : "success",
         text: extractedDocument.truncated
@@ -127,7 +123,6 @@ export function AnalyzerWorkspace({ geminiConfigured }: AnalyzerWorkspaceProps) 
       setAnalyzedText(normalizedText);
       setTimestamp(formatTimestamp(analyzedAt));
       setStatus("success");
-      setUseGemini(false);
 
       history.add({
         source: "user",
@@ -170,7 +165,6 @@ export function AnalyzerWorkspace({ geminiConfigured }: AnalyzerWorkspaceProps) 
     setTimestamp(formatTimestamp(new Date(item.analyzedAt)));
     setValidationMessage(null);
     setErrorMessage(null);
-    setUseGemini(false);
     setStatus("success");
     setIsHistoryOpen(false);
   };

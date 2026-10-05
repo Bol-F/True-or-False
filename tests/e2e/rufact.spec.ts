@@ -109,7 +109,7 @@ test("extracts an uploaded text document into the analyzer", async ({ page }) =>
 
   await expect(page.getByLabel("Русскоязычный текст для анализа")).toHaveValue(
     uploadedText,
-    { timeout: 20_000 },
+    { timeout: 35_000 },
   );
   await expect(page.getByText(/^novost\.txt: текст извлечён/u)).toBeVisible();
   await expect(page.getByText("Файл не сохраняется на сервере")).toBeVisible();
@@ -134,7 +134,7 @@ test("desktop analysis workflow and guidance", async ({ page }, testInfo) => {
     page.getByRole("heading", { name: /Проверьте текст/u }),
   ).toBeVisible();
   await expect(page.getByLabel("Русскоязычный текст для анализа")).toBeVisible();
-  await expect(page.getByRole("switch", { name: /Второе мнение Gemini/u })).toBeVisible();
+  await expect(page.getByRole("switch", { name: /Проверка по интернет-источникам/u })).toBeVisible();
   await expect(page.getByText("Бета-версия", { exact: true })).toHaveCount(0);
 
   await page.getByRole("button", { name: "Новость", exact: true }).click();
@@ -285,18 +285,19 @@ test("optional live Gemini review renders validated claims", async ({ page }, te
   test.setTimeout(30_000);
 
   await page.goto("/");
-  const geminiSwitch = page.getByRole("switch", { name: /Второе мнение Gemini/u });
+  const geminiSwitch = page.getByRole("switch", { name: /Проверка по интернет-источникам/u });
   await expect(geminiSwitch).toBeEnabled();
   await geminiSwitch.check();
   await page.getByRole("button", { name: /Проверить текст/u }).click();
 
   await expect(
-    page.getByRole("region", { name: "Второе мнение Gemini", exact: true }),
+    page.getByRole("region", { name: "Проверка Gemini по источникам", exact: true }),
   ).toBeVisible();
   await page.getByText("Утверждения в тексте", { exact: true }).click();
   const claims = page.getByRole("list", { name: "Утверждения Gemini" });
   await expect(claims).toBeVisible();
   expect(await claims.getByRole("listitem").count()).toBeGreaterThan(0);
+  await expect(page.getByRole("list", { name: "Источники проверки Gemini" })).toBeVisible();
 
   if (process.env.CAPTURE_QA === "1") {
     await page.screenshot({

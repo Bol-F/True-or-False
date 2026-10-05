@@ -1,4 +1,10 @@
-import { AlertTriangle, CircleHelp, Sparkles } from "lucide-react";
+import {
+  AlertTriangle,
+  CircleHelp,
+  ExternalLink,
+  SearchCheck,
+  Sparkles,
+} from "lucide-react";
 
 import type { AnalysisLabel } from "@/lib/api";
 import type { GeminiReview } from "@/lib/gemini-review";
@@ -21,6 +27,14 @@ const unavailableCopy: Record<
 > = {
   "not-configured":
     "Gemini не настроен на сервере. Основной анализ RuFact завершён как обычно.",
+  "search-not-configured":
+    "Tavily не настроен на сервере. Добавьте TAVILY_API_KEY для интернет-проверки.",
+  "search-rate-limited":
+    "Месячный лимит Tavily временно исчерпан. Основной результат RuFact остаётся доступен.",
+  "no-search-results":
+    "Tavily не нашёл достаточно источников для этого текста.",
+  "search-error":
+    "Интернет-поиск Tavily временно недоступен. Основной результат RuFact остаётся доступен.",
   "primary-unavailable":
     "Второе мнение доступно только вместе с обученной ML-моделью RuFact.",
   timeout:
@@ -42,7 +56,7 @@ export function GeminiReviewPanel({
   if (review.status === "unavailable") {
     return (
       <section
-        aria-label="Второе мнение Gemini недоступно"
+        aria-label="Проверка Gemini по источникам недоступна"
         className="mt-4 rounded-[13px] border border-[#d6dde5] bg-[#f2f5f7] px-4 py-3.5"
       >
         <div className="flex gap-3">
@@ -53,7 +67,7 @@ export function GeminiReviewPanel({
           />
           <div>
             <h3 className="text-[12.5px] font-extrabold text-[#29465f]">
-              Второе мнение не получено
+              Проверка по источникам не получена
             </h3>
             <p className="mt-1 text-[10.5px] leading-[1.5] text-[#6c7986]">
               {unavailableCopy[review.reason]}
@@ -67,10 +81,10 @@ export function GeminiReviewPanel({
   const isUnsure = review.label === "UNSURE";
   const disagrees = review.agreesWithPrimary === false;
   const heading = isUnsure
-    ? "Gemini: недостаточно данных"
-    : disagrees
-      ? "Выводы моделей расходятся"
-      : "Выводы моделей совпадают";
+    ? "Источников недостаточно для уверенного вывода"
+    : review.label === "FAKE"
+      ? "Источники опровергают ключевое утверждение"
+      : "Источники подтверждают ключевые утверждения";
   const toneClass = disagrees
     ? "border-[#e7cdb3] bg-[#fff6e9]"
     : isUnsure
@@ -79,7 +93,7 @@ export function GeminiReviewPanel({
 
   return (
     <section
-      aria-label="Второе мнение Gemini"
+      aria-label="Проверка Gemini по источникам"
       className={`mt-4 rounded-[13px] border px-4 py-3.5 ${toneClass}`}
     >
       <div className="flex items-start gap-3">
@@ -94,14 +108,14 @@ export function GeminiReviewPanel({
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
               <p className="text-[9px] font-extrabold uppercase tracking-[0.12em] text-[#668097]">
-                Экспериментальное второе мнение
+                Проверка по интернет-источникам
               </p>
               <h3 className="mt-0.5 text-[13px] font-extrabold text-[#173b59]">
                 {heading}
               </h3>
             </div>
             <span className="rounded-md bg-white/75 px-2 py-1 text-[9px] font-extrabold text-[#526b7f]">
-              Без поиска в интернете
+              Tavily + Gemini
             </span>
           </div>
 
@@ -140,10 +154,46 @@ export function GeminiReviewPanel({
 
           <GeminiClaimsPanel claims={review.claims} />
 
+          <details open className="group mt-3 overflow-hidden rounded-[11px] border border-[#cbd8e2]/90 bg-white/55">
+            <summary className="focus-ring flex min-h-11 cursor-pointer list-none items-center gap-3 rounded-[10px] px-3 text-[#294a65] marker:hidden">
+              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[#dce9f2] text-[#356783]">
+                <SearchCheck size={15} strokeWidth={2} aria-hidden="true" />
+              </span>
+              <span className="min-w-0 flex-1 text-[11.5px] font-extrabold">
+                Источники Tavily
+              </span>
+              <span className="rounded-md bg-white/80 px-2 py-0.5 text-[9px] font-bold tabular-nums text-[#60768a]">
+                {review.sources.length}
+              </span>
+            </summary>
+            <ul
+              aria-label="Источники проверки Gemini"
+              className="grid gap-2 border-t border-[#cbd8e2]/80 px-3 py-3"
+            >
+              {review.sources.map((source, index) => (
+                <li key={source.id}>
+                  <a
+                    href={source.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="focus-ring flex min-h-9 items-start gap-2 rounded-lg px-2 py-1.5 text-[10px] font-bold leading-[1.4] text-[#315d7b] transition-colors hover:bg-white"
+                  >
+                    <span className="mt-0.5 text-[9px] tabular-nums text-[#8293a1]">
+                      {index + 1}.
+                    </span>
+                    <span className="min-w-0 flex-1">{source.title}</span>
+                    <ExternalLink className="mt-0.5 shrink-0" size={12} aria-hidden="true" />
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </details>
+
           <p className="mt-3 border-t border-[#cbd8e2]/80 pt-2 text-[9.5px] leading-[1.45] text-[#758696]">
             Качественная уверенность Gemini: {certaintyCopy[review.certainty]}; она не
-            калибрована и не усредняется с процентом RuFact. Внешние источники не
-            проверялись.
+            калибрована и не усредняется с процентом RuFact. Tavily выполнил поиск по запросу:
+            {" "}{review.searchQueries.join(" · ")}. Даже найденный источник может ошибаться —
+            откройте важные ссылки и проверьте контекст.
           </p>
         </div>
       </div>

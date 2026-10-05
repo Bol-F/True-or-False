@@ -5,7 +5,7 @@
 - [`SECURITY.md`](SECURITY.md) — модель угроз, JWT, rate limiting, web-защита,
   dependency audit и разбор N+1.
 - [`CLAIM_ANALYSIS_CONTRACT.md`](CLAIM_ANALYSIS_CONTRACT.md) — строгий контракт
-  второго мнения Gemini.
+  проверки источников через Tavily + Gemini.
 - [`ROADMAP_10_DAYS.md`](ROADMAP_10_DAYS.md) — выполненный десятидневный MVP-план.
 - [`../ml/MODEL_CARD.md`](../ml/MODEL_CARD.md) — назначение, качество и ограничения
   ML-модели.

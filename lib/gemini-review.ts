@@ -2,11 +2,17 @@ export type GeminiReviewLabel = "REAL" | "FAKE" | "UNSURE";
 export type GeminiReviewCertainty = "low" | "medium" | "high";
 export type GeminiClaimKind = "FACTUAL" | "OPINION";
 export type GeminiClaimAssessment =
-  | "PLAUSIBLE"
-  | "SUSPICIOUS"
-  | "UNSUPPORTED"
-  | "UNSURE"
+  | "SUPPORTED"
+  | "CONTRADICTED"
+  | "MIXED"
+  | "UNVERIFIED"
   | "NOT_APPLICABLE";
+
+export interface GeminiSource {
+  id: string;
+  title: string;
+  url: string;
+}
 
 export interface GeminiClaim {
   id: string;
@@ -19,6 +25,10 @@ export interface GeminiClaim {
 
 export type GeminiUnavailableReason =
   | "not-configured"
+  | "search-not-configured"
+  | "search-rate-limited"
+  | "no-search-results"
+  | "search-error"
   | "primary-unavailable"
   | "timeout"
   | "rate-limited"
@@ -30,14 +40,16 @@ export interface GeminiReviewComplete {
   status: "complete";
   provider: "gemini";
   model: string;
-  promptVersion: "misinfo-review-v2";
+  promptVersion: "misinfo-tavily-v3";
   label: GeminiReviewLabel;
   certainty: GeminiReviewCertainty;
   agreesWithPrimary: boolean | null;
   explanation: string;
   warningSigns: string[];
   claims: GeminiClaim[];
-  externalSourcesChecked: false;
+  externalSourcesChecked: true;
+  searchQueries: string[];
+  sources: GeminiSource[];
 }
 
 export interface GeminiReviewUnavailable {

@@ -215,10 +215,10 @@ export function TextAnalyzer({
                 id="gemini-option-heading"
                 className="text-[12.5px] font-extrabold text-[#163957]"
               >
-                Второе мнение Gemini
+                Проверка по интернет-источникам
               </span>
               <span className="rounded bg-[#d9e6f1] px-1.5 py-0.5 text-[8px] font-extrabold uppercase tracking-[0.08em] text-[#496b88]">
-                Экспериментально
+                Tavily + Gemini
               </span>
             </span>
             <span
@@ -227,9 +227,9 @@ export function TextAnalyzer({
             >
               {geminiConfigured
                 ? useGemini
-                  ? "Включено для этой проверки; основной ML-вердикт не изменится."
-                  : "Необязательный независимый анализ без поиска в интернете."
-                : "Сейчас не настроено; основной ML-анализ работает как обычно."}
+                  ? "Tavily найдёт источники, а Gemini сопоставит с ними утверждения; основной ML-вердикт останется отдельным."
+                  : "Включите, чтобы Tavily нашёл источники, а Gemini проверил по ним утверждения."
+                : "Поиск сейчас не настроен; основной ML-анализ работает как обычно."}
             </span>
           </span>
         </label>
@@ -239,7 +239,7 @@ export function TextAnalyzer({
         >
           {geminiConfigured ? (
             <>
-              Текст передаётся Google. Не отправляйте личные или конфиденциальные данные. {" "}
+              Поисковый запрос передаётся Tavily, а текст и найденные фрагменты — Google. Не отправляйте личные или конфиденциальные данные. {" "}
               <a
                 href="https://ai.google.dev/gemini-api/terms"
                 target="_blank"
@@ -250,7 +250,7 @@ export function TextAnalyzer({
               </a>
             </>
           ) : (
-            "Для включения добавьте серверный GEMINI_API_KEY; ключ в браузер не передаётся."
+            "Для включения добавьте серверные GEMINI_API_KEY и TAVILY_API_KEY; ключи в браузер не передаются."
           )}
         </p>
       </section>
