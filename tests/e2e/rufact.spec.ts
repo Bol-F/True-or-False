@@ -26,7 +26,11 @@ test("hero artwork loads from the public asset", async ({ page }, testInfo) => {
   expect(frameworkOverlayText).not.toMatch(/Build Error|Runtime Error/u);
 
   const heroArtwork = page.locator('img[src="/hero-collage.png"]').first();
-  await expect(heroArtwork).toBeVisible();
+  if (testInfo.project.name.startsWith("mobile")) {
+    await expect(heroArtwork).toBeHidden();
+  } else {
+    await expect(heroArtwork).toBeVisible();
+  }
   await expect
     .poll(() =>
       heroArtwork.evaluate(

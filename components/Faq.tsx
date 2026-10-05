@@ -32,20 +32,20 @@ export function Faq() {
     <section
       id="questions"
       aria-labelledby="faq-title"
-      className="content-gutter scroll-mt-20 pb-8 pt-8 sm:pb-10 sm:pt-10"
+      className="content-gutter scroll-mt-20 pb-5 pt-5 sm:pb-10 sm:pt-10"
     >
-      <div className="grid gap-7 border-t border-[#d8d4cd] pt-8 lg:grid-cols-[0.62fr_1.38fr] lg:gap-12">
+      <div className="grid gap-4 border-t border-[#d8d4cd] pt-5 sm:gap-7 sm:pt-8 lg:grid-cols-[0.62fr_1.38fr] lg:gap-12">
         <div>
-          <span className="grid h-10 w-10 place-items-center rounded-[12px] bg-[#e2ebef] text-[#315f78]">
-            <HelpCircle size={21} strokeWidth={1.9} aria-hidden="true" />
+          <span className="grid h-8 w-8 place-items-center rounded-[9px] bg-[#e2ebef] text-[#315f78] sm:h-10 sm:w-10 sm:rounded-[12px]">
+            <HelpCircle size={18} strokeWidth={1.9} aria-hidden="true" />
           </span>
           <h2
             id="faq-title"
-            className="mt-4 font-serif text-[29px] leading-[1.08] font-semibold tracking-[-0.035em] text-ink sm:text-[34px]"
+            className="mt-2.5 font-serif text-[25px] leading-[1.08] font-semibold tracking-[-0.035em] text-ink sm:mt-4 sm:text-[34px]"
           >
             Коротко о главном
           </h2>
-          <p className="mt-3 max-w-[390px] text-[12.5px] leading-[1.6] text-[#68778a]">
+          <p className="mt-1.5 max-w-[390px] text-[10.5px] leading-[1.45] text-[#68778a] sm:mt-3 sm:text-[12.5px] sm:leading-[1.6]">
             Ответы помогают не перепутать вероятностную подсказку с профессиональным
             фактчекингом.
           </p>
@@ -54,15 +54,15 @@ export function Faq() {
         <div className="divide-y divide-[#d9d7d1] border-y border-[#d9d7d1]">
           {questions.map((item) => (
             <details key={item.question} className="group">
-              <summary className="focus-ring flex min-h-[58px] cursor-pointer list-none items-center gap-4 rounded-lg py-3 marker:hidden">
-                <span className="min-w-0 flex-1 text-[13px] font-extrabold text-[#213e58] sm:text-[14px]">
+              <summary className="focus-ring flex min-h-12 cursor-pointer list-none items-center gap-3 rounded-lg py-2 marker:hidden sm:min-h-[58px] sm:gap-4 sm:py-3">
+                <span className="min-w-0 flex-1 text-[11px] font-extrabold text-[#213e58] sm:text-[14px]">
                   {item.question}
                 </span>
-                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-[9px] bg-[#ece9e2] text-[#607181] transition-transform group-open:rotate-180">
+                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-[8px] bg-[#ece9e2] text-[#607181] transition-transform group-open:rotate-180 sm:h-8 sm:w-8 sm:rounded-[9px]">
                   <ChevronDown size={16} strokeWidth={2} aria-hidden="true" />
                 </span>
               </summary>
-              <p className="max-w-[720px] pb-4 pr-10 text-[11.5px] leading-[1.65] text-[#68778a] sm:text-[12.5px]">
+              <p className="max-w-[720px] pb-3 pr-8 text-[10px] leading-[1.5] text-[#68778a] sm:pb-4 sm:pr-10 sm:text-[12.5px] sm:leading-[1.65]">
                 {item.answer}
               </p>
             </details>

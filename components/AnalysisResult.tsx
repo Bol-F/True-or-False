@@ -51,28 +51,28 @@ export function AnalysisResult({
       transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
       aria-live="polite"
       aria-busy={status === "loading"}
-      className="rounded-[22px] border border-white/70 bg-[rgba(255,248,246,0.91)] p-5 shadow-[0_20px_42px_rgba(59,40,34,0.11)] sm:p-6 sm:pb-8"
+      className="rounded-[16px] border border-white/70 bg-[rgba(255,248,246,0.91)] p-3.5 shadow-[0_12px_28px_rgba(59,40,34,0.09)] sm:rounded-[22px] sm:p-6 sm:pb-8 sm:shadow-[0_20px_42px_rgba(59,40,34,0.11)]"
     >
-      <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 sm:flex-nowrap">
-        <div className="flex min-w-0 items-center gap-3">
+      <header className="flex items-center justify-between gap-2 sm:gap-4">
+        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
           <span
-            className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-[11px] ${
+            className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-[9px] sm:h-9 sm:w-9 sm:rounded-[11px] ${
               isFake ? "bg-[#ffe6e3] text-[#d63b43]" : "bg-[#e0eee2] text-[#34794b]"
             }`}
           >
             {isFake ? (
-              <AlertCircle size={21} strokeWidth={2} aria-hidden="true" />
+              <AlertCircle size={18} strokeWidth={2} aria-hidden="true" />
             ) : (
-              <CheckCircle2 size={21} strokeWidth={2} aria-hidden="true" />
+              <CheckCircle2 size={18} strokeWidth={2} aria-hidden="true" />
             )}
           </span>
-          <h2 className="text-[14px] font-extrabold text-[#112f4d] sm:truncate sm:text-[16px]">
+          <h2 className="truncate text-[12px] font-extrabold text-[#112f4d] sm:text-[16px]">
             Результат анализа
           </h2>
         </div>
-        <div className="flex w-full items-center gap-2 pl-12 sm:w-auto sm:shrink-0 sm:pl-0">
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
           <span
-            className={`rounded-md px-2 py-1 text-[9px] font-extrabold uppercase tracking-[0.08em] ${
+            className={`rounded-md px-1.5 py-0.5 text-[7.5px] font-extrabold uppercase tracking-[0.07em] sm:px-2 sm:py-1 sm:text-[9px] ${
               isDemo
                 ? "bg-[#f3e1d4] text-[#985539]"
                 : "bg-[#dcebdd] text-[#316746]"
@@ -80,7 +80,7 @@ export function AnalysisResult({
           >
             {isDemo ? "Демо-анализ" : "ML-модель"}
           </span>
-          <time className="text-left text-[10px] font-medium text-[#768398] sm:text-right sm:text-[11px]">
+          <time className="max-w-[72px] text-right text-[8px] leading-tight font-medium text-[#768398] sm:max-w-none sm:text-[11px]">
             {timestamp}
           </time>
         </div>
@@ -134,29 +134,29 @@ export function AnalysisResult({
             transition={{ duration: 0.28 }}
           >
             <section
-              className={`mt-3 grid items-center gap-4 rounded-[15px] border px-4 py-3.5 sm:grid-cols-[1fr_auto] sm:gap-5 ${panelClass}`}
+              className={`mt-2.5 grid grid-cols-[1fr_auto] items-center gap-2 rounded-[12px] border px-3 py-2.5 sm:mt-3 sm:gap-5 sm:rounded-[15px] sm:px-4 sm:py-3.5 ${panelClass}`}
               aria-label={`Результат: ${result.label}`}
             >
-              <div className="flex min-w-0 items-center gap-4">
+              <div className="flex min-w-0 items-center gap-2.5 sm:gap-4">
                 <span
-                  className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-[12px] ${
+                  className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] sm:h-11 sm:w-11 sm:rounded-[12px] ${
                     isFake ? "bg-[#f5c8c8] text-[#c63840]" : "bg-[#cfe4d2] text-[#347a4d]"
                   }`}
                 >
                   {isFake ? (
-                    <AlertTriangle size={23} fill="currentColor" strokeWidth={1.5} aria-hidden="true" />
+                    <AlertTriangle size={19} fill="currentColor" strokeWidth={1.5} aria-hidden="true" />
                   ) : (
-                    <CheckCircle2 size={24} strokeWidth={2.2} aria-hidden="true" />
+                    <CheckCircle2 size={20} strokeWidth={2.2} aria-hidden="true" />
                   )}
                 </span>
                 <div className="min-w-0">
                   <p
-                    className="text-[42px] leading-none font-extrabold tracking-[-0.04em] sm:text-[48px]"
+                    className="text-[34px] leading-none font-extrabold tracking-[-0.04em] sm:text-[48px]"
                     style={{ color: accent }}
                   >
                     {result.label}
                   </p>
-                  <p className="mt-2 max-w-[300px] text-[11px] leading-[1.4] text-[#5e5e68] sm:text-[12px]">
+                  <p className="mt-1 max-w-[240px] text-[9px] leading-[1.3] text-[#5e5e68] sm:mt-2 sm:max-w-[300px] sm:text-[12px] sm:leading-[1.4]">
                     {isLowConfidence
                       ? "Неуверенный результат — особенно важна ручная проверка"
                       : isFake
@@ -178,9 +178,9 @@ export function AnalysisResult({
 
             <ResultExplanation result={result} analyzedText={analyzedText} />
 
-            <aside className="mt-4 flex gap-3 rounded-[13px] bg-[#e7eef9] px-4 py-3 text-[#3c608e]">
-              <Info className="mt-0.5 shrink-0" size={19} fill="#5f8ed8" color="white" aria-hidden="true" />
-              <p className="text-[11.5px] leading-[1.55] sm:text-[12px]">
+            <aside className="mt-3 flex gap-2 rounded-[11px] bg-[#e7eef9] px-3 py-2.5 text-[#3c608e] sm:mt-4 sm:gap-3 sm:rounded-[13px] sm:px-4 sm:py-3">
+              <Info className="mt-0.5 shrink-0" size={16} fill="#5f8ed8" color="white" aria-hidden="true" />
+              <p className="text-[9.5px] leading-[1.45] sm:text-[12px] sm:leading-[1.55]">
                 Результаты работы модели — это вероятность, а не окончательный вердикт.
                 Всегда проверяйте информацию по надёжным источникам и используйте
                 критическое мышление.

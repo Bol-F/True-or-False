@@ -9,8 +9,8 @@ export function Footer() {
   const { openFeedback } = useFeedback();
 
   return (
-    <footer className="content-gutter pb-6 pt-2">
-      <div className="flex flex-col gap-5 rounded-[18px] bg-[#102f50] px-5 py-5 text-white sm:flex-row sm:items-center sm:justify-between sm:px-7">
+    <footer className="content-gutter pb-3 pt-1 sm:pb-6 sm:pt-2">
+      <div className="flex flex-col gap-3 rounded-[14px] bg-[#102f50] px-4 py-4 text-white sm:flex-row sm:items-center sm:justify-between sm:gap-5 sm:rounded-[18px] sm:px-7 sm:py-5">
         <div className="[&_span]:text-white">
           <Brand />
           <p className="mt-2 text-[10.5px] leading-[1.5] text-[#b9c8d4]">

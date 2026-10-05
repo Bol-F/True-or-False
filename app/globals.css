@@ -139,17 +139,17 @@ a {
 
 @media (max-width: 640px) {
   .paper-shell {
-    width: calc(100% - 16px);
-    margin: 8px auto;
-    border-radius: 18px;
+    width: calc(100% - 8px);
+    margin: 4px auto;
+    border-radius: 15px;
   }
 
   .content-gutter {
-    padding-inline: 18px;
+    padding-inline: 14px;
   }
 
   .tool-gutter {
-    padding-inline: 18px;
+    padding-inline: 12px;
   }
 }
 

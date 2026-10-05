@@ -19,7 +19,7 @@ export function Header() {
 
   return (
     <header id="top" className="content-gutter relative z-50">
-      <div className="flex min-h-[88px] items-center justify-between gap-5 lg:min-h-[98px]">
+      <div className="flex min-h-[62px] items-center justify-between gap-4 sm:min-h-[88px] lg:min-h-[98px]">
         <Brand />
 
         <nav aria-label="Основная навигация" className="hidden lg:block">
@@ -49,13 +49,13 @@ export function Header() {
 
         <button
           type="button"
-          className="focus-ring inline-flex h-11 w-11 items-center justify-center rounded-xl border border-[#d7d8d3] bg-[#fbfaf6] text-ink md:hidden"
+          className="focus-ring inline-flex h-9 w-9 items-center justify-center rounded-[10px] border border-[#d7d8d3] bg-[#fbfaf6] text-ink md:hidden"
           aria-expanded={isOpen}
           aria-controls="mobile-navigation"
           aria-label={isOpen ? "Закрыть меню" : "Открыть меню"}
           onClick={() => setIsOpen((value) => !value)}
         >
-          {isOpen ? <X size={21} /> : <Menu size={21} />}
+          {isOpen ? <X size={18} /> : <Menu size={18} />}
         </button>
       </div>
 
@@ -68,7 +68,7 @@ export function Header() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.18 }}
-            className="absolute left-[18px] right-[18px] top-[78px] rounded-2xl border border-[#dedbd4] bg-[#fbf9f4] p-3 shadow-[0_18px_38px_rgba(21,38,54,0.14)] md:hidden"
+            className="absolute left-[14px] right-[14px] top-[58px] rounded-[14px] border border-[#dedbd4] bg-[#fbf9f4] p-2.5 shadow-[0_18px_38px_rgba(21,38,54,0.14)] sm:top-[78px] md:hidden"
           >
             <ul className="grid gap-1 text-[14px] font-semibold">
               {navigation.map((item) => (
@@ -76,7 +76,7 @@ export function Header() {
                   <Link
                     href={item.href}
                     onClick={() => setIsOpen(false)}
-                    className="focus-ring block rounded-xl px-4 py-3 hover:bg-[#f0ece4]"
+                    className="focus-ring block rounded-xl px-3 py-2.5 hover:bg-[#f0ece4]"
                   >
                     {item.label}
                   </Link>

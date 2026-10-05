@@ -97,16 +97,16 @@ export function ResultExplanation({ result, analyzedText }: ResultExplanationPro
       <section
         id="result-explanation"
         aria-labelledby="explanation-title"
-        className="mt-3 flex scroll-mt-24 gap-3"
+        className="mt-2.5 flex scroll-mt-24 gap-2.5 sm:mt-3 sm:gap-3"
       >
-        <span className="mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-[9px] bg-[#dcecdf] text-[#2f7950]">
-          <SearchCheck size={18} strokeWidth={2} aria-hidden="true" />
+        <span className="mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-[8px] bg-[#dcecdf] text-[#2f7950] sm:h-8 sm:w-8 sm:rounded-[9px]">
+          <SearchCheck size={16} strokeWidth={2} aria-hidden="true" />
         </span>
         <div>
-          <h3 id="explanation-title" className="text-[15px] font-extrabold text-[#173451]">
+          <h3 id="explanation-title" className="text-[13px] font-extrabold text-[#173451] sm:text-[15px]">
             Почему так?
           </h3>
-          <p className="mt-2 text-[12.5px] leading-[1.55] text-[#69778c] sm:text-[13px]">
+          <p className="mt-1 text-[10.5px] leading-[1.45] text-[#69778c] sm:mt-2 sm:text-[13px] sm:leading-[1.55]">
             {result.explanation ??
               (isModelResult
                 ? "Подробное объяснение не сохранено в локальной истории. Повторите анализ, чтобы получить актуальные статистические признаки модели."
@@ -116,15 +116,15 @@ export function ResultExplanation({ result, analyzedText }: ResultExplanationPro
       </section>
 
       {signals.length ? (
-        <div className="mt-3 overflow-hidden rounded-[12px] border border-[#ead5ce] bg-white/25">
+        <div className="mt-2.5 overflow-hidden rounded-[10px] border border-[#ead5ce] bg-white/25 sm:mt-3 sm:rounded-[12px]">
         <button
           type="button"
-          className="focus-ring flex min-h-11 w-full items-center gap-3 rounded-[11px] px-3 text-left text-[13px] font-semibold text-[#243b55] transition-colors hover:bg-white/35"
+          className="focus-ring flex min-h-10 w-full items-center gap-2 rounded-[9px] px-2.5 text-left text-[11px] font-semibold text-[#243b55] transition-colors hover:bg-white/35 sm:min-h-11 sm:gap-3 sm:rounded-[11px] sm:px-3 sm:text-[13px]"
           aria-expanded={isOpen}
           aria-controls="result-signals"
           onClick={() => setIsOpen((value) => !value)}
         >
-          <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#fae0d6] text-[#d45c39]">
+          <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-[7px] bg-[#fae0d6] text-[#d45c39] sm:h-7 sm:w-7 sm:rounded-lg">
             <ListChecks size={16} strokeWidth={2} aria-hidden="true" />
           </span>
           <span className="flex-1">
@@ -198,12 +198,12 @@ export function ResultExplanation({ result, analyzedText }: ResultExplanationPro
 
       {sourceReview ? (
         <section
-          className="mt-3 overflow-hidden rounded-[12px] border border-[#d8dfe4] bg-[#f3f5f3]/65"
+          className="mt-2.5 overflow-hidden rounded-[10px] border border-[#d8dfe4] bg-[#f3f5f3]/65 sm:mt-3 sm:rounded-[12px]"
           aria-labelledby="source-check-heading"
         >
           <button
             type="button"
-            className="focus-ring flex min-h-11 w-full items-center gap-3 rounded-[11px] px-3 text-left transition-colors hover:bg-white/35"
+            className="focus-ring flex min-h-10 w-full items-center gap-2 rounded-[9px] px-2.5 text-left transition-colors hover:bg-white/35 sm:min-h-11 sm:gap-3 sm:rounded-[11px] sm:px-3"
             aria-expanded={isSourceOpen}
             aria-controls="source-check-content"
             onClick={() => setIsSourceOpen((value) => !value)}
@@ -211,7 +211,7 @@ export function ResultExplanation({ result, analyzedText }: ResultExplanationPro
             <span className="grid h-7 w-7 shrink-0 place-items-center rounded-[8px] bg-[#e1e8ec] text-[#385f7a]">
               <Search size={15} strokeWidth={2} aria-hidden="true" />
             </span>
-            <h3 id="source-check-heading" className="min-w-0 flex-1 text-[12.5px] font-extrabold text-[#23425d]">
+            <h3 id="source-check-heading" className="min-w-0 flex-1 text-[10.5px] font-extrabold text-[#23425d] sm:text-[12.5px]">
               Как проверить источники
             </h3>
             <span className="rounded-md bg-[#f0ddcf] px-2 py-0.5 text-[8.5px] font-extrabold uppercase tracking-[0.07em] text-[#93553c]">

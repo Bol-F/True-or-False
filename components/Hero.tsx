@@ -17,7 +17,7 @@ export function Hero() {
     <section
       id="how-it-works"
       aria-labelledby="hero-heading"
-      className="content-gutter relative grid min-h-[310px] gap-5 pb-9 pt-3 lg:min-h-[286px] lg:grid-cols-[minmax(620px,1fr)_minmax(0,1fr)] lg:gap-0 lg:pb-0 lg:pt-0"
+      className="content-gutter relative grid gap-1 pb-3 pt-1 sm:min-h-[310px] sm:gap-5 sm:pb-9 sm:pt-3 lg:min-h-[286px] lg:grid-cols-[minmax(620px,1fr)_minmax(0,1fr)] lg:gap-0 lg:pb-0 lg:pt-0"
     >
       <motion.div
         initial="hidden"
@@ -28,7 +28,7 @@ export function Hero() {
         <motion.p
           variants={enter}
           transition={{ duration: 0.45 }}
-          className="mb-2 text-[11px] font-bold uppercase tracking-[0.28em] text-[#718097] sm:text-xs"
+          className="mb-1.5 text-[9px] font-bold uppercase tracking-[0.23em] text-[#718097] sm:mb-2 sm:text-xs sm:tracking-[0.28em]"
         >
           Анализ русскоязычных текстов
         </motion.p>
@@ -37,25 +37,37 @@ export function Hero() {
           id="hero-heading"
           variants={enter}
           transition={{ duration: 0.5 }}
-          className="max-w-[680px] font-serif text-[39px] leading-[1.03] font-semibold tracking-[-0.045em] text-ink sm:text-[48px] lg:text-[51px] lg:leading-[0.96]"
+          className="max-w-[680px] font-serif text-[30px] leading-[1.01] font-semibold tracking-[-0.045em] text-ink sm:text-[48px] sm:leading-[1.03] lg:text-[51px] lg:leading-[0.96]"
         >
-          Проверьте текст
-          <br />
-          <span className="sm:whitespace-nowrap">
-            на признаки <span className="text-[#c9421e]">недостоверной</span>
+          <span className="sm:hidden">
+            Проверьте текст
+            <br />
+            на <span className="text-[#c9421e]">достоверность</span>
           </span>
-          <br />
-          <span className="text-[#c9421e]">информации</span>
+          <span className="hidden sm:inline">
+            Проверьте текст
+            <br />
+            <span className="whitespace-nowrap">
+              на признаки <span className="text-[#c9421e]">недостоверной</span>
+            </span>
+            <br />
+            <span className="text-[#c9421e]">информации</span>
+          </span>
         </motion.h1>
 
         <motion.p
           variants={enter}
           transition={{ duration: 0.5 }}
-          className="mt-3 max-w-[615px] text-[15px] leading-[1.52] text-[#607087] sm:text-[16px]"
+          className="mt-2 max-w-[615px] text-[12px] leading-[1.45] text-[#607087] sm:mt-3 sm:text-[16px] sm:leading-[1.52]"
         >
-          Доступна обученная ML-модель для вероятностного анализа языковых признаков.
-          Она показывает {Math.round((accuracy ?? 0) * 100)}% accuracy на отдельной внешней выборке, но не проверяет
-          источники и не заменяет профессиональный фактчекинг.
+          <span className="sm:hidden">
+            ML-модель оценивает языковые признаки с accuracy {Math.round((accuracy ?? 0) * 100)}% на внешней выборке. Результат не заменяет фактчекинг.
+          </span>
+          <span className="hidden sm:inline">
+            Доступна обученная ML-модель для вероятностного анализа языковых признаков.
+            Она показывает {Math.round((accuracy ?? 0) * 100)}% accuracy на отдельной внешней выборке, но не проверяет
+            источники и не заменяет профессиональный фактчекинг.
+          </span>
         </motion.p>
       </motion.div>
 
@@ -63,9 +75,9 @@ export function Hero() {
         initial={{ opacity: 0, x: 18 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.7, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
-        className="relative -mx-4 min-h-[238px] sm:min-h-[280px] lg:-mr-[46px] lg:-ml-24 lg:min-h-[286px]"
+        className="relative -mx-4 hidden min-h-[280px] sm:block lg:-mr-[46px] lg:-ml-24 lg:min-h-[286px]"
       >
-        <div className="absolute inset-x-0 bottom-[-6px] top-[-110px]">
+        <div className="absolute inset-x-0 bottom-[-2px] top-[-38px] sm:bottom-[-6px] sm:top-[-110px]">
           <Image
             src="/hero-collage.png"
             alt="Редакционный коллаж с московской архитектурой и набережной"

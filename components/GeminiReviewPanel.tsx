@@ -57,19 +57,19 @@ export function GeminiReviewPanel({
     return (
       <section
         aria-label="Проверка Gemini по источникам недоступна"
-        className="mt-4 rounded-[13px] border border-[#d6dde5] bg-[#f2f5f7] px-4 py-3.5"
+        className="mt-3 rounded-[11px] border border-[#d6dde5] bg-[#f2f5f7] px-3 py-2.5 sm:mt-4 sm:rounded-[13px] sm:px-4 sm:py-3.5"
       >
-        <div className="flex gap-3">
+        <div className="flex gap-2.5 sm:gap-3">
           <CircleHelp
             className="mt-0.5 shrink-0 text-[#687c8d]"
-            size={19}
+            size={16}
             aria-hidden="true"
           />
           <div>
-            <h3 className="text-[12.5px] font-extrabold text-[#29465f]">
+            <h3 className="text-[11px] font-extrabold text-[#29465f] sm:text-[12.5px]">
               Проверка по источникам не получена
             </h3>
-            <p className="mt-1 text-[10.5px] leading-[1.5] text-[#6c7986]">
+            <p className="mt-1 text-[9.5px] leading-[1.4] text-[#6c7986] sm:text-[10.5px] sm:leading-[1.5]">
               {unavailableCopy[review.reason]}
             </p>
           </div>

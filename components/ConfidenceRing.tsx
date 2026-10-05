@@ -46,11 +46,11 @@ export function ConfidenceRing({
       aria-valuemax={100}
       aria-valuenow={percentage}
       aria-valuetext={`${percentage}% — ${label}`}
-      className="relative grid h-28 w-28 shrink-0 place-items-center justify-self-center sm:h-32 sm:w-32 sm:justify-self-auto"
+      className="relative grid h-[78px] w-[78px] shrink-0 place-items-center justify-self-center sm:h-32 sm:w-32 sm:justify-self-auto"
     >
       <div
         aria-hidden="true"
-        className="absolute inset-[13px] rounded-full bg-[radial-gradient(circle_at_38%_28%,#ffffff_0%,#fcf8f4_72%)] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.72)]"
+        className="absolute inset-[9px] rounded-full bg-[radial-gradient(circle_at_38%_28%,#ffffff_0%,#fcf8f4_72%)] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.72)] sm:inset-[13px]"
         style={{ boxShadow: `inset 0 0 0 1px rgba(255,255,255,.72), 0 7px 20px ${colors.glow}` }}
       />
 
@@ -65,7 +65,7 @@ export function ConfidenceRing({
           r={RADIUS}
           fill="none"
           stroke={colors.track}
-          strokeWidth="10"
+          strokeWidth="9"
         />
         <motion.circle
           key={`${tone}-${percentage}`}
@@ -74,7 +74,7 @@ export function ConfidenceRing({
           r={RADIUS}
           fill="none"
           stroke={colors.stroke}
-          strokeWidth="10"
+          strokeWidth="9"
           strokeLinecap="round"
           strokeDasharray={CIRCUMFERENCE}
           initial={{ strokeDashoffset: CIRCUMFERENCE }}
@@ -89,16 +89,16 @@ export function ConfidenceRing({
         />
       </svg>
 
-      <div className="relative z-10 flex max-w-[82px] flex-col items-center text-center">
+      <div className="relative z-10 flex max-w-[62px] flex-col items-center text-center sm:max-w-[82px]">
         <span
-          className="text-[27px] leading-none font-extrabold tracking-[-0.045em] tabular-nums"
+          className="text-[21px] leading-none font-extrabold tracking-[-0.045em] tabular-nums sm:text-[27px]"
           style={{ color: colors.text }}
           aria-hidden="true"
         >
           {percentage}%
         </span>
         <span
-          className="mt-1 text-[10px] leading-[1.25] font-medium text-[#69768a]"
+          className="mt-0.5 text-[7px] leading-[1.15] font-medium text-[#69768a] sm:mt-1 sm:text-[10px] sm:leading-[1.25]"
           aria-hidden="true"
         >
           {label}

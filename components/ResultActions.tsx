@@ -68,36 +68,39 @@ export function ResultActions({
   return (
     <section
       aria-label="Действия с результатом"
-      className="mt-4 border-t border-[#e1dcd6] pt-3"
+      className="mt-3 border-t border-[#e1dcd6] pt-2.5 sm:mt-4 sm:pt-3"
     >
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="grid grid-cols-3 gap-1.5 sm:flex sm:flex-wrap sm:items-center sm:gap-2">
         <button
           type="button"
+          aria-label="Копировать отчёт"
           onClick={handleCopy}
-          className="focus-ring inline-flex min-h-9 items-center gap-2 rounded-lg border border-[#d8dcde] bg-white/55 px-3 text-[10.5px] font-extrabold text-[#3d5870] transition-colors hover:bg-white"
+          className="focus-ring inline-flex min-h-9 items-center justify-center gap-1 rounded-lg border border-[#d8dcde] bg-white/55 px-1.5 text-[9px] font-extrabold text-[#3d5870] transition-colors hover:bg-white sm:gap-2 sm:px-3 sm:text-[10.5px]"
         >
           {status === "copied" ? (
             <Check size={14} strokeWidth={2.2} aria-hidden="true" />
           ) : (
             <Copy size={14} strokeWidth={2} aria-hidden="true" />
           )}
-          {status === "copied" ? "Скопировано" : "Копировать отчёт"}
+          {status === "copied" ? "Готово" : <><span className="sm:hidden">Копировать</span><span className="hidden sm:inline">Копировать отчёт</span></>}
         </button>
         <button
           type="button"
+          aria-label="Скачать .txt"
           onClick={() => {
             downloadReport(report);
             setStatus("downloaded");
           }}
-          className="focus-ring inline-flex min-h-9 items-center gap-2 rounded-lg border border-[#d8dcde] bg-white/55 px-3 text-[10.5px] font-extrabold text-[#3d5870] transition-colors hover:bg-white"
+          className="focus-ring inline-flex min-h-9 items-center justify-center gap-1 rounded-lg border border-[#d8dcde] bg-white/55 px-1.5 text-[9px] font-extrabold text-[#3d5870] transition-colors hover:bg-white sm:gap-2 sm:px-3 sm:text-[10.5px]"
         >
           <Download size={14} strokeWidth={2} aria-hidden="true" />
-          Скачать .txt
+          <span className="sm:hidden">Скачать</span><span className="hidden sm:inline">Скачать .txt</span>
         </button>
         <button
           type="button"
+          aria-label="Поделиться"
           onClick={handleShare}
-          className="focus-ring inline-flex min-h-9 items-center gap-2 rounded-lg border border-[#d8dcde] bg-white/55 px-3 text-[10.5px] font-extrabold text-[#3d5870] transition-colors hover:bg-white"
+          className="focus-ring inline-flex min-h-9 items-center justify-center gap-1 rounded-lg border border-[#d8dcde] bg-white/55 px-1.5 text-[9px] font-extrabold text-[#3d5870] transition-colors hover:bg-white sm:gap-2 sm:px-3 sm:text-[10.5px]"
         >
           <Share2 size={14} strokeWidth={2} aria-hidden="true" />
           Поделиться
@@ -110,13 +113,13 @@ export function ResultActions({
               summary: `Результат: ${result.label}; уверенность: ${Math.round(result.confidence * 100)}%.`,
             })
           }
-          className="focus-ring ml-auto inline-flex min-h-9 items-center gap-2 rounded-lg px-2 text-[10px] font-bold text-[#826258] transition-colors hover:bg-[#f5e9e3]"
+          className="focus-ring col-span-3 mx-auto inline-flex min-h-8 items-center gap-1.5 rounded-lg px-2 text-[9px] font-bold text-[#826258] transition-colors hover:bg-[#f5e9e3] sm:col-auto sm:ml-auto sm:mr-0 sm:min-h-9 sm:gap-2 sm:text-[10px]"
         >
           <MailWarning size={14} strokeWidth={1.9} aria-hidden="true" />
           Сообщить об ошибке
         </button>
       </div>
-      <p className="mt-2 min-h-4 text-[9.5px] leading-[1.4] text-[#798795]" role="status">
+      <p className="mt-1.5 min-h-4 text-[8.5px] leading-[1.35] text-[#798795] sm:mt-2 sm:text-[9.5px] sm:leading-[1.4]" role="status">
         {status === "shared"
           ? "Отчёт передан в системное меню."
           : status === "share-copied"
