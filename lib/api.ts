@@ -51,7 +51,7 @@ export interface SourceReview {
 export interface AnalysisMeta {
   engine: AnalysisEngine;
   engineVersion: string;
-  externalSourcesChecked: false;
+  externalSourcesChecked: boolean;
 }
 
 export interface AnalysisResponse {
@@ -668,6 +668,14 @@ function sanitizeAnalysisResponse(
     );
     if (geminiReview) {
       response.geminiReview = geminiReview;
+      if (geminiReview.status === "complete") {
+        const currentMeta = response.meta ?? defaultMeta;
+        response.sourceReview = undefined;
+        response.meta = {
+          ...currentMeta,
+          externalSourcesChecked: true,
+        };
+      }
     }
   }
 

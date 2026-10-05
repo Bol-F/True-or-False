@@ -10,6 +10,10 @@ const inheritedEnvironment = Object.fromEntries(
 const testServiceEnvironment = {
   ...inheritedEnvironment,
   ML_API_JWT_SECRET: "playwright-only-service-secret-with-at-least-32-bytes",
+  GEMINI_REVIEW_ENABLED:
+    process.env.LIVE_GEMINI_E2E === "1"
+      ? inheritedEnvironment.GEMINI_REVIEW_ENABLED ?? "true"
+      : "false",
 };
 
 export default defineConfig({

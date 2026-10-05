@@ -256,7 +256,12 @@ test("model page exposes measured errors and limitations", async ({ page }, test
   test.skip(!testInfo.project.name.startsWith("desktop"), "Desktop-only check");
 
   await page.goto("/model");
-  await expect(page.getByRole("heading", { name: "О модели RuFact" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "О системе проверки RuFact" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Как RuFact проверяет текст сейчас" }),
+  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Поиск Tavily" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Анализ Gemini" })).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "Accuracy на внешней выборке: 81%" }),
   ).toBeVisible();

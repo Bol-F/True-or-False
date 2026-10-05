@@ -29,13 +29,13 @@ export function ModelTransparency() {
           <div className="border-b border-[#ccd7dc] px-6 py-7 sm:px-8 lg:border-b-0 lg:border-r lg:px-9 lg:py-9">
             <div className="inline-flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.17em] text-[#8a5b42]">
               <FlaskConical size={16} strokeWidth={2} aria-hidden="true" />
-              ML-базовая модель · {MODEL_QUALITY.modelVersion}
+              Основная ML-модель · {MODEL_QUALITY.modelVersion}
             </div>
             <h2
               id="model-quality-heading"
               className="mt-3 max-w-[470px] font-serif text-[30px] leading-[1.08] font-semibold tracking-[-0.035em] text-ink sm:text-[37px]"
             >
-              Как измеряется качество модели
+              Качество базового классификатора
             </h2>
             <p className="mt-4 max-w-[520px] text-[13px] leading-[1.65] text-[#5d6e81] sm:text-[14px]">
               Процент в результате показывает уверенность классификатора в конкретном
@@ -108,7 +108,8 @@ export function ModelTransparency() {
                 На похожей внутренней выборке модель получила 99,7%, но этот результат
                 завышен различиями между официальными и синтетическими текстами. Поэтому
                 выше показана более строгая внешняя оценка. Экспериментальное второе
-                мнение Gemini в эти {accuracyLabel} не входит: качество связки пока не измерено.
+                проверка Tavily + Gemini в эти {accuracyLabel} не входит: качество всей связки
+                пока не измерено на отдельном наборе фактов.
               </p>
             </div>
           </div>

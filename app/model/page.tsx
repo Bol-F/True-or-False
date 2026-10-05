@@ -6,12 +6,13 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { InfoCards } from "@/components/InfoCards";
 import { ModelEvaluationDetails } from "@/components/ModelEvaluationDetails";
+import { ModelSystemOverview } from "@/components/ModelSystemOverview";
 import { ModelTransparency } from "@/components/ModelTransparency";
 
 export const metadata: Metadata = {
-  title: "О модели — RuFact",
+  title: "О системе проверки — RuFact",
   description:
-    "Метрики, устройство и ограничения модели RuFact для анализа русскоязычных текстов.",
+    "Как RuFact сочетает ML-модель, поиск источников Tavily и анализ Gemini для проверки русскоязычных текстов.",
 };
 
 export default function ModelPage() {
@@ -36,16 +37,18 @@ export default function ModelPage() {
               id="model-page-heading"
               className="font-serif text-[38px] leading-[1.02] font-semibold tracking-[-0.045em] text-ink sm:text-[50px]"
             >
-              О модели RuFact
+              О системе проверки RuFact
             </h1>
             <p className="mt-3 text-[14px] leading-[1.65] text-[#607087] sm:max-w-[700px] sm:text-[16px]">
-              Здесь собраны устройство модели, честная внешняя оценка качества и ограничения,
-              которые важно учитывать при чтении результата.
+              RuFact использует не одну универсальную модель, а три независимых этапа:
+              языковой ML-анализ, поиск интернет-источников и сопоставление утверждений.
+              Ни один этап сам по себе не считается окончательным вердиктом.
             </p>
           </div>
         </section>
 
         <InfoCards />
+        <ModelSystemOverview />
         <ModelTransparency />
         <ModelEvaluationDetails />
       </main>

@@ -88,7 +88,9 @@ export function ResultExplanation({ result, analyzedText }: ResultExplanationPro
       ? []
       : getFallbackSignals(result.label);
   const evidenceById = buildEvidenceMap(result.evidence, analyzedText);
-  const sourceReview = result.sourceReview;
+  const sourceReview = result.meta?.externalSourcesChecked
+    ? undefined
+    : result.sourceReview;
 
   return (
     <div>
