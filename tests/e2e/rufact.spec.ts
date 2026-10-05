@@ -91,6 +91,36 @@ test("publishes an Android-installable web app manifest", async ({ page }, testI
   }
 });
 
+test("extracts an uploaded text document into the analyzer", async ({ page }) => {
+  const consoleErrors: string[] = [];
+  page.on("console", (message) => {
+    if (message.type() === "error") consoleErrors.push(message.text());
+  });
+
+  await page.goto("/");
+  const uploadedText =
+    "Проверяемый документ сообщает, что городской парк открылся после реконструкции 5 октября 2026 года.";
+
+  await page.getByLabel("Загрузить документ").setInputFiles({
+    name: "novost.txt",
+    mimeType: "text/plain",
+    buffer: Buffer.from(uploadedText, "utf8"),
+  });
+
+  await expect(page.getByLabel("Русскоязычный текст для анализа")).toHaveValue(
+    uploadedText,
+    { timeout: 20_000 },
+  );
+  await expect(page.getByText(/^novost\.txt: текст извлечён/u)).toBeVisible();
+  await expect(page.getByText("Файл не сохраняется на сервере")).toBeVisible();
+
+  const hasHorizontalOverflow = await page.evaluate(
+    () => document.documentElement.scrollWidth > window.innerWidth + 1,
+  );
+  expect(hasHorizontalOverflow).toBe(false);
+  expect(consoleErrors).toEqual([]);
+});
+
 test("desktop analysis workflow and guidance", async ({ page }, testInfo) => {
   const consoleErrors: string[] = [];
   page.on("console", (message) => {

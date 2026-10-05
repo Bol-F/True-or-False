@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useAnalysisHistory } from "@/hooks/useAnalysisHistory";
 import { analyzeText, getMockAnalysis, type AnalysisResponse } from "@/lib/api";
 import type { HistoryItem } from "@/lib/analysis-history";
+import { extractDocumentText } from "@/lib/document-upload";
 import { DEFAULT_TEXT, EXAMPLES } from "@/lib/examples";
 import { AnalysisHistoryDialog } from "./AnalysisHistoryDialog";
 import { AnalysisResult, type AnalysisStatus } from "./AnalysisResult";
@@ -40,11 +41,17 @@ export function AnalyzerWorkspace({ geminiConfigured }: AnalyzerWorkspaceProps) 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [useGemini, setUseGemini] = useState(false);
+  const [isExtracting, setIsExtracting] = useState(false);
+  const [documentMessage, setDocumentMessage] = useState<{
+    kind: "success" | "warning" | "error";
+    text: string;
+  } | null>(null);
 
   const handleTextChange = (value: string) => {
     setText(value);
     setActiveExampleId(null);
     setUseGemini(false);
+    setDocumentMessage(null);
     if (value.trim()) {
       setValidationMessage(null);
     }
@@ -55,6 +62,7 @@ export function AnalyzerWorkspace({ geminiConfigured }: AnalyzerWorkspaceProps) 
     setActiveExampleId(null);
     setValidationMessage(null);
     setUseGemini(false);
+    setDocumentMessage(null);
   };
 
   const handleExampleSelect = (example: TextExample) => {
@@ -63,6 +71,40 @@ export function AnalyzerWorkspace({ geminiConfigured }: AnalyzerWorkspaceProps) 
     setValidationMessage(null);
     setErrorMessage(null);
     setUseGemini(false);
+    setDocumentMessage(null);
+  };
+
+  const handleDocumentSelect = async (file: File) => {
+    setIsExtracting(true);
+    setDocumentMessage(null);
+    setValidationMessage(null);
+    setErrorMessage(null);
+
+    try {
+      const extractedDocument = await extractDocumentText(file);
+      setText(extractedDocument.text);
+      setActiveExampleId(null);
+      setUseGemini(false);
+      setDocumentMessage({
+        kind: extractedDocument.truncated ? "warning" : "success",
+        text: extractedDocument.truncated
+          ? `${extractedDocument.fileName}: извлечено ${extractedDocument.originalCharacters.toLocaleString("ru-RU")} символов; загружены первые 5000. Проверьте и сократите текст перед анализом.`
+          : `${extractedDocument.fileName}: текст извлечён${extractedDocument.pages ? ` (${extractedDocument.pages} стр.)` : ""}. Его можно отредактировать перед проверкой.`,
+      });
+      window.requestAnimationFrame(() =>
+        document.getElementById("analysis-text")?.focus(),
+      );
+    } catch (error) {
+      setDocumentMessage({
+        kind: "error",
+        text:
+          error instanceof Error
+            ? error.message
+            : "Не удалось прочитать файл.",
+      });
+    } finally {
+      setIsExtracting(false);
+    }
   };
 
   const handleSubmit = async () => {
@@ -145,13 +187,16 @@ export function AnalyzerWorkspace({ geminiConfigured }: AnalyzerWorkspaceProps) 
           examples={EXAMPLES}
           activeExampleId={activeExampleId}
           isLoading={status === "loading"}
+          isExtracting={isExtracting}
           validationMessage={validationMessage}
+          documentMessage={documentMessage}
           historyOpen={isHistoryOpen}
           historyEnabled={history.enabled}
           historyCount={history.items.length}
           geminiConfigured={geminiConfigured}
           useGemini={useGemini}
           onTextChange={handleTextChange}
+          onDocumentSelect={handleDocumentSelect}
           onClear={handleClear}
           onExampleSelect={handleExampleSelect}
           onSubmit={handleSubmit}

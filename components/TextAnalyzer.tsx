@@ -5,9 +5,11 @@ import {
   ArrowRight,
   FileText,
   LoaderCircle,
+  Upload,
   Sparkles,
   Trash2,
 } from "lucide-react";
+import { DOCUMENT_ACCEPT } from "@/lib/document-upload";
 import { ExampleChips, type TextExample } from "./ExampleChips";
 import { HistoryTrigger } from "./HistoryTrigger";
 
@@ -16,13 +18,16 @@ interface TextAnalyzerProps {
   examples: readonly TextExample[];
   activeExampleId: string | null;
   isLoading: boolean;
+  isExtracting: boolean;
   validationMessage: string | null;
+  documentMessage: { kind: "success" | "warning" | "error"; text: string } | null;
   historyOpen: boolean;
   historyEnabled: boolean;
   historyCount: number;
   geminiConfigured: boolean;
   useGemini: boolean;
   onTextChange: (value: string) => void;
+  onDocumentSelect: (file: File) => void;
   onClear: () => void;
   onExampleSelect: (example: TextExample) => void;
   onSubmit: () => void;
@@ -37,19 +42,24 @@ export function TextAnalyzer({
   examples,
   activeExampleId,
   isLoading,
+  isExtracting,
   validationMessage,
+  documentMessage,
   historyOpen,
   historyEnabled,
   historyCount,
   geminiConfigured,
   useGemini,
   onTextChange,
+  onDocumentSelect,
   onClear,
   onExampleSelect,
   onSubmit,
   onOpenHistory,
   onUseGeminiChange,
 }: TextAnalyzerProps) {
+  const isBusy = isLoading || isExtracting;
+
   return (
     <motion.article
       whileHover={{ y: -2 }}
@@ -75,7 +85,7 @@ export function TextAnalyzer({
           <button
             type="button"
             onClick={onClear}
-            disabled={isLoading || text.length === 0}
+            disabled={isBusy || text.length === 0}
             aria-label="Очистить текст"
             className="focus-ring inline-flex min-h-9 items-center gap-1.5 rounded-lg px-2 text-[12px] font-medium text-[#78869a] transition-colors hover:bg-[#f1eeea] hover:text-[#4d5c72] disabled:cursor-not-allowed disabled:opacity-45"
           >
@@ -93,7 +103,7 @@ export function TextAnalyzer({
           id="analysis-text"
           value={text}
           maxLength={MAX_LENGTH}
-          disabled={isLoading}
+          disabled={isBusy}
           aria-describedby="text-counter text-helper"
           aria-invalid={Boolean(validationMessage)}
           aria-errormessage={validationMessage ? "text-validation" : undefined}
@@ -125,10 +135,57 @@ export function TextAnalyzer({
         </p>
       ) : null}
 
+      <div className="mt-3 rounded-[12px] border border-dashed border-[#b9c9d8] bg-[#f5f8fa]/80 px-3 py-2.5">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <label
+            className={`focus-within:ring-2 focus-within:ring-[#7ea4c7] focus-within:ring-offset-2 inline-flex min-h-10 items-center justify-center gap-2 rounded-[10px] border border-[#c8d4df] bg-white px-3.5 text-[12px] font-extrabold text-[#214b70] shadow-sm transition-colors hover:bg-[#eef5fa] ${
+              isBusy ? "cursor-wait opacity-60" : "cursor-pointer"
+            }`}
+          >
+            {isExtracting ? (
+              <LoaderCircle className="animate-spin" size={16} aria-hidden="true" />
+            ) : (
+              <Upload size={16} aria-hidden="true" />
+            )}
+            {isExtracting ? "Читаем файл…" : "Загрузить файл"}
+            <input
+              type="file"
+              accept={DOCUMENT_ACCEPT}
+              disabled={isBusy}
+              aria-label="Загрузить документ"
+              className="sr-only"
+              onChange={(event) => {
+                const file = event.currentTarget.files?.[0];
+                if (file) onDocumentSelect(file);
+                event.currentTarget.value = "";
+              }}
+            />
+          </label>
+          <p className="text-[10.5px] leading-[1.45] text-[#697b8e] sm:text-right">
+            TXT, MD, CSV, JSON, PDF или DOCX · до 3 МБ
+            <br />Файл не сохраняется на сервере
+          </p>
+        </div>
+        {documentMessage ? (
+          <p
+            role={documentMessage.kind === "error" ? "alert" : "status"}
+            className={`mt-2 text-[11px] font-semibold leading-[1.45] ${
+              documentMessage.kind === "error"
+                ? "text-[#b33b42]"
+                : documentMessage.kind === "warning"
+                  ? "text-[#9a5b24]"
+                  : "text-[#2f6a52]"
+            }`}
+          >
+            {documentMessage.text}
+          </p>
+        ) : null}
+      </div>
+
       <ExampleChips
         examples={examples}
         activeId={activeExampleId}
-        disabled={isLoading}
+        disabled={isBusy}
         onSelect={onExampleSelect}
       />
 
@@ -147,7 +204,7 @@ export function TextAnalyzer({
             type="checkbox"
             role="switch"
             checked={useGemini}
-            disabled={isLoading || !geminiConfigured}
+            disabled={isBusy || !geminiConfigured}
             aria-describedby="gemini-option-description gemini-privacy-note"
             onChange={(event) => onUseGeminiChange(event.target.checked)}
             className="focus-ring mt-0.5 h-4 w-4 shrink-0 accent-[#285b87] disabled:cursor-not-allowed"
@@ -201,9 +258,9 @@ export function TextAnalyzer({
       <div className="mt-6 flex flex-col items-stretch gap-4 sm:flex-row sm:items-center sm:gap-7">
         <motion.button
           type="button"
-          whileHover={isLoading ? undefined : { y: -1 }}
-          whileTap={isLoading ? undefined : { scale: 0.99 }}
-          disabled={isLoading}
+          whileHover={isBusy ? undefined : { y: -1 }}
+          whileTap={isBusy ? undefined : { scale: 0.99 }}
+          disabled={isBusy}
           onClick={onSubmit}
           className="focus-ring group inline-flex min-h-[58px] flex-1 items-center justify-center gap-4 rounded-[14px] bg-[linear-gradient(100deg,#0b2a4a,#244f78)] px-7 text-[16px] font-bold text-white shadow-[0_12px_24px_rgba(13,47,79,0.16)] disabled:cursor-wait disabled:opacity-85 sm:max-w-[345px]"
         >

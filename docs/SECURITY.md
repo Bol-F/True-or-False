@@ -7,6 +7,7 @@
 ```text
 браузер → POST /api/analyze (Next.js) → POST /predict (FastAPI)
                                       ↘ Gemini API (только по согласию)
+        → POST /api/extract (Next.js, обработка документа в памяти)
 ```
 
 Браузер считается недоверенным. FastAPI принимает prediction только от Next.js.
@@ -24,6 +25,7 @@ Gemini и ML credentials не входят в клиентский bundle. JWT �
 | Подмена тела после подписи | `bodySha256` проверяется constant-time сравнением |
 | CSRF/cross-site вызов | same-origin/fetch-site проверка и только `application/json` |
 | Большое или неправильное тело | 24 KB limit до анализа, 5000 символов в схеме, строгие типы |
+| Вредоносный или слишком тяжёлый документ | allowlist расширений и MIME, сигнатуры PDF/DOCX, 3 МБ, 40 страниц PDF, ограничение изображений и таймаут |
 | XSS/clickjacking/MIME confusion | CSP, `frame-ancestors 'none'`, `X-Frame-Options: DENY`, `nosniff`, restrictive Permissions Policy |
 | Downgrade HTTP в production | HSTS и требование HTTPS для внешних endpoint в release checklist |
 | Утечка topology и секретов | server-only env, same-origin proxy, credential scan, generic upstream errors |
@@ -57,6 +59,7 @@ hash secret приводит к `503`, чтобы дорогостоящий end
 - Параметры хоста FastAPI ограничиваются `RUFACT_ALLOWED_HOSTS`.
 - OpenAPI в контейнере выключен, если `RUFACT_API_DOCS_ENABLED` не равен `true`.
 - Next.js удаляет `X-Powered-By` и не кэширует приватные результаты анализа.
+- Загруженные файлы не записываются на диск; из PDF/DOCX возвращается только нормализованный plain text.
 - CSP запрещает frames, plugins, внешние scripts, media и внешние connections.
   Next.js hydration пока требует `'unsafe-inline'` для scripts/styles; это известный
   остаточный риск. Пользовательский HTML не рендерится, но nonce-based CSP остаётся

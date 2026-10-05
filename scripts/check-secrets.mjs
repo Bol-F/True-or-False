@@ -5,6 +5,7 @@ const root = process.cwd();
 const ignoredDirectories = new Set([
   ".git",
   ".next",
+  ".pytest_cache",
   ".venv",
   "node_modules",
   "playwright-report",
