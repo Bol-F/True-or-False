@@ -4,9 +4,11 @@ import Link from "next/link";
 
 import { Brand } from "./Brand";
 import { useFeedback } from "./FeedbackProvider";
+import { useLanguage } from "./LanguageProvider";
 
 export function Footer() {
   const { openFeedback } = useFeedback();
+  const { copy } = useLanguage();
 
   return (
     <footer className="content-gutter pb-3 pt-1 sm:pb-6 sm:pt-2">
@@ -14,19 +16,19 @@ export function Footer() {
         <div className="[&_span]:text-white">
           <Brand />
           <p className="mt-2 text-[10.5px] leading-[1.5] text-[#b9c8d4]">
-            Образовательный инструмент для осознанного чтения новостей.
+            {copy.footer.tagline}
           </p>
         </div>
-        <nav aria-label="Навигация в подвале">
+        <nav aria-label={copy.footer.navigation}>
           <ul className="flex flex-wrap gap-x-5 gap-y-2 text-[10.5px] font-bold text-[#dbe4eb]">
             <li>
               <Link className="focus-ring rounded hover:text-white" href="/#analyzer">
-                Проверить текст
+                {copy.footer.check}
               </Link>
             </li>
             <li>
               <Link className="focus-ring rounded hover:text-white" href="/model">
-                О модели
+                {copy.navigation.model}
               </Link>
             </li>
             <li>
@@ -35,7 +37,7 @@ export function Footer() {
                 onClick={() => openFeedback({ source: "footer" })}
                 className="focus-ring rounded hover:text-white"
               >
-                Обратная связь
+                {copy.navigation.feedback}
               </button>
             </li>
           </ul>

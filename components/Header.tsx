@@ -6,23 +6,25 @@ import Link from "next/link";
 import { useState } from "react";
 import { Brand } from "./Brand";
 import { useFeedback } from "./FeedbackProvider";
-
-const navigation = [
-  { label: "Как это работает", href: "/#how-it-works" },
-  { label: "О модели", href: "/model" },
-  { label: "Вопросы и ответы", href: "/#questions" },
-];
+import { LanguageSwitcher } from "./LanguageSwitcher";
+import { useLanguage } from "./LanguageProvider";
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const { openFeedback } = useFeedback();
+  const { copy } = useLanguage();
+  const navigation = [
+    { label: copy.navigation.how, href: "/#how-it-works" },
+    { label: copy.navigation.model, href: "/model" },
+    { label: copy.navigation.faq, href: "/#questions" },
+  ];
 
   return (
     <header id="top" className="content-gutter relative z-50">
       <div className="flex min-h-[62px] items-center justify-between gap-4 sm:min-h-[88px] lg:min-h-[98px]">
         <Brand />
 
-        <nav aria-label="Основная навигация" className="hidden lg:block">
+        <nav aria-label={copy.navigation.main} className="hidden lg:block">
           <ul className="flex items-center gap-10 text-[14px] font-medium text-[#173552] xl:gap-12">
             {navigation.map((item) => (
               <li key={item.href}>
@@ -37,13 +39,14 @@ export function Header() {
           </ul>
         </nav>
 
-        <div className="hidden items-center md:flex">
+        <div className="hidden items-center gap-2 md:flex">
+          <LanguageSwitcher />
           <button
             type="button"
             onClick={() => openFeedback({ source: "header" })}
             className="focus-ring inline-flex min-h-11 items-center rounded-[13px] bg-ink-deep px-6 text-[14px] font-semibold text-white shadow-[0_7px_18px_rgba(10,41,73,0.16)] transition-transform hover:-translate-y-0.5"
           >
-            Обратная связь
+            {copy.navigation.feedback}
           </button>
         </div>
 
@@ -52,7 +55,7 @@ export function Header() {
           className="focus-ring inline-flex h-9 w-9 items-center justify-center rounded-[10px] border border-[#d7d8d3] bg-[#fbfaf6] text-ink md:hidden"
           aria-expanded={isOpen}
           aria-controls="mobile-navigation"
-          aria-label={isOpen ? "Закрыть меню" : "Открыть меню"}
+          aria-label={isOpen ? copy.navigation.closeMenu : copy.navigation.openMenu}
           onClick={() => setIsOpen((value) => !value)}
         >
           {isOpen ? <X size={18} /> : <Menu size={18} />}
@@ -63,7 +66,7 @@ export function Header() {
         {isOpen ? (
           <motion.nav
             id="mobile-navigation"
-            aria-label="Мобильная навигация"
+            aria-label={copy.navigation.mobile}
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
@@ -84,6 +87,9 @@ export function Header() {
               ))}
             </ul>
             <div className="mt-2 border-t border-[#e3dfd7] px-3 pt-3">
+              <LanguageSwitcher compact />
+            </div>
+            <div className="mt-2 border-t border-[#e3dfd7] px-3 pt-3">
               <button
                 type="button"
                 onClick={() => {
@@ -92,7 +98,7 @@ export function Header() {
                 }}
                 className="focus-ring min-h-9 rounded-lg text-xs font-bold text-accent"
               >
-                Обратная связь
+                {copy.navigation.feedback}
               </button>
             </div>
           </motion.nav>

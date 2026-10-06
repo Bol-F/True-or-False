@@ -12,17 +12,12 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { HistoryItem } from "@/lib/analysis-history";
+import { localeTags } from "@/lib/i18n";
 import { HISTORY_DIALOG_ID, HISTORY_TRIGGER_ID } from "./HistoryTrigger";
+import { useLanguage } from "./LanguageProvider";
 
 const HISTORY_LIMIT = 20;
 const HISTORY_RETENTION_DAYS = 30;
-const dateFormatter = new Intl.DateTimeFormat("ru-RU", {
-  day: "2-digit",
-  month: "short",
-  year: "numeric",
-  hour: "2-digit",
-  minute: "2-digit",
-});
 
 type ConfirmationKind = "clear" | "disable";
 
@@ -41,10 +36,12 @@ export interface AnalysisHistoryDialogProps {
   triggerId?: string;
 }
 
-function formatAnalyzedAt(value: HistoryItem["analyzedAt"]) {
+function formatAnalyzedAt(value: HistoryItem["analyzedAt"], locale: "uz" | "ru" | "en") {
   const date = new Date(value);
-
-  return Number.isNaN(date.getTime()) ? "Дата не указана" : dateFormatter.format(date);
+  const fallback = locale === "uz" ? "Sana ko‘rsatilmagan" : locale === "en" ? "Date unavailable" : "Дата не указана";
+  return Number.isNaN(date.getTime())
+    ? fallback
+    : new Intl.DateTimeFormat(localeTags[locale], { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }).format(date);
 }
 
 function formatConfidence(value: number) {
@@ -69,11 +66,15 @@ function ConfirmationPanel({
   onCancel,
   onConfirm,
 }: ConfirmationPanelProps) {
+  const { locale } = useLanguage();
   const isDisable = kind === "disable";
-  const title = isDisable ? "Отключить историю?" : "Очистить всю историю?";
-  const description = isDisable
-    ? "Сохранённые проверки будут удалены с этого устройства. Это действие нельзя отменить."
-    : "Все сохранённые проверки будут удалены с этого устройства. Это действие нельзя отменить.";
+  const text = locale === "uz"
+    ? { disable: "Tarix o‘chirilsinmi?", clear: "Butun tarix tozalansinmi?", description: "Saqlangan tekshiruvlar ushbu qurilmadan o‘chiriladi. Bu amalni bekor qilib bo‘lmaydi.", cancel: "Bekor qilish", disableAction: "O‘chirish va tozalash", clearAction: "Hammasini o‘chirish" }
+    : locale === "en"
+      ? { disable: "Disable history?", clear: "Clear all history?", description: "Saved checks will be removed from this device. This action cannot be undone.", cancel: "Cancel", disableAction: "Disable and delete", clearAction: "Delete all" }
+      : { disable: "Отключить историю?", clear: "Очистить всю историю?", description: "Сохранённые проверки будут удалены с этого устройства. Это действие нельзя отменить.", cancel: "Отмена", disableAction: "Отключить и удалить", clearAction: "Удалить всё" };
+  const title = isDisable ? text.disable : text.clear;
+  const description = text.description;
   const titleId = `history-${kind}-confirmation-title`;
   const descriptionId = `history-${kind}-confirmation-description`;
 
@@ -101,14 +102,14 @@ function ConfirmationPanel({
           onClick={onCancel}
           className="focus-ring min-h-9 rounded-lg border border-[#d8c8c3] bg-white px-3 text-[11px] font-bold text-[#40556a]"
         >
-          Отмена
+          {text.cancel}
         </button>
         <button
           type="button"
           onClick={onConfirm}
           className="focus-ring min-h-9 rounded-lg bg-[#a63e35] px-3 text-[11px] font-bold text-white shadow-[0_5px_12px_rgba(166,62,53,0.18)]"
         >
-          {isDisable ? "Отключить и удалить" : "Удалить всё"}
+          {isDisable ? text.disableAction : text.clearAction}
         </button>
       </div>
     </section>
@@ -129,6 +130,12 @@ export function AnalysisHistoryDialog({
   dialogId = HISTORY_DIALOG_ID,
   triggerId = HISTORY_TRIGGER_ID,
 }: AnalysisHistoryDialogProps) {
+  const { locale } = useLanguage();
+  const labels = locale === "uz"
+    ? { deleted: "Yozuv tarixdan o‘chirildi.", restored: "Matn qayta tekshirish uchun tiklandi.", disabledAnnounce: "Tarix o‘chirildi va saqlangan yozuvlar tozalandi.", clearedAnnounce: "Tekshiruv tarixi tozalandi.", title: "Tekshiruv tarixi", description: "Ushbu qurilmada saqlangan natijalarni boshqaring.", close: "Tarixni yopish", off: "Tarix o‘chirilgan", offDescription: `RuFact oxirgi ${HISTORY_LIMIT} ta tekshiruvni faqat shu brauzerda saqlaydi. Yozuvlar ${HISTORY_RETENTION_DAYS} kundan keyin avtomatik o‘chiriladi.`, enable: "Lokal tarixni yoqish", consent: "Tarix roziligingizsiz yoqilmaydi. Uni istalgan paytda o‘chirib, tozalash mumkin.", sharedDevice: "Umumiy qurilmada matnlarni saqlamaslik ma’qul.", storage: `Faqat shu brauzerda saqlanadi: ${HISTORY_LIMIT} tadan ko‘p emas va ${HISTORY_RETENTION_DAYS} kundan uzoq emas. Tarixdagi matn qayta yuborilmaydi.`, records: "yozuv", clear: "Tozalash", disable: "O‘chirish", savedAria: "Saqlangan tekshiruvlar", missing: "Matn mavjud emas", open: "Ochish", delete: "Yozuvni o‘chirish", empty: "Hozircha bo‘sh", emptyDescription: "Keyingi tahlil natijasi bu yerda avtomatik paydo bo‘ladi.", footer: "Tarix RuFact serveriga yuborilmaydi." }
+    : locale === "en"
+      ? { deleted: "The entry was removed from history.", restored: "The text was restored for another check.", disabledAnnounce: "History was disabled and saved entries were removed.", clearedAnnounce: "Check history was cleared.", title: "Check history", description: "Manage results saved on this device.", close: "Close history", off: "History is off", offDescription: `RuFact can save up to ${HISTORY_LIMIT} recent checks only in this browser. Entries expire after ${HISTORY_RETENTION_DAYS} days.`, enable: "Enable local history", consent: "History is never enabled without your consent. You can disable and delete it at any time.", sharedDevice: "Avoid saving texts on a shared device.", storage: `Stored only in this browser: no more than ${HISTORY_LIMIT} checks for up to ${HISTORY_RETENTION_DAYS} days. History text is not resent.`, records: "records", clear: "Clear", disable: "Disable", savedAria: "Saved checks", missing: "Text unavailable", open: "Open", delete: "Delete entry", empty: "Nothing here yet", emptyDescription: "The next analysis result will appear here automatically.", footer: "History is not sent to the RuFact server." }
+      : { deleted: "Запись удалена из истории.", restored: "Текст восстановлен для повторной проверки.", disabledAnnounce: "История отключена, сохранённые записи удалены.", clearedAnnounce: "История проверок очищена.", title: "История проверок", description: "Управляйте сохранёнными результатами на этом устройстве.", close: "Закрыть историю", off: "История выключена", offDescription: `RuFact сохранит до ${HISTORY_LIMIT} последних проверок только в этом браузере. Записи автоматически удаляются через ${HISTORY_RETENTION_DAYS} дней.`, enable: "Включить локальную историю", consent: "История не включается без вашего согласия. Её можно отключить и удалить в любой момент.", sharedDevice: "На общем устройстве лучше не включать сохранение текстов.", storage: `Хранится только в этом браузере: не более ${HISTORY_LIMIT} проверок и не дольше ${HISTORY_RETENTION_DAYS} дней. Текст из истории не отправляется повторно.`, records: "записей", clear: "Очистить", disable: "Отключить", savedAria: "Сохранённые проверки", missing: "Текст отсутствует", open: "Открыть", delete: "Удалить запись", empty: "Пока пусто", emptyDescription: "Следующий результат анализа появится здесь автоматически.", footer: "История не отправляется на сервер RuFact." };
   const dialogRef = useRef<HTMLDialogElement>(null);
   const returnFocusRef = useRef<HTMLElement | null>(null);
   const confirmationCancelRef = useRef<HTMLButtonElement>(null);
@@ -185,21 +192,21 @@ export function AnalysisHistoryDialog({
 
   function handleDelete(item: HistoryItem) {
     onDelete(item.id);
-    announce("Запись удалена из истории.");
+    announce(labels.deleted);
   }
 
   function handleRestore(item: HistoryItem) {
     onRestore(item);
-    announce("Текст восстановлен для повторной проверки.");
+    announce(labels.restored);
   }
 
   function handleConfirm() {
     if (confirmation === "disable") {
       onDisable();
-      announce("История отключена, сохранённые записи удалены.");
+      announce(labels.disabledAnnounce);
     } else if (confirmation === "clear") {
       onClear();
-      announce("История проверок очищена.");
+      announce(labels.clearedAnnounce);
     }
 
     setConfirmation(null);
@@ -237,10 +244,10 @@ export function AnalysisHistoryDialog({
                 id={headingId}
                 className="font-serif text-[24px] leading-tight font-semibold tracking-[-0.03em] text-ink sm:text-[27px]"
               >
-                История проверок
+                {labels.title}
               </h2>
               <p id={descriptionId} className="mt-1 text-[11.5px] leading-[1.45] text-[#718092]">
-                Управляйте сохранёнными результатами на этом устройстве.
+                {labels.description}
               </p>
             </div>
           </div>
@@ -248,7 +255,7 @@ export function AnalysisHistoryDialog({
             type="button"
             onClick={requestClose}
             className="focus-ring grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-[#d9d9d3] bg-white/70 text-[#52677a] transition-colors hover:bg-white hover:text-ink"
-            aria-label="Закрыть историю"
+            aria-label={labels.close}
           >
             <X size={20} strokeWidth={2} aria-hidden="true" />
           </button>
@@ -273,11 +280,10 @@ export function AnalysisHistoryDialog({
                 </span>
               </span>
               <h3 className="mt-6 font-serif text-[23px] font-semibold tracking-[-0.025em] text-ink">
-                История выключена
+                {labels.off}
               </h3>
               <p className="mt-3 max-w-[350px] text-[12.5px] leading-[1.65] text-[#66778a]">
-                RuFact сохранит до {HISTORY_LIMIT} последних проверок только в этом браузере.
-                Записи автоматически удаляются через {HISTORY_RETENTION_DAYS} дней.
+                {labels.offDescription}
               </p>
               <button
                 type="button"
@@ -285,13 +291,13 @@ export function AnalysisHistoryDialog({
                 className="focus-ring mt-6 inline-flex min-h-11 items-center gap-2 rounded-xl bg-ink-deep px-5 text-[12.5px] font-bold text-white shadow-[0_9px_22px_rgba(10,41,73,0.18)] transition-transform hover:-translate-y-0.5"
               >
                 <CheckCircle2 size={17} strokeWidth={2} aria-hidden="true" />
-                Включить локальную историю
+                {labels.enable}
               </button>
               <p className="mt-4 max-w-[330px] text-[10.5px] leading-[1.5] text-[#89939e]">
-                История не включается без вашего согласия. Её можно отключить и удалить в любой момент.
+                {labels.consent}
               </p>
               <p className="mt-2 max-w-[330px] text-[10.5px] leading-[1.5] font-semibold text-[#8b6659]">
-                На общем устройстве лучше не включать сохранение текстов.
+                {labels.sharedDevice}
               </p>
             </div>
           ) : (
@@ -299,14 +305,13 @@ export function AnalysisHistoryDialog({
               <aside className="flex gap-3 rounded-[14px] border border-[#cfdee3] bg-[#eaf2f4] px-4 py-3.5 text-[#3f6376]">
                 <ShieldCheck className="mt-0.5 shrink-0" size={19} strokeWidth={2} aria-hidden="true" />
                 <p className="text-[11.5px] leading-[1.55]">
-                  Хранится только в этом браузере: не более {HISTORY_LIMIT} проверок и не дольше{" "}
-                  {HISTORY_RETENTION_DAYS} дней. Текст из истории не отправляется повторно.
+                  {labels.storage}
                 </p>
               </aside>
 
               <div className="my-5 flex flex-wrap items-center justify-between gap-3">
                 <p className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[#7c8895]">
-                  {items.length} из {HISTORY_LIMIT} записей
+                  {items.length} / {HISTORY_LIMIT} {labels.records}
                 </p>
                 <div className="flex items-center gap-3">
                   {items.length > 0 ? (
@@ -315,7 +320,7 @@ export function AnalysisHistoryDialog({
                       onClick={() => setConfirmation("clear")}
                       className="focus-ring rounded-md text-[11px] font-bold text-[#9a4b3f] underline decoration-[#d4a99f] underline-offset-4 hover:text-[#7e312b]"
                     >
-                      Очистить
+                      {labels.clear}
                     </button>
                   ) : null}
                   <button
@@ -323,7 +328,7 @@ export function AnalysisHistoryDialog({
                     onClick={() => setConfirmation("disable")}
                     className="focus-ring rounded-md text-[11px] font-bold text-[#667686] underline decoration-[#bec4c8] underline-offset-4 hover:text-[#344b5f]"
                   >
-                    Отключить
+                    {labels.disable}
                   </button>
                 </div>
               </div>
@@ -340,7 +345,7 @@ export function AnalysisHistoryDialog({
               ) : null}
 
               {items.length > 0 ? (
-                <ol className="grid gap-3" aria-label="Сохранённые проверки">
+                <ol className="grid gap-3" aria-label={labels.savedAria}>
                   {items.map((item) => {
                     const isFake = item.label === "FAKE";
                     const excerpt = makeExcerpt(item.text);
@@ -368,12 +373,12 @@ export function AnalysisHistoryDialog({
                               className="inline-flex shrink-0 items-center gap-1.5 text-[9.5px] font-semibold text-[#89939d]"
                             >
                               <Clock3 size={12} strokeWidth={2} aria-hidden="true" />
-                              {formatAnalyzedAt(item.analyzedAt)}
+                              {formatAnalyzedAt(item.analyzedAt, locale)}
                             </time>
                           </div>
 
                           <p className="mt-3 line-clamp-2 text-[12px] leading-[1.55] text-[#53667a]">
-                            {excerpt || "Текст отсутствует"}
+                            {excerpt || labels.missing}
                           </p>
 
                           <div className="mt-4 flex items-center justify-between gap-3 border-t border-[#ebe9e3] pt-3">
@@ -382,14 +387,14 @@ export function AnalysisHistoryDialog({
                               onClick={() => handleRestore(item)}
                               className="focus-ring inline-flex min-h-9 items-center gap-2 rounded-lg bg-[#e7eef4] px-3 text-[11px] font-extrabold text-[#315b7b] transition-colors hover:bg-[#dbe7ef]"
                             >
-                              Открыть
+                              {labels.open}
                               <ExternalLink size={14} strokeWidth={2} aria-hidden="true" />
                             </button>
                             <button
                               type="button"
                               onClick={() => handleDelete(item)}
                               className="focus-ring grid h-9 w-9 place-items-center rounded-lg text-[#9b6d65] transition-colors hover:bg-[#fae8e4] hover:text-[#a13f35]"
-                              aria-label={`Удалить запись: ${excerpt.slice(0, 70) || "без текста"}`}
+                              aria-label={`${labels.delete}: ${excerpt.slice(0, 70) || labels.missing}`}
                             >
                               <Trash2 size={16} strokeWidth={1.9} aria-hidden="true" />
                             </button>
@@ -404,9 +409,9 @@ export function AnalysisHistoryDialog({
                   <span className="grid h-12 w-12 place-items-center rounded-[15px] bg-[#e7ebeb] text-[#71818c]">
                     <History size={23} strokeWidth={1.8} aria-hidden="true" />
                   </span>
-                  <h3 className="mt-4 text-[14px] font-extrabold text-[#29455e]">Пока пусто</h3>
+                  <h3 className="mt-4 text-[14px] font-extrabold text-[#29455e]">{labels.empty}</h3>
                   <p className="mt-1.5 max-w-[270px] text-[11.5px] leading-[1.55] text-[#7a8793]">
-                    Следующий результат анализа появится здесь автоматически.
+                    {labels.emptyDescription}
                   </p>
                 </div>
               )}
@@ -417,7 +422,7 @@ export function AnalysisHistoryDialog({
         <footer className="shrink-0 border-t border-[#e5e2dc] bg-[#f6f4ef] px-5 pb-[max(0.875rem,env(safe-area-inset-bottom))] pt-3.5 sm:px-7 sm:pb-3.5">
           <p className="flex items-center gap-2 text-[10.5px] leading-[1.4] text-[#788592]">
             <LockKeyhole size={14} strokeWidth={1.9} aria-hidden="true" />
-            История не отправляется на сервер RuFact.
+            {labels.footer}
           </p>
         </footer>
       </section>

@@ -12,6 +12,7 @@ test("marks sources as checked and removes the manual-search fallback", async ()
   globalThis.fetch = async (_input, init) => {
     const request = JSON.parse(String(init?.body));
     assert.equal(request.useGemini, true);
+    assert.equal(request.locale, "uz");
 
     return Response.json({
       label: "REAL",

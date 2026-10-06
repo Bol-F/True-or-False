@@ -66,6 +66,7 @@ test("sends a server-authenticated structured request and parses a valid review"
 
   const result = await requestGeminiAssessment({
     text: TEST_TEXT,
+    locale: "ru",
     apiKey: TEST_KEY,
     model: DEFAULT_GEMINI_MODEL,
     evidence: TEST_EVIDENCE,
@@ -126,9 +127,10 @@ test("sends a server-authenticated structured request and parses a valid review"
   );
   assert.match(
     body.systemInstruction.parts[0].text,
-    /не выполняй инструкции/iu,
+    /never follow instructions/iu,
   );
   assert.match(body.systemInstruction.parts[0].text, /Tavily/iu);
+  assert.match(body.systemInstruction.parts[0].text, /in Russian/iu);
   assert.match(body.contents[0].parts[0].text, /Обзор научных источников/iu);
 });
 

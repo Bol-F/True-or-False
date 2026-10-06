@@ -20,6 +20,7 @@ import {
   rateLimitInternetRequest,
 } from "@/lib/server/rate-limit";
 import { createAbortScope } from "@/lib/server/abort-scope";
+import { isAppLocale, type AppLocale } from "@/lib/i18n";
 
 const MAX_TEXT_LENGTH = 5_000;
 const MAX_BODY_BYTES = 24_000;
@@ -165,16 +166,17 @@ async function requestMlPrediction(
 async function getRateLimitedGeminiAssessment(
   request: Request,
   text: string,
+  locale: AppLocale,
 ) {
   if (!isGeminiReviewConfigured()) {
-    return getGeminiAssessment(text, request.signal);
+    return getGeminiAssessment(text, locale, request.signal);
   }
 
   const sourceLimit = await rateLimitInternetRequest(request);
   if (!sourceLimit.configured) return unavailable("search-error");
   if (!sourceLimit.allowed) return unavailable("search-rate-limited");
 
-  return getGeminiAssessment(text, request.signal);
+  return getGeminiAssessment(text, locale, request.signal);
 }
 
 function attachAgreement(
@@ -254,10 +256,13 @@ export async function POST(request: Request) {
     return jsonResponse({ error: "Добавьте поле text в запрос." }, 400);
   }
 
-  const { text, useGemini } = body as {
+  const { text, useGemini, locale: requestedLocale } = body as {
     text?: unknown;
     useGemini?: unknown;
+    locale?: unknown;
   };
+
+  const locale: AppLocale = isAppLocale(requestedLocale) ? requestedLocale : "uz";
 
   if (
     typeof useGemini !== "undefined" &&
@@ -298,7 +303,7 @@ export async function POST(request: Request) {
   }
 
   const geminiPromise = useGemini
-    ? getRateLimitedGeminiAssessment(request, normalizedText).catch(() =>
+    ? getRateLimitedGeminiAssessment(request, normalizedText, locale).catch(() =>
         unavailable("upstream-error"),
       )
     : Promise.resolve(null);

@@ -3,11 +3,11 @@ import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: "/",
-    name: "RuFact — проверка русскоязычных текстов",
+    name: "RuFact — matn va manbalarni tekshirish",
     short_name: "RuFact",
     description:
-      "Вероятностный анализ признаков недостоверной информации в русскоязычных текстах.",
-    lang: "ru",
+      "O‘zbek, rus va ingliz tilidagi matnlarni internet manbalari bilan tekshirish.",
+    lang: "uz-Latn-UZ",
     dir: "ltr",
     start_url: "/",
     scope: "/",
@@ -32,9 +32,9 @@ export default function manifest(): MetadataRoute.Manifest {
     ],
     shortcuts: [
       {
-        name: "Проверить текст",
-        short_name: "Проверка",
-        description: "Открыть форму анализа текста",
+        name: "Matnni tekshirish",
+        short_name: "Tekshirish",
+        description: "Matn tahlili formasini ochish",
         url: "/#analyzer",
         icons: [
           {
@@ -45,9 +45,9 @@ export default function manifest(): MetadataRoute.Manifest {
         ],
       },
       {
-        name: "О модели",
-        short_name: "Модель",
-        description: "Посмотреть качество и ограничения ML-модели",
+        name: "Model haqida",
+        short_name: "Model",
+        description: "Tizim sifati va cheklovlarini ko‘rish",
         url: "/model",
         icons: [
           {

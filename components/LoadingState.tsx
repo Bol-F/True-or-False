@@ -2,8 +2,10 @@
 
 import { motion, useReducedMotion } from "framer-motion";
 import { Info, ScanSearch } from "lucide-react";
+import { useLanguage } from "./LanguageProvider";
 
 export function LoadingState() {
+  const { copy } = useLanguage();
   const prefersReducedMotion = useReducedMotion();
   const pulseAnimation = prefersReducedMotion
     ? undefined
@@ -19,7 +21,7 @@ export function LoadingState() {
       role="status"
       aria-live="polite"
       aria-busy="true"
-      aria-label="Идёт анализ текста"
+      aria-label={copy.loading.aria}
       initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: prefersReducedMotion ? 0 : 0.3 }}
@@ -32,12 +34,11 @@ export function LoadingState() {
               <ScanSearch size={22} strokeWidth={2} aria-hidden="true" />
             </span>
             <p className="text-[18px] font-extrabold tracking-[-0.025em] text-ink sm:text-[21px]">
-              Анализируем текст
+              {copy.loading.title}
             </p>
           </div>
           <p className="mt-3 text-[12px] leading-[1.5] text-[#68768b] sm:text-[13px]">
-            Анализируем языковые признаки и контекст. Источники в интернете не
-            проверяются.
+            {copy.loading.description}
           </p>
         </div>
 
@@ -73,13 +74,12 @@ export function LoadingState() {
       <div className="mt-4 flex items-start gap-3 rounded-[13px] bg-[#e8effa] px-4 py-3.5 text-[#50719f]">
         <Info size={18} className="mt-0.5 shrink-0" aria-hidden="true" />
         <p className="text-[11px] leading-[1.45] sm:text-xs">
-          Не закрывайте страницу — результат появится здесь сразу после завершения
-          анализа.
+          {copy.loading.wait}
         </p>
       </div>
 
       <span className="sr-only">
-        Модель анализирует введённый текст. Пожалуйста, подождите.
+        {copy.loading.sr}
       </span>
     </motion.section>
   );

@@ -7,6 +7,7 @@ import {
   type GeminiAssessment,
 } from "./gemini-review-core";
 import { requestTavilyEvidence } from "./tavily-search";
+import type { AppLocale } from "../i18n";
 
 const ALLOWED_GEMINI_MODELS = new Set([
   DEFAULT_GEMINI_MODEL,
@@ -44,6 +45,7 @@ export function isGeminiReviewConfigured() {
 
 export async function getGeminiAssessment(
   text: string,
+  locale: AppLocale = "uz",
   signal?: AbortSignal,
 ): Promise<GeminiAssessment> {
   const apiKey = process.env.GEMINI_API_KEY?.trim();
@@ -54,6 +56,7 @@ export async function getGeminiAssessment(
 
   const search = await requestTavilyEvidence({
     text,
+    locale,
     apiKey: tavilyApiKey,
     signal,
   });
@@ -64,6 +67,7 @@ export async function getGeminiAssessment(
     apiKey,
     model: configuredModel(),
     evidence: search.evidence,
+    locale,
     signal,
   });
 }

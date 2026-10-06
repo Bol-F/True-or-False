@@ -12,6 +12,7 @@ test("sends a server-authenticated Tavily request and validates sources", async 
   let capturedInit;
   const result = await requestTavilyEvidence({
     text: TEST_TEXT,
+    locale: "uz",
     apiKey: TEST_KEY,
     fetchImpl: async (input, init) => {
       capturedInput = input;
@@ -56,6 +57,7 @@ test("sends a server-authenticated Tavily request and validates sources", async 
   assert.equal(headers.get("content-type"), "application/json");
   assert.equal(bodyText.includes(TEST_KEY), false);
   assert.equal(body.search_depth, "basic");
+  assert.equal(body.language, "uz");
   assert.equal(body.max_results, 6);
   assert.equal(body.include_raw_content, false);
   assert.equal(body.safe_search, true);

@@ -1,3 +1,5 @@
+import type { AppLocale } from "./i18n";
+
 export type GeminiReviewLabel = "REAL" | "FAKE" | "UNSURE";
 export type GeminiReviewCertainty = "low" | "medium" | "high";
 export type GeminiClaimKind = "FACTUAL" | "OPINION";
@@ -62,4 +64,5 @@ export type GeminiReview = GeminiReviewComplete | GeminiReviewUnavailable;
 
 export interface GeminiReviewRequestOptions {
   useGemini?: boolean;
+  locale?: AppLocale;
 }

@@ -1,5 +1,6 @@
 import type { GeminiSource } from "../gemini-review";
 import { createAbortScope } from "./abort-scope.ts";
+import type { AppLocale } from "../i18n";
 
 const TAVILY_SEARCH_ENDPOINT = "https://api.tavily.com/search";
 const DEFAULT_TIMEOUT_MS = 8_000;
@@ -35,6 +36,7 @@ export type TavilySearchResult =
 
 interface TavilyRequest {
   text: string;
+  locale?: AppLocale;
   apiKey: string;
   timeoutMs?: number;
   fetchImpl?: FetchImplementation;
@@ -102,6 +104,7 @@ function parseEvidence(value: unknown): TavilyEvidence | null {
 
 export async function requestTavilyEvidence({
   text,
+  locale = "uz",
   apiKey,
   timeoutMs = DEFAULT_TIMEOUT_MS,
   fetchImpl = fetch,
@@ -122,7 +125,7 @@ export async function requestTavilyEvidence({
         chunks_per_source: 2,
         max_results: MAX_RESULTS,
         topic: "general",
-        language: "ru",
+        language: locale,
         filter_by_language: false,
         include_answer: false,
         include_raw_content: false,

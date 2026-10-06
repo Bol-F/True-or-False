@@ -15,6 +15,7 @@ import type {
   AnalysisSignal,
   EvidenceSpan,
 } from "@/lib/api";
+import { useLanguage } from "./LanguageProvider";
 
 const fallbackContent = {
   FAKE: {
@@ -78,15 +79,23 @@ function buildEvidenceMap(evidence: readonly EvidenceSpan[] | undefined, analyze
 }
 
 export function ResultExplanation({ result, analyzedText }: ResultExplanationProps) {
+  const { locale, copy } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [isSourceOpen, setIsSourceOpen] = useState(false);
-  const fallback = fallbackContent[result.label];
+  const fallback = locale === "ru"
+    ? fallbackContent[result.label]
+    : {
+        explanation: result.label === "FAKE" ? copy.result.fake : copy.result.real,
+        signals: [],
+      };
   const isModelResult = result.meta?.engine === "external-model";
   const signals = result.signals?.length
     ? result.signals
     : isModelResult
       ? []
-      : getFallbackSignals(result.label);
+      : locale === "ru"
+        ? getFallbackSignals(result.label)
+        : [];
   const evidenceById = buildEvidenceMap(result.evidence, analyzedText);
   const sourceReview = result.meta?.externalSourcesChecked
     ? undefined
@@ -104,12 +113,12 @@ export function ResultExplanation({ result, analyzedText }: ResultExplanationPro
         </span>
         <div>
           <h3 id="explanation-title" className="text-[13px] font-extrabold text-[#173451] sm:text-[15px]">
-            Почему так?
+            {copy.result.why}
           </h3>
           <p className="mt-1 text-[10.5px] leading-[1.45] text-[#69778c] sm:mt-2 sm:text-[13px] sm:leading-[1.55]">
             {result.explanation ??
               (isModelResult
-                ? "Подробное объяснение не сохранено в локальной истории. Повторите анализ, чтобы получить актуальные статистические признаки модели."
+                ? copy.result.noSavedExplanation
                 : fallback.explanation)}
           </p>
         </div>
@@ -128,7 +137,7 @@ export function ResultExplanation({ result, analyzedText }: ResultExplanationPro
             <ListChecks size={16} strokeWidth={2} aria-hidden="true" />
           </span>
           <span className="flex-1">
-            {isModelResult ? "Статистические признаки модели" : "Ключевые признаки в тексте"}
+            {isModelResult ? copy.result.modelSignals : copy.result.textSignals}
           </span>
           <span className="rounded-md bg-[#f1e4de] px-2 py-0.5 text-[10px] font-bold tabular-nums text-[#8f5a48]">
             {signals.length}
@@ -191,8 +200,7 @@ export function ResultExplanation({ result, analyzedText }: ResultExplanationPro
         </div>
       ) : (
         <p className="mt-3 rounded-[12px] border border-[#d8dfe4] bg-white/35 px-4 py-3 text-[11px] leading-[1.5] text-[#6d7886]">
-          Статистические признаки доступны сразу после нового анализа и не являются
-          доказательством истинности или ложности выделенных фраз.
+          {copy.result.signalsUnavailable}
         </p>
       )}
 
@@ -212,10 +220,10 @@ export function ResultExplanation({ result, analyzedText }: ResultExplanationPro
               <Search size={15} strokeWidth={2} aria-hidden="true" />
             </span>
             <h3 id="source-check-heading" className="min-w-0 flex-1 text-[10.5px] font-extrabold text-[#23425d] sm:text-[12.5px]">
-              Как проверить источники
+              {copy.result.sourceHow}
             </h3>
             <span className="rounded-md bg-[#f0ddcf] px-2 py-0.5 text-[8.5px] font-extrabold uppercase tracking-[0.07em] text-[#93553c]">
-              Не проверялись
+              {copy.result.notChecked}
             </span>
             <motion.span animate={{ rotate: isSourceOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
               <ChevronDown size={16} aria-hidden="true" />

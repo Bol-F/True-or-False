@@ -13,6 +13,7 @@ import {
 } from "react";
 
 import { copyText } from "@/lib/copy-text";
+import { useLanguage } from "./LanguageProvider";
 
 const GITHUB_ISSUE_URL = "https://github.com/Bol-F/True-or-False/issues/new";
 const MIN_MESSAGE_LENGTH = 10;
@@ -29,13 +30,13 @@ interface FeedbackContextValue {
 
 const FeedbackContext = createContext<FeedbackContextValue | null>(null);
 
-function buildIssueUrl(category: string, message: string, summary: string) {
-  const title = `[Обратная связь] ${category}`;
+function buildIssueUrl(category: string, message: string, summary: string, labels: { issue: string; message: string; context: string; privacy: string }) {
+  const title = `[${labels.issue}] ${category}`;
   const body = [
-    "## Сообщение",
+    `## ${labels.message}`,
     message.trim(),
-    summary ? `\n## Контекст результата\n${summary}` : "",
-    "\n---\nИсходный анализируемый текст не добавлен автоматически.",
+    summary ? `\n## ${labels.context}\n${summary}` : "",
+    `\n---\n${labels.privacy}`,
   ]
     .filter(Boolean)
     .join("\n");
@@ -44,11 +45,17 @@ function buildIssueUrl(category: string, message: string, summary: string) {
 }
 
 export function FeedbackProvider({ children }: { children: ReactNode }) {
+  const { locale } = useLanguage();
+  const labels = useMemo(() => locale === "uz"
+    ? { issue: "Fikr-mulohaza", messageHeading: "Fikr bildirish", description: "Muammo yoki taklifni yozing. Tekshirilgan asl matn avtomatik qo‘shilmaydi.", close: "Fikr bildirish oynasini yopish", topic: "Mavzu", message: "Xabar", placeholder: "Masalan: tugma ishlamadi yoki izoh tushunarsiz bo‘ldi…", github: "GitHub formasini ochish", copied: "Nusxalandi", copy: "Nusxalash", copiedStatus: "Xabar buferga nusxalandi.", publicStatus: "GitHub ommaviy formani ochadi. Yuborishdan oldin mazmunini tekshiring.", context: "Natija konteksti", privacy: "Tahlil qilinayotgan asl matn avtomatik qo‘shilmadi.", categories: { suggestion: "Taklif", interface: "Interfeys xatosi", result: "Natija xatosi", model: "Model haqida savol" } }
+    : locale === "en"
+      ? { issue: "Feedback", messageHeading: "Feedback", description: "Describe a problem or idea. The original checked text is not added automatically.", close: "Close feedback", topic: "Topic", message: "Message", placeholder: "For example: a button did not work or an explanation was unclear…", github: "Open GitHub form", copied: "Copied", copy: "Copy", copiedStatus: "The message was copied to the clipboard.", publicStatus: "GitHub will open a public form. Review the content before submitting.", context: "Result context", privacy: "The original analyzed text was not added automatically.", categories: { suggestion: "Suggestion", interface: "Interface issue", result: "Result issue", model: "Question about the model" } }
+      : { issue: "Обратная связь", messageHeading: "Обратная связь", description: "Опишите проблему или идею. Исходный текст проверки не добавляется.", close: "Закрыть обратную связь", topic: "Тема", message: "Сообщение", placeholder: "Например: кнопка не сработала или объяснение было непонятным…", github: "Открыть форму на GitHub", copied: "Скопировано", copy: "Скопировать", copiedStatus: "Сообщение скопировано в буфер обмена.", publicStatus: "GitHub откроет публичную форму. Проверьте содержимое перед отправкой.", context: "Контекст результата", privacy: "Исходный анализируемый текст не добавлен автоматически.", categories: { suggestion: "Предложение", interface: "Ошибка интерфейса", result: "Ошибка результата", model: "Вопрос о модели" } }, [locale]);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const messageRef = useRef<HTMLTextAreaElement>(null);
   const returnFocusRef = useRef<HTMLElement | null>(null);
   const [isOpen, setIsOpen] = useState(false);
-  const [category, setCategory] = useState("Предложение");
+  const [category, setCategory] = useState<keyof typeof labels.categories>("suggestion");
   const [message, setMessage] = useState("");
   const [summary, setSummary] = useState("");
   const [copySucceeded, setCopySucceeded] = useState(false);
@@ -76,15 +83,20 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
   }, [isOpen]);
 
   const issueUrl = useMemo(
-    () => buildIssueUrl(category, message, summary),
-    [category, message, summary],
+    () => buildIssueUrl(labels.categories[category], message, summary, {
+      issue: labels.issue,
+      message: labels.message,
+      context: labels.context,
+      privacy: labels.privacy,
+    }),
+    [category, labels, message, summary],
   );
   const contextValue = useMemo(() => ({ openFeedback }), [openFeedback]);
   const isReady = message.trim().length >= MIN_MESSAGE_LENGTH;
 
   async function handleCopy() {
     const copied = await copyText(
-      `${category}\n\n${message.trim()}${summary ? `\n\n${summary}` : ""}`,
+      `${labels.categories[category]}\n\n${message.trim()}${summary ? `\n\n${summary}` : ""}`,
     );
     setCopySucceeded(copied);
   }
@@ -119,10 +131,10 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
               </span>
               <div>
                 <h2 id="feedback-title" className="font-serif text-[25px] font-semibold tracking-[-0.03em] text-ink">
-                  Обратная связь
+                  {labels.messageHeading}
                 </h2>
                 <p id="feedback-description" className="mt-1 text-[11px] leading-[1.5] text-[#6d7b88]">
-                  Опишите проблему или идею. Исходный текст проверки не добавляется.
+                  {labels.description}
                 </p>
               </div>
             </div>
@@ -130,7 +142,7 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
               type="button"
               onClick={closeFeedback}
               className="focus-ring grid h-9 w-9 shrink-0 place-items-center rounded-[10px] border border-[#d9d9d3] bg-white/70 text-[#52677a] hover:bg-white"
-              aria-label="Закрыть обратную связь"
+              aria-label={labels.close}
             >
               <X size={18} aria-hidden="true" />
             </button>
@@ -138,21 +150,20 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
 
           <div className="mt-5 grid gap-4">
             <label className="grid gap-1.5 text-[11px] font-extrabold text-[#365269]">
-              Тема
+              {labels.topic}
               <select
                 value={category}
-                onChange={(event) => setCategory(event.target.value)}
+                onChange={(event) => setCategory(event.target.value as keyof typeof labels.categories)}
                 className="focus-ring min-h-11 rounded-xl border border-[#d5d9da] bg-white px-3 text-[13px] font-medium text-[#334b5f]"
               >
-                <option>Предложение</option>
-                <option>Ошибка интерфейса</option>
-                <option>Ошибка результата</option>
-                <option>Вопрос о модели</option>
+                {Object.entries(labels.categories).map(([value, label]) => (
+                  <option key={value} value={value}>{label}</option>
+                ))}
               </select>
             </label>
 
             <label className="grid gap-1.5 text-[11px] font-extrabold text-[#365269]">
-              Сообщение
+              {labels.message}
               <textarea
                 ref={messageRef}
                 value={message}
@@ -162,7 +173,7 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
                   setMessage(event.target.value);
                   setCopySucceeded(false);
                 }}
-                placeholder="Например: кнопка не сработала или объяснение было непонятным…"
+                placeholder={labels.placeholder}
                 className="focus-ring resize-none rounded-xl border border-[#d5d9da] bg-white px-3 py-3 text-[13px] leading-[1.55] text-[#334b5f]"
               />
               <span className="text-right text-[9.5px] font-medium tabular-nums text-[#83909a]">
@@ -186,7 +197,7 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
                   : "cursor-not-allowed bg-[#e4e5e2] text-[#8b9398]"
               }`}
             >
-              Открыть форму на GitHub
+              {labels.github}
               <ExternalLink size={15} aria-hidden="true" />
             </a>
             <button
@@ -196,14 +207,14 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
               className="focus-ring inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-[#d4d9dc] bg-white px-4 text-[11px] font-extrabold text-[#3c5870] disabled:cursor-not-allowed disabled:opacity-45"
             >
               {copySucceeded ? <Check size={15} aria-hidden="true" /> : <ClipboardCopy size={15} aria-hidden="true" />}
-              {copySucceeded ? "Скопировано" : "Скопировать"}
+              {copySucceeded ? labels.copied : labels.copy}
             </button>
           </div>
 
           <p className="mt-3 text-[9.5px] leading-[1.5] text-[#7c8994]" role="status">
             {copySucceeded
-              ? "Сообщение скопировано в буфер обмена."
-              : "GitHub откроет публичную форму. Проверьте содержимое перед отправкой."}
+              ? labels.copiedStatus
+              : labels.publicStatus}
           </p>
         </section>
       </dialog>

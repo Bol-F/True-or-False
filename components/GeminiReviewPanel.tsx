@@ -9,6 +9,7 @@ import {
 import type { AnalysisLabel } from "@/lib/api";
 import type { GeminiReview } from "@/lib/gemini-review";
 import { GeminiClaimsPanel } from "./GeminiClaimsPanel";
+import { useLanguage } from "./LanguageProvider";
 
 interface GeminiReviewPanelProps {
   review: GeminiReview;
@@ -53,10 +54,16 @@ export function GeminiReviewPanel({
   review,
   primaryLabel,
 }: GeminiReviewPanelProps) {
+  const { locale, copy } = useLanguage();
+  const labels = locale === "uz"
+    ? { unavailableAria: "Manbalar bo‘yicha tekshiruv mavjud emas", unavailable: "Manbalar bo‘yicha tekshiruv olinmadi", unavailableBody: "Internet tekshiruvi hozir yakunlanmadi. Asosiy natijani mustaqil manbalarda tekshiring.", unsure: "Ishonchli xulosa uchun manbalar yetarli emas", fake: "Manbalar asosiy da’voni rad etadi", real: "Manbalar asosiy da’volarni tasdiqlaydi", aria: "Gemini manba tekshiruvi", eyebrow: "Internet manbalari bo‘yicha tekshiruv", sources: "Tavily manbalari", sourcesAria: "Gemini tekshiruvi manbalari", low: "past", medium: "o‘rta", high: "yuqori", footerStart: "Gemini sifat ishonchi", footerEnd: "Bu ko‘rsatkich kalibrlanmagan va RuFact foizi bilan qo‘shilmaydi. Muhim havolalarni ochib, kontekstni tekshiring." }
+    : locale === "en"
+      ? { unavailableAria: "Source verification is unavailable", unavailable: "Source verification was not completed", unavailableBody: "Internet verification could not finish right now. Verify the primary result using independent sources.", unsure: "There are not enough sources for a confident conclusion", fake: "Sources contradict a key claim", real: "Sources support the key claims", aria: "Gemini source verification", eyebrow: "Internet source verification", sources: "Tavily sources", sourcesAria: "Gemini verification sources", low: "low", medium: "medium", high: "high", footerStart: "Gemini qualitative confidence", footerEnd: "It is not calibrated or combined with the RuFact percentage. Open important links and check their context." }
+      : { unavailableAria: "Проверка Gemini по источникам недоступна", unavailable: "Проверка по источникам не получена", unavailableBody: unavailableCopy[review.status === "unavailable" ? review.reason : "upstream-error"], unsure: "Источников недостаточно для уверенного вывода", fake: "Источники опровергают ключевое утверждение", real: "Источники подтверждают ключевые утверждения", aria: "Проверка Gemini по источникам", eyebrow: "Проверка по интернет-источникам", sources: "Источники Tavily", sourcesAria: "Источники проверки Gemini", low: "низкая", medium: "средняя", high: "высокая", footerStart: "Качественная уверенность Gemini", footerEnd: "Она не калибрована и не усредняется с процентом RuFact. Откройте важные ссылки и проверьте контекст." };
   if (review.status === "unavailable") {
     return (
       <section
-        aria-label="Проверка Gemini по источникам недоступна"
+        aria-label={labels.unavailableAria}
         className="mt-3 rounded-[11px] border border-[#d6dde5] bg-[#f2f5f7] px-3 py-2.5 sm:mt-4 sm:rounded-[13px] sm:px-4 sm:py-3.5"
       >
         <div className="flex gap-2.5 sm:gap-3">
@@ -67,10 +74,10 @@ export function GeminiReviewPanel({
           />
           <div>
             <h3 className="text-[11px] font-extrabold text-[#29465f] sm:text-[12.5px]">
-              Проверка по источникам не получена
+              {labels.unavailable}
             </h3>
             <p className="mt-1 text-[9.5px] leading-[1.4] text-[#6c7986] sm:text-[10.5px] sm:leading-[1.5]">
-              {unavailableCopy[review.reason]}
+              {locale === "ru" ? unavailableCopy[review.reason] : labels.unavailableBody}
             </p>
           </div>
         </div>
@@ -81,10 +88,10 @@ export function GeminiReviewPanel({
   const isUnsure = review.label === "UNSURE";
   const disagrees = review.agreesWithPrimary === false;
   const heading = isUnsure
-    ? "Источников недостаточно для уверенного вывода"
+    ? labels.unsure
     : review.label === "FAKE"
-      ? "Источники опровергают ключевое утверждение"
-      : "Источники подтверждают ключевые утверждения";
+      ? labels.fake
+      : labels.real;
   const toneClass = disagrees
     ? "border-[#e7cdb3] bg-[#fff6e9]"
     : isUnsure
@@ -93,7 +100,7 @@ export function GeminiReviewPanel({
 
   return (
     <section
-      aria-label="Проверка Gemini по источникам"
+      aria-label={labels.aria}
       className={`mt-4 rounded-[13px] border px-4 py-3.5 ${toneClass}`}
     >
       <div className="flex items-start gap-3">
@@ -108,7 +115,7 @@ export function GeminiReviewPanel({
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
               <p className="text-[9px] font-extrabold uppercase tracking-[0.12em] text-[#668097]">
-                Проверка по интернет-источникам
+                {copy.analyzer.internetTitle}
               </p>
               <h3 className="mt-0.5 text-[13px] font-extrabold text-[#173b59]">
                 {heading}
@@ -160,14 +167,14 @@ export function GeminiReviewPanel({
                 <SearchCheck size={15} strokeWidth={2} aria-hidden="true" />
               </span>
               <span className="min-w-0 flex-1 text-[11.5px] font-extrabold">
-                Источники Tavily
+                {labels.sources}
               </span>
               <span className="rounded-md bg-white/80 px-2 py-0.5 text-[9px] font-bold tabular-nums text-[#60768a]">
                 {review.sources.length}
               </span>
             </summary>
             <ul
-              aria-label="Источники проверки Gemini"
+              aria-label={labels.sourcesAria}
               className="grid gap-2 border-t border-[#cbd8e2]/80 px-3 py-3"
             >
               {review.sources.map((source, index) => (
@@ -190,10 +197,7 @@ export function GeminiReviewPanel({
           </details>
 
           <p className="mt-3 border-t border-[#cbd8e2]/80 pt-2 text-[9.5px] leading-[1.45] text-[#758696]">
-            Качественная уверенность Gemini: {certaintyCopy[review.certainty]}; она не
-            калибрована и не усредняется с процентом RuFact. Tavily выполнил поиск по запросу:
-            {" "}{review.searchQueries.join(" · ")}. Даже найденный источник может ошибаться —
-            откройте важные ссылки и проверьте контекст.
+            {labels.footerStart}: {locale === "ru" ? certaintyCopy[review.certainty] : labels[review.certainty]}. {labels.footerEnd}
           </p>
         </div>
       </div>

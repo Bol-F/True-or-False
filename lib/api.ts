@@ -761,6 +761,7 @@ export async function analyzeText(
       body: JSON.stringify({
         text: normalizedText,
         useGemini: options.useGemini === true,
+        locale: options.locale ?? "uz",
       }),
       cache: "no-store",
       signal: controller.signal,

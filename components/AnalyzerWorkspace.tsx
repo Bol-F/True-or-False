@@ -5,20 +5,24 @@ import { useAnalysisHistory } from "@/hooks/useAnalysisHistory";
 import { analyzeText, getMockAnalysis, type AnalysisResponse } from "@/lib/api";
 import type { HistoryItem } from "@/lib/analysis-history";
 import { extractDocumentText } from "@/lib/document-upload";
-import { DEFAULT_TEXT, EXAMPLES } from "@/lib/examples";
+import { localeTags, type AppLocale } from "@/lib/i18n";
 import { AnalysisHistoryDialog } from "./AnalysisHistoryDialog";
 import { AnalysisResult, type AnalysisStatus } from "./AnalysisResult";
 import { type TextExample } from "./ExampleChips";
 import { TextAnalyzer } from "./TextAnalyzer";
-
-const INITIAL_RESULT: AnalysisResponse = getMockAnalysis(DEFAULT_TEXT);
+import { useLanguage } from "./LanguageProvider";
 
 interface AnalyzerWorkspaceProps {
   geminiConfigured: boolean;
 }
 
-function formatTimestamp(date: Date) {
-  return new Intl.DateTimeFormat("ru-RU", {
+interface AnalyzerWorkspaceSessionProps extends AnalyzerWorkspaceProps {
+  locale: AppLocale;
+  copy: ReturnType<typeof useLanguage>["copy"];
+}
+
+function formatTimestamp(date: Date, locale: "uz" | "ru" | "en") {
+  return new Intl.DateTimeFormat(localeTags[locale], {
     day: "numeric",
     month: "short",
     year: "numeric",
@@ -30,13 +34,43 @@ function formatTimestamp(date: Date) {
 }
 
 export function AnalyzerWorkspace({ geminiConfigured }: AnalyzerWorkspaceProps) {
+  const { locale, copy } = useLanguage();
+  return (
+    <AnalyzerWorkspaceSession
+      key={locale}
+      locale={locale}
+      copy={copy}
+      geminiConfigured={geminiConfigured}
+    />
+  );
+}
+
+function AnalyzerWorkspaceSession({
+  geminiConfigured,
+  locale,
+  copy,
+}: AnalyzerWorkspaceSessionProps) {
   const history = useAnalysisHistory();
-  const [text, setText] = useState(DEFAULT_TEXT);
+  const examples = copy.examples as readonly TextExample[];
+  const initialExample = examples.find((example) => example.id === "medical") ?? examples[0];
+  const initialResult: AnalysisResponse = locale === "ru"
+    ? getMockAnalysis(initialExample.text)
+    : {
+        label: "FAKE",
+        confidence: 0.55,
+        explanation: copy.result.fake,
+        meta: {
+          engine: "demo-heuristic",
+          engineVersion: "multilingual-preview-v1",
+          externalSourcesChecked: false,
+        },
+      };
+  const [text, setText] = useState<string>(initialExample.text);
   const [activeExampleId, setActiveExampleId] = useState<string | null>("medical");
-  const [result, setResult] = useState<AnalysisResponse>(INITIAL_RESULT);
-  const [analyzedText, setAnalyzedText] = useState(DEFAULT_TEXT);
+  const [result, setResult] = useState<AnalysisResponse>(initialResult);
+  const [analyzedText, setAnalyzedText] = useState<string>(initialExample.text);
   const [status, setStatus] = useState<AnalysisStatus>("initial");
-  const [timestamp, setTimestamp] = useState("26 нояб. 2024, 14:37");
+  const [timestamp, setTimestamp] = useState(() => formatTimestamp(new Date("2024-11-26T14:37:00"), locale));
   const [validationMessage, setValidationMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
@@ -84,8 +118,8 @@ export function AnalyzerWorkspace({ geminiConfigured }: AnalyzerWorkspaceProps) 
       setDocumentMessage({
         kind: extractedDocument.truncated ? "warning" : "success",
         text: extractedDocument.truncated
-          ? `${extractedDocument.fileName}: извлечено ${extractedDocument.originalCharacters.toLocaleString("ru-RU")} символов; загружены первые 5000. Проверьте и сократите текст перед анализом.`
-          : `${extractedDocument.fileName}: текст извлечён${extractedDocument.pages ? ` (${extractedDocument.pages} стр.)` : ""}. Его можно отредактировать перед проверкой.`,
+          ? `${extractedDocument.fileName}: ${extractedDocument.originalCharacters.toLocaleString(localeTags[locale])} ${copy.analyzer.extractedTruncated}`
+          : `${extractedDocument.fileName}: ${copy.analyzer.extracted}${extractedDocument.pages ? ` (${extractedDocument.pages})` : ""}. ${copy.analyzer.extractedEditable}`,
       });
       window.requestAnimationFrame(() =>
         document.getElementById("analysis-text")?.focus(),
@@ -96,7 +130,7 @@ export function AnalyzerWorkspace({ geminiConfigured }: AnalyzerWorkspaceProps) 
         text:
           error instanceof Error
             ? error.message
-            : "Не удалось прочитать файл.",
+            : copy.analyzer.readError,
       });
     } finally {
       setIsExtracting(false);
@@ -107,7 +141,7 @@ export function AnalyzerWorkspace({ geminiConfigured }: AnalyzerWorkspaceProps) 
     const normalizedText = text.trim();
 
     if (!normalizedText) {
-      setValidationMessage("Введите текст, который нужно проверить.");
+      setValidationMessage(copy.analyzer.required);
       document.getElementById("analysis-text")?.focus();
       return;
     }
@@ -117,11 +151,11 @@ export function AnalyzerWorkspace({ geminiConfigured }: AnalyzerWorkspaceProps) 
     setStatus("loading");
 
     try {
-      const nextResult = await analyzeText(normalizedText, { useGemini });
+      const nextResult = await analyzeText(normalizedText, { useGemini, locale });
       const analyzedAt = new Date();
       setResult(nextResult);
       setAnalyzedText(normalizedText);
-      setTimestamp(formatTimestamp(analyzedAt));
+      setTimestamp(formatTimestamp(analyzedAt, locale));
       setStatus("success");
 
       history.add({
@@ -138,7 +172,7 @@ export function AnalyzerWorkspace({ geminiConfigured }: AnalyzerWorkspaceProps) 
       });
     } catch {
       setErrorMessage(
-        "Сервис временно недоступен. Текст не был сохранён — вы можете повторить запрос.",
+        copy.analyzer.serviceError,
       );
       setStatus("error");
     }
@@ -162,7 +196,7 @@ export function AnalyzerWorkspace({ geminiConfigured }: AnalyzerWorkspaceProps) 
     setAnalyzedText(item.text);
     setActiveExampleId(null);
     setResult(restoredResult);
-    setTimestamp(formatTimestamp(new Date(item.analyzedAt)));
+    setTimestamp(formatTimestamp(new Date(item.analyzedAt), locale));
     setValidationMessage(null);
     setErrorMessage(null);
     setStatus("success");
@@ -172,13 +206,13 @@ export function AnalyzerWorkspace({ geminiConfigured }: AnalyzerWorkspaceProps) 
   return (
     <section
       id="analyzer"
-      aria-label="Проверка текста"
+      aria-label={copy.analyzer.region}
       className="tool-gutter relative z-10 pb-4 pt-1 sm:pb-6 sm:pt-[11px]"
     >
       <div className="grid items-start gap-3 sm:gap-[18px] lg:grid-cols-[minmax(0,1.25fr)_minmax(390px,0.95fr)]">
         <TextAnalyzer
           text={text}
-          examples={EXAMPLES}
+          examples={examples}
           activeExampleId={activeExampleId}
           isLoading={status === "loading"}
           isExtracting={isExtracting}

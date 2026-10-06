@@ -12,6 +12,7 @@ import {
 import { DOCUMENT_ACCEPT } from "@/lib/document-upload";
 import { ExampleChips, type TextExample } from "./ExampleChips";
 import { HistoryTrigger } from "./HistoryTrigger";
+import { useLanguage } from "./LanguageProvider";
 
 interface TextAnalyzerProps {
   text: string;
@@ -59,6 +60,7 @@ export function TextAnalyzer({
   onUseGeminiChange,
 }: TextAnalyzerProps) {
   const isBusy = isLoading || isExtracting;
+  const { locale, copy } = useLanguage();
 
   return (
     <motion.article
@@ -72,7 +74,7 @@ export function TextAnalyzer({
             <FileText size={17} strokeWidth={2} aria-hidden="true" />
           </span>
           <h2 className="truncate text-[13px] font-extrabold tracking-[-0.02em] text-[#102a49] sm:text-[16px]">
-            Введите текст для проверки
+            {copy.analyzer.heading}
           </h2>
         </div>
         <div className="flex shrink-0 items-center gap-1 sm:gap-2">
@@ -86,18 +88,18 @@ export function TextAnalyzer({
             type="button"
             onClick={onClear}
             disabled={isBusy || text.length === 0}
-            aria-label="Очистить текст"
+            aria-label={copy.analyzer.clearAria}
             className="focus-ring inline-flex min-h-9 items-center gap-1.5 rounded-lg px-2 text-[12px] font-medium text-[#78869a] transition-colors hover:bg-[#f1eeea] hover:text-[#4d5c72] disabled:cursor-not-allowed disabled:opacity-45"
           >
             <Trash2 size={14} strokeWidth={1.8} aria-hidden="true" />
-            <span className="hidden sm:inline">Очистить</span>
+            <span className="hidden sm:inline">{copy.analyzer.clear}</span>
           </button>
         </div>
       </div>
 
       <div>
         <label htmlFor="analysis-text" className="sr-only">
-          Русскоязычный текст для анализа
+          {copy.analyzer.inputLabel}
         </label>
         <textarea
           id="analysis-text"
@@ -113,7 +115,7 @@ export function TextAnalyzer({
               ? "border-[#d98383]"
               : "border-[#d7d9dc] hover:border-[#c6cbd0]"
           }`}
-          placeholder="Вставьте новость, публикацию или утверждение…"
+          placeholder={copy.analyzer.placeholder}
         />
         <div className="mt-1 flex justify-end pr-1">
           <span
@@ -147,12 +149,12 @@ export function TextAnalyzer({
             ) : (
               <Upload size={16} aria-hidden="true" />
             )}
-            {isExtracting ? "Читаем файл…" : "Загрузить файл"}
+            {isExtracting ? copy.analyzer.uploading : copy.analyzer.upload}
             <input
               type="file"
               accept={DOCUMENT_ACCEPT}
               disabled={isBusy}
-              aria-label="Загрузить документ"
+              aria-label={copy.analyzer.uploadAria}
               className="sr-only"
               onChange={(event) => {
                 const file = event.currentTarget.files?.[0];
@@ -162,8 +164,8 @@ export function TextAnalyzer({
             />
           </label>
           <p className="text-[8.5px] leading-[1.35] text-[#697b8e] sm:text-right sm:text-[10.5px] sm:leading-[1.45]">
-            TXT, MD, CSV, JSON, PDF, DOCX · до 3 МБ
-            <br />Файл не сохраняется на сервере
+            {copy.analyzer.fileTypes}
+            <br />{copy.analyzer.filePrivacy}
           </p>
         </div>
         {documentMessage ? (
@@ -215,7 +217,7 @@ export function TextAnalyzer({
                 id="gemini-option-heading"
                 className="text-[11.5px] font-extrabold text-[#163957] sm:text-[12.5px]"
               >
-                Проверка по интернет-источникам
+                {copy.analyzer.internetTitle}
               </span>
               <span className="rounded bg-[#d9e6f1] px-1.5 py-0.5 text-[8px] font-extrabold uppercase tracking-[0.08em] text-[#496b88]">
                 Tavily + Gemini
@@ -228,16 +230,16 @@ export function TextAnalyzer({
               <span className="sm:hidden">
                 {geminiConfigured
                   ? useGemini
-                    ? "Найдём источники и сопоставим с ними утверждения."
-                    : "Включите поиск и проверку утверждений."
-                  : "Поиск не настроен; ML-анализ доступен."}
+                    ? copy.analyzer.internetOn
+                    : copy.analyzer.internetOff
+                  : copy.analyzer.internetUnavailable}
               </span>
               <span className="hidden sm:inline">
                 {geminiConfigured
                   ? useGemini
-                    ? "Tavily найдёт источники, а Gemini сопоставит с ними утверждения; основной ML-вердикт останется отдельным."
-                    : "Включите, чтобы Tavily нашёл источники, а Gemini проверил по ним утверждения."
-                  : "Поиск сейчас не настроен; основной ML-анализ работает как обычно."}
+                    ? copy.analyzer.internetOn
+                    : copy.analyzer.internetOff
+                  : copy.analyzer.internetUnavailable}
               </span>
             </span>
           </span>
@@ -248,22 +250,28 @@ export function TextAnalyzer({
         >
           {geminiConfigured ? (
             <>
-              <span className="sm:hidden">Не отправляйте личные или конфиденциальные данные. </span>
-              <span className="hidden sm:inline">Поисковый запрос передаётся Tavily, а текст и найденные фрагменты — Google. Не отправляйте личные или конфиденциальные данные. </span>
+              <span className="sm:hidden">{copy.analyzer.privacyShort} </span>
+              <span className="hidden sm:inline">{copy.analyzer.privacyLong} </span>
               <a
                 href="https://ai.google.dev/gemini-api/terms"
                 target="_blank"
                 rel="noreferrer"
                 className="focus-ring rounded-sm font-bold text-[#315f87] underline decoration-[#8aa5bd] underline-offset-2"
               >
-                Условия Google
+                {copy.analyzer.terms}
               </a>
             </>
           ) : (
-            "Для включения добавьте серверные GEMINI_API_KEY и TAVILY_API_KEY; ключи в браузер не передаются."
+            copy.analyzer.internetUnavailable
           )}
         </p>
       </section>
+
+      {locale !== "ru" ? (
+        <p className="mt-2 rounded-[10px] border border-[#ead8b7] bg-[#fff8e9] px-3 py-2 text-[9px] leading-[1.4] text-[#7d6236] sm:text-[10.5px]">
+          {copy.analyzer.languageNotice}
+        </p>
+      ) : null}
 
       <div className="mt-4 flex flex-col items-stretch gap-2 sm:mt-6 sm:flex-row sm:items-center sm:gap-7">
         <motion.button
@@ -277,12 +285,12 @@ export function TextAnalyzer({
           {isLoading ? (
             <>
               <LoaderCircle className="animate-spin" size={20} aria-hidden="true" />
-              Анализируем…
+              {copy.analyzer.submitting}
             </>
           ) : (
             <>
               <Sparkles size={20} aria-hidden="true" />
-              Проверить текст
+              {copy.analyzer.submit}
               <ArrowRight
                 size={20}
                 className="transition-transform group-hover:translate-x-0.5"
@@ -293,8 +301,8 @@ export function TextAnalyzer({
         </motion.button>
 
         <p id="text-helper" className="text-center text-[9.5px] leading-[1.35] text-[#77859a] sm:max-w-[230px] sm:text-left sm:text-[12px] sm:leading-[1.45]">
-          Русский язык · до 5000 символов
-          <span className="hidden sm:inline"><br />Поддерживается редактирование перед проверкой.</span>
+          {copy.analyzer.helper}
+          <span className="hidden sm:inline"><br />{copy.analyzer.helperDesktop}</span>
         </p>
       </div>
     </motion.article>

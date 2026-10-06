@@ -1,6 +1,7 @@
 "use client";
 
 import { History } from "lucide-react";
+import { useLanguage } from "./LanguageProvider";
 
 export const HISTORY_DIALOG_ID = "analysis-history-dialog";
 export const HISTORY_TRIGGER_ID = "analysis-history-trigger";
@@ -24,9 +25,15 @@ export function HistoryTrigger({
   id = HISTORY_TRIGGER_ID,
   className = "",
 }: HistoryTriggerProps) {
+  const { locale } = useLanguage();
   const count = Math.max(0, itemCount);
-  const countLabel = enabled && count > 0 ? `, записей: ${count}` : "";
-  const statusLabel = enabled ? "включена" : "выключена";
+  const labels = locale === "uz"
+    ? { history: "Tarix", enabled: "yoqilgan", disabled: "o‘chirilgan", records: "yozuvlar" }
+    : locale === "en"
+      ? { history: "History", enabled: "enabled", disabled: "disabled", records: "records" }
+      : { history: "История", enabled: "включена", disabled: "выключена", records: "записей" };
+  const countLabel = enabled && count > 0 ? `, ${labels.records}: ${count}` : "";
+  const statusLabel = enabled ? labels.enabled : labels.disabled;
 
   return (
     <button
@@ -35,7 +42,7 @@ export function HistoryTrigger({
       aria-haspopup="dialog"
       aria-controls={dialogId}
       aria-expanded={isOpen}
-      aria-label={`История проверок: ${statusLabel}${countLabel}`}
+      aria-label={`${labels.history}: ${statusLabel}${countLabel}`}
       onClick={onOpen}
       className={`focus-ring relative inline-flex min-h-9 items-center gap-2 rounded-[10px] border border-[#d8d8d2] bg-[#fbfaf6]/90 px-1.5 text-[12px] font-bold text-[#28445f] shadow-[0_6px_18px_rgba(31,48,63,0.06)] transition hover:-translate-y-0.5 hover:border-[#bdc8cf] hover:bg-white sm:min-h-10 sm:rounded-xl sm:px-3.5 ${className}`}
     >
@@ -48,7 +55,7 @@ export function HistoryTrigger({
           aria-hidden="true"
         />
       </span>
-      <span className="hidden sm:inline">История</span>
+      <span className="hidden sm:inline">{labels.history}</span>
       {enabled && count > 0 ? (
         <span
           className="absolute -right-1 -top-1 min-w-5 rounded-md bg-[#dfe8ee] px-1.5 py-0.5 text-center text-[10px] font-extrabold tabular-nums text-[#31536d] ring-2 ring-[#fbfaf6] sm:static sm:ring-0"

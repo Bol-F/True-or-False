@@ -2,6 +2,12 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { expect, test } from "@playwright/test";
 
+async function selectRussian(page: import("@playwright/test").Page) {
+  await page.evaluate(() => window.localStorage.setItem("rufact.locale.v1", "ru"));
+  await page.reload();
+  await expect(page.locator('select[aria-label="Выбрать язык"]').first()).toHaveValue("ru");
+}
+
 test("hero artwork loads from the public asset", async ({ page }, testInfo) => {
   const failedArtworkResponses: string[] = [];
   const consoleErrors: string[] = [];
@@ -102,6 +108,7 @@ test("extracts an uploaded text document into the analyzer", async ({ page }) =>
   });
 
   await page.goto("/");
+  await selectRussian(page);
   const uploadedText =
     "Проверяемый документ сообщает, что городской парк открылся после реконструкции 5 октября 2026 года.";
 
@@ -111,7 +118,7 @@ test("extracts an uploaded text document into the analyzer", async ({ page }) =>
     buffer: Buffer.from(uploadedText, "utf8"),
   });
 
-  await expect(page.getByLabel("Русскоязычный текст для анализа")).toHaveValue(
+  await expect(page.getByLabel("Текст для анализа")).toHaveValue(
     uploadedText,
     { timeout: 35_000 },
   );
@@ -132,17 +139,18 @@ test("desktop analysis workflow and guidance", async ({ page }, testInfo) => {
   });
 
   await page.goto("/");
+  await selectRussian(page);
 
   await expect(page).toHaveTitle(/RuFact/u);
   await expect(
     page.getByRole("heading", { name: /Проверьте текст/u }),
   ).toBeVisible();
-  await expect(page.getByLabel("Русскоязычный текст для анализа")).toBeVisible();
+  await expect(page.getByLabel("Текст для анализа")).toBeVisible();
   await expect(page.getByRole("switch", { name: /Проверка по интернет-источникам/u })).toBeVisible();
   await expect(page.getByText("Бета-версия", { exact: true })).toHaveCount(0);
 
   await page.getByRole("button", { name: "Новость", exact: true }).click();
-  await expect(page.getByLabel("Русскоязычный текст для анализа")).toHaveValue(
+  await expect(page.getByLabel("Текст для анализа")).toHaveValue(
     /Росстата/u,
   );
   await page.getByRole("button", { name: /Проверить текст/u }).click();
@@ -155,7 +163,7 @@ test("desktop analysis workflow and guidance", async ({ page }, testInfo) => {
   await expect(page.getByRole("button", { name: "Скачать .txt" })).toBeVisible();
 
   await page.getByText("Что означает процент в результате?", { exact: true }).click();
-  await expect(page.getByText(/Измеренная accuracy/u)).toBeVisible();
+  await expect(page.getByText(/Точность измерена/u)).toBeVisible();
 
   if (process.env.CAPTURE_QA === "1") {
     await page.screenshot({
@@ -178,6 +186,7 @@ test("result actions and feedback dialog work", async ({ page, context }, testIn
   });
 
   await page.goto("/");
+  await selectRussian(page);
   const actions = page.getByRole("region", { name: "Действия с результатом" });
 
   await actions.getByRole("button", { name: "Копировать отчёт" }).click();
@@ -224,6 +233,7 @@ test("mobile layout, menu and FAQ navigation", async ({ page }, testInfo) => {
   test.skip(!testInfo.project.name.startsWith("mobile"), "Mobile-only check");
 
   await page.goto("/");
+  await selectRussian(page);
   await expect(page.getByRole("button", { name: "Открыть меню" })).toBeVisible();
 
   const hasHorizontalOverflow = await page.evaluate(
@@ -260,6 +270,7 @@ test("model page exposes measured errors and limitations", async ({ page }, test
   test.skip(!testInfo.project.name.startsWith("desktop"), "Desktop-only check");
 
   await page.goto("/model");
+  await selectRussian(page);
   await expect(page.getByRole("heading", { name: "О системе проверки RuFact" })).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "Как RuFact проверяет текст сейчас" }),
@@ -294,6 +305,7 @@ test("optional live Gemini review renders validated claims", async ({ page }, te
   test.setTimeout(30_000);
 
   await page.goto("/");
+  await selectRussian(page);
   const geminiSwitch = page.getByRole("switch", { name: /Проверка по интернет-источникам/u });
   await expect(geminiSwitch).toBeEnabled();
   await geminiSwitch.check();
@@ -314,4 +326,32 @@ test("optional live Gemini review renders validated claims", async ({ page }, te
       fullPage: true,
     });
   }
+});
+
+test("switches the full interface language and remembers the choice", async ({ page }) => {
+  await page.goto("/");
+
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Matnni");
+  await page.locator('select[aria-label="Tilni tanlash"]').first().evaluate(
+    (select) => {
+      const element = select as HTMLSelectElement;
+      element.value = "en";
+      element.dispatchEvent(new Event("change", { bubbles: true }));
+    },
+  );
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Check a text");
+  await expect(page.getByLabel("Text to analyze")).toHaveValue(/Scientists have proven/u);
+
+  await page.reload();
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Check a text");
+
+  await page.locator('select[aria-label="Choose language"]').first().evaluate(
+    (select) => {
+      const element = select as HTMLSelectElement;
+      element.value = "ru";
+      element.dispatchEvent(new Event("change", { bubbles: true }));
+    },
+  );
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Проверьте текст");
+  await expect(page.getByLabel("Текст для анализа")).toHaveValue(/Учёные подтвердили/u);
 });

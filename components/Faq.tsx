@@ -1,33 +1,10 @@
+"use client";
+
 import { ChevronDown, HelpCircle } from "lucide-react";
-import { MODEL_QUALITY } from "@/lib/model-quality";
-
-const measuredAccuracy = MODEL_QUALITY.metrics.find(
-  (metric) => metric.key === "accuracy",
-)?.value;
-
-const questions = [
-  {
-    question: "Что означает процент в результате?",
-    answer: `Это уверенность модели в конкретном ответе, а не общая точность RuFact. Измеренная accuracy основной модели на внешней выборке составляет ${((measuredAccuracy ?? 0) * 100).toFixed(2).replace(".", ",")}%.`,
-  },
-  {
-    question: "RuFact проверяет факты в интернете?",
-    answer:
-      "Основная ML-модель распознаёт только статистические признаки формулировок. Интернет-проверка использует Tavily для поиска, после чего Gemini сопоставляет утверждения с найденными фрагментами и показывает ссылки. Это всё равно не окончательный вердикт: важные источники нужно открыть и проверить в контексте.",
-  },
-  {
-    question: "Зачем нужна проверка Gemini?",
-    answer:
-      "Она разбивает текст на утверждения и показывает, что найденные источники подтверждают, опровергают или не позволяют установить. Вывод Gemini не меняет процент основной ML-модели и может ошибаться независимо от неё.",
-  },
-  {
-    question: "Где хранится мой текст?",
-    answer:
-      "По умолчанию история выключена. После явного включения последние проверки сохраняются только в localStorage этого браузера и автоматически удаляются через 30 дней. Загруженный файл на сервере не сохраняется. При включении интернет-проверки извлечённый текст передаётся Google для текущего запроса.",
-  },
-] as const;
+import { useLanguage } from "./LanguageProvider";
 
 export function Faq() {
+  const { copy } = useLanguage();
   return (
     <section
       id="questions"
@@ -43,16 +20,15 @@ export function Faq() {
             id="faq-title"
             className="mt-2.5 font-serif text-[25px] leading-[1.08] font-semibold tracking-[-0.035em] text-ink sm:mt-4 sm:text-[34px]"
           >
-            Коротко о главном
+            {copy.faq.title}
           </h2>
           <p className="mt-1.5 max-w-[390px] text-[10.5px] leading-[1.45] text-[#68778a] sm:mt-3 sm:text-[12.5px] sm:leading-[1.6]">
-            Ответы помогают не перепутать вероятностную подсказку с профессиональным
-            фактчекингом.
+            {copy.faq.intro}
           </p>
         </div>
 
         <div className="divide-y divide-[#d9d7d1] border-y border-[#d9d7d1]">
-          {questions.map((item) => (
+          {copy.faq.items.map((item) => (
             <details key={item.question} className="group">
               <summary className="focus-ring flex min-h-12 cursor-pointer list-none items-center gap-3 rounded-lg py-2 marker:hidden sm:min-h-[58px] sm:gap-4 sm:py-3">
                 <span className="min-w-0 flex-1 text-[11px] font-extrabold text-[#213e58] sm:text-[14px]">

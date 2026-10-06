@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 
 import { MODEL_QUALITY } from "@/lib/model-quality";
+import { useLanguage } from "./LanguageProvider";
 
 const enter = {
   hidden: { opacity: 0, y: 16 },
@@ -12,6 +13,7 @@ const enter = {
 
 export function Hero() {
   const accuracy = MODEL_QUALITY.metrics.find((metric) => metric.key === "accuracy")?.value;
+  const { locale, copy } = useLanguage();
 
   return (
     <section
@@ -30,7 +32,7 @@ export function Hero() {
           transition={{ duration: 0.45 }}
           className="mb-1.5 text-[9px] font-bold uppercase tracking-[0.23em] text-[#718097] sm:mb-2 sm:text-xs sm:tracking-[0.28em]"
         >
-          Анализ русскоязычных текстов
+          {copy.hero.eyebrow}
         </motion.p>
 
         <motion.h1
@@ -40,18 +42,18 @@ export function Hero() {
           className="max-w-[680px] font-serif text-[30px] leading-[1.01] font-semibold tracking-[-0.045em] text-ink sm:text-[48px] sm:leading-[1.03] lg:text-[51px] lg:leading-[0.96]"
         >
           <span className="sm:hidden">
-            Проверьте текст
+            {copy.hero.mobileTitleStart}
             <br />
-            на <span className="text-[#c9421e]">достоверность</span>
+            <span className="text-[#c9421e]">{copy.hero.mobileTitleAccent}</span>
           </span>
           <span className="hidden sm:inline">
-            Проверьте текст
+            {copy.hero.desktopLine1}
             <br />
             <span className="whitespace-nowrap">
-              на признаки <span className="text-[#c9421e]">недостоверной</span>
+              <span className="text-[#c9421e]">{copy.hero.desktopLine2}</span>
             </span>
             <br />
-            <span className="text-[#c9421e]">информации</span>
+            <span className="text-[#c9421e]">{copy.hero.desktopLine3}</span>
           </span>
         </motion.h1>
 
@@ -61,12 +63,10 @@ export function Hero() {
           className="mt-2 max-w-[615px] text-[12px] leading-[1.45] text-[#607087] sm:mt-3 sm:text-[16px] sm:leading-[1.52]"
         >
           <span className="sm:hidden">
-            ML-модель оценивает языковые признаки с accuracy {Math.round((accuracy ?? 0) * 100)}% на внешней выборке. Результат не заменяет фактчекинг.
+            {copy.hero.mobileDescription}
           </span>
           <span className="hidden sm:inline">
-            Доступна обученная ML-модель для вероятностного анализа языковых признаков.
-            Она показывает {Math.round((accuracy ?? 0) * 100)}% accuracy на отдельной внешней выборке, но не проверяет
-            источники и не заменяет профессиональный фактчекинг.
+            {copy.hero.desktopDescription}{locale === "ru" ? ` Русская ML-модель показала ${Math.round((accuracy ?? 0) * 100)}% accuracy на отдельной внешней выборке.` : ""}
           </span>
         </motion.p>
       </motion.div>
@@ -80,7 +80,7 @@ export function Hero() {
         <div className="absolute inset-x-0 bottom-[-2px] top-[-38px] sm:bottom-[-6px] sm:top-[-110px]">
           <Image
             src="/hero-collage.png"
-            alt="Редакционный коллаж с московской архитектурой и набережной"
+            alt={copy.hero.imageAlt}
             fill
             loading="eager"
             fetchPriority="high"
@@ -90,10 +90,7 @@ export function Hero() {
         </div>
 
         <div className="font-hand absolute left-[11%] top-[-2%] hidden -rotate-6 text-[19px] leading-[0.95] text-[#7b879a] xl:block">
-          Больше
-          <br /> контекста —
-          <br /> меньше
-          <br /> манипуляций
+          {copy.hero.noteLeft.split("\n").map((line) => <span className="block" key={line}>{line}</span>)}
           <svg
             width="68"
             height="32"
@@ -108,9 +105,7 @@ export function Hero() {
         </div>
 
         <div className="font-hand absolute right-[5%] top-[1%] hidden rotate-[-4deg] text-[18px] leading-[1.04] text-[#66758c] xl:block">
-          Проверяйте факты.
-          <br /> Думайте критически.
-          <br /> Делитесь ответственно.
+          {copy.hero.noteRight.split("\n").map((line) => <span className="block" key={line}>{line}</span>)}
           <span className="mt-2 block h-px w-14 -rotate-6 bg-[#d6693a]" />
         </div>
       </motion.div>

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Caveat, Lora, Manrope } from "next/font/google";
 import { FeedbackProvider } from "@/components/FeedbackProvider";
+import { LanguageProvider } from "@/components/LanguageProvider";
 import "./globals.css";
 
 const lora = Lora({
@@ -23,9 +24,9 @@ const caveat = Caveat({
 
 export const metadata: Metadata = {
   applicationName: "RuFact",
-  title: "RuFact — проверка русскоязычных текстов",
+  title: "RuFact — matn va manbalarni tekshirish",
   description:
-    "Образовательный сервис для вероятностной оценки признаков недостоверной информации в русскоязычных текстах.",
+    "O‘zbek, rus va ingliz tilidagi matnlarni internet manbalari bilan tekshirish uchun ta’limiy xizmat.",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -47,11 +48,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ru" data-scroll-behavior="smooth">
+    <html lang="uz-Latn-UZ" data-scroll-behavior="smooth">
       <body
         className={`${lora.variable} ${manrope.variable} ${caveat.variable}`}
       >
-        <FeedbackProvider>{children}</FeedbackProvider>
+        <LanguageProvider>
+          <FeedbackProvider>{children}</FeedbackProvider>
+        </LanguageProvider>
       </body>
     </html>
   );

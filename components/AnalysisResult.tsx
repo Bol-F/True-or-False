@@ -14,6 +14,7 @@ import { GeminiReviewPanel } from "./GeminiReviewPanel";
 import { LoadingState } from "./LoadingState";
 import { ResultActions } from "./ResultActions";
 import { ResultExplanation } from "./ResultExplanation";
+import { useLanguage } from "./LanguageProvider";
 
 export type AnalysisStatus = "initial" | "loading" | "success" | "error";
 
@@ -34,6 +35,7 @@ export function AnalysisResult({
   errorMessage,
   onRetry,
 }: AnalysisResultProps) {
+  const { copy } = useLanguage();
   const isFake = result.label === "FAKE";
   const tone = isFake ? "fake" : "real";
   const accent = isFake ? "#c7353c" : "#2f7447";
@@ -67,7 +69,7 @@ export function AnalysisResult({
             )}
           </span>
           <h2 className="truncate text-[12px] font-extrabold text-[#112f4d] sm:text-[16px]">
-            Результат анализа
+            {copy.result.heading}
           </h2>
         </div>
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
@@ -78,7 +80,7 @@ export function AnalysisResult({
                 : "bg-[#dcebdd] text-[#316746]"
             }`}
           >
-            {isDemo ? "Демо-анализ" : "ML-модель"}
+            {isDemo ? copy.result.demo : copy.result.model}
           </span>
           <time className="max-w-[72px] text-right text-[8px] leading-tight font-medium text-[#768398] sm:max-w-none sm:text-[11px]">
             {timestamp}
@@ -109,10 +111,10 @@ export function AnalysisResult({
               <AlertTriangle className="mt-0.5 shrink-0 text-[#be3f43]" size={21} />
               <div>
                 <h3 className="text-[15px] font-extrabold text-[#a93239]">
-                  Не удалось выполнить анализ
+                  {copy.result.failed}
                 </h3>
                 <p className="mt-1 text-[12.5px] leading-relaxed text-[#735c62]">
-                  {errorMessage ?? "Попробуйте ещё раз через несколько секунд."}
+                  {errorMessage ?? copy.result.retryHint}
                 </p>
                 <button
                   type="button"
@@ -120,7 +122,7 @@ export function AnalysisResult({
                   className="focus-ring mt-4 inline-flex min-h-10 items-center gap-2 rounded-xl bg-[#a83a3e] px-4 text-[12px] font-bold text-white"
                 >
                   <RefreshCw size={15} aria-hidden="true" />
-                  Повторить
+                  {copy.result.retry}
                 </button>
               </div>
             </div>
@@ -135,7 +137,7 @@ export function AnalysisResult({
           >
             <section
               className={`mt-2.5 grid grid-cols-[1fr_auto] items-center gap-2 rounded-[12px] border px-3 py-2.5 sm:mt-3 sm:gap-5 sm:rounded-[15px] sm:px-4 sm:py-3.5 ${panelClass}`}
-              aria-label={`Результат: ${result.label}`}
+              aria-label={`${copy.result.resultAria}: ${result.label}`}
             >
               <div className="flex min-w-0 items-center gap-2.5 sm:gap-4">
                 <span
@@ -158,15 +160,15 @@ export function AnalysisResult({
                   </p>
                   <p className="mt-1 max-w-[240px] text-[9px] leading-[1.3] text-[#5e5e68] sm:mt-2 sm:max-w-[300px] sm:text-[12px] sm:leading-[1.4]">
                     {isLowConfidence
-                      ? "Неуверенный результат — особенно важна ручная проверка"
+                      ? copy.result.lowConfidence
                       : isFake
-                      ? "Обнаружены признаки недостоверной информации"
-                      : "Выраженные признаки недостоверности не обнаружены"}
+                      ? copy.result.fake
+                      : copy.result.real}
                   </p>
                 </div>
               </div>
 
-              <ConfidenceRing value={result.confidence} label="уверенность в ответе" tone={tone} />
+              <ConfidenceRing value={result.confidence} label={copy.result.confidence} tone={tone} />
             </section>
 
             {result.geminiReview ? (
@@ -181,9 +183,7 @@ export function AnalysisResult({
             <aside className="mt-3 flex gap-2 rounded-[11px] bg-[#e7eef9] px-3 py-2.5 text-[#3c608e] sm:mt-4 sm:gap-3 sm:rounded-[13px] sm:px-4 sm:py-3">
               <Info className="mt-0.5 shrink-0" size={16} fill="#5f8ed8" color="white" aria-hidden="true" />
               <p className="text-[9.5px] leading-[1.45] sm:text-[12px] sm:leading-[1.55]">
-                Результаты работы модели — это вероятность, а не окончательный вердикт.
-                Всегда проверяйте информацию по надёжным источникам и используйте
-                критическое мышление.
+                {copy.result.disclaimer}
               </p>
             </aside>
 

@@ -8,6 +8,7 @@ import {
   Newspaper,
   type LucideIcon,
 } from "lucide-react";
+import { useLanguage } from "./LanguageProvider";
 
 export interface TextExample {
   id: string;
@@ -36,12 +37,13 @@ export function ExampleChips({
   disabled = false,
   onSelect,
 }: ExampleChipsProps) {
+  const { copy } = useLanguage();
   return (
     <div className="mt-2.5 sm:mt-3">
       <p className="mb-1.5 text-[10.5px] font-medium text-[#718097] sm:mb-2 sm:text-[12px]">
-        Попробуйте пример:
+        {copy.analyzer.examples}
       </p>
-      <div className="-mx-1 flex snap-x gap-1.5 overflow-x-auto px-1 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0" role="group" aria-label="Примеры текстов">
+      <div className="-mx-1 flex snap-x gap-1.5 overflow-x-auto px-1 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0" role="group" aria-label={copy.analyzer.examplesAria}>
         {examples.map((example) => {
           const Icon = iconByKind[example.icon];
           const isActive = example.id === activeId;
