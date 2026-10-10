@@ -23,6 +23,8 @@ test("chat uses retrieved evidence, preserves context and filters unsafe sources
   assert.equal(result.status, "complete");
   assert.match(prompt, /untrusted/);
   assert.match(prompt, /Latin or Cyrillic/);
+  assert.match(prompt, /do not append unrequested historical/);
+  assert.match(prompt, /past administrative status as current/);
   assert.deepEqual(result.sources, safeChatSources(evidence.sources));
   assert.deepEqual(safeChatSources([{ ...evidence.sources[0], url: "https://user:pass@example.org" }, { ...evidence.sources[0], url: "javascript:alert(1)" }]), []);
 });
