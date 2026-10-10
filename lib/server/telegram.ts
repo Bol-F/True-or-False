@@ -6,6 +6,7 @@ import { getGeminiAssessment } from "./gemini-review";
 import { redisCredentials, rateLimitTelegramInternet, rateLimitTelegramRequest } from "./rate-limit";
 import { handleTelegramMessage, type TelegramMessage, type TelegramStore } from "./telegram-core";
 import { telegramButtonCommand, telegramKeyboard } from "./telegram-ui";
+import { getAiChatReply } from "./ai-chat";
 
 const localStore = new Map<string, { value: string; expiry: number }>();
 let redisClient: Redis | undefined;
@@ -63,6 +64,14 @@ export async function processTelegramMessage(message: TelegramMessage, botToken:
     lockToken: randomUUID,
     limit: (identifier, internet) => internet ? rateLimitTelegramInternet(identifier) : rateLimitTelegramRequest(identifier),
     assess: (text, locale) => getGeminiAssessment(text, locale, AbortSignal.timeout(25_000)),
+    chat: (messages, locale) => getAiChatReply(messages, locale),
+    typing: async incoming => {
+      await fetch(`https://api.telegram.org/bot${botToken}/sendChatAction`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chat_id: incoming.chatId, action: "typing" }),
+        signal: AbortSignal.timeout(2000), cache: "no-store",
+      });
+    },
     send: async (incoming, text, locale) => {
       const webUrl = process.env.TELEGRAM_WEB_APP_URL?.trim() || "https://rufact.vercel.app";
       const url = new URL(webUrl);

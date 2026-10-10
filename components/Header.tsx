@@ -9,12 +9,14 @@ import { useFeedback } from "./FeedbackProvider";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useLanguage } from "./LanguageProvider";
 import { TextSizeControl } from "./TextSizeControl";
+import { chatCopy } from "@/lib/chat-copy";
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const { openFeedback } = useFeedback();
-  const { copy } = useLanguage();
+  const { copy, locale } = useLanguage();
   const navigation = [
+    { label: chatCopy[locale].nav, href: "/chat" },
     { label: copy.navigation.how, href: "/#how-it-works" },
     { label: copy.navigation.model, href: "/model" },
     { label: copy.navigation.faq, href: "/#questions" },
@@ -25,8 +27,8 @@ export function Header() {
       <div className="flex min-h-[62px] items-center justify-between gap-4 sm:min-h-[88px] lg:min-h-[98px]">
         <Brand />
 
-        <nav aria-label={copy.navigation.main} className="hidden lg:block">
-          <ul className="flex items-center gap-10 text-[0.875rem] font-medium text-[#173552] xl:gap-12">
+        <nav aria-label={copy.navigation.main} className="hidden xl:block">
+          <ul className="flex items-center gap-5 text-[0.875rem] font-medium text-[#173552] xl:gap-7">
             {navigation.map((item) => (
               <li key={item.href}>
                 <Link
@@ -40,7 +42,7 @@ export function Header() {
           </ul>
         </nav>
 
-        <div className="hidden items-center gap-2 md:flex">
+        <div className="hidden items-center gap-2 xl:flex">
           <LanguageSwitcher />
           <button
             type="button"
@@ -53,7 +55,7 @@ export function Header() {
 
         <button
           type="button"
-          className="focus-ring inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-[12px] border border-[#d7d8d3] bg-[#fbfaf6] text-ink md:hidden"
+          className="focus-ring inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-[12px] border border-[#d7d8d3] bg-[#fbfaf6] text-ink xl:hidden"
           aria-expanded={isOpen}
           aria-controls="mobile-navigation"
           aria-label={isOpen ? copy.navigation.closeMenu : copy.navigation.openMenu}
@@ -72,7 +74,7 @@ export function Header() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.18 }}
-            className="absolute left-[14px] right-[14px] top-full max-h-[75dvh] overflow-y-auto rounded-[14px] border border-[#dedbd4] bg-[#fbf9f4] p-2.5 shadow-[0_18px_38px_rgba(21,38,54,0.14)] md:hidden"
+            className="absolute left-[14px] right-[14px] top-full max-h-[75dvh] overflow-y-auto rounded-[14px] border border-[#dedbd4] bg-[#fbf9f4] p-2.5 shadow-[0_18px_38px_rgba(21,38,54,0.14)] xl:hidden"
           >
             <ul className="grid gap-1 text-[0.875rem] font-semibold">
               {navigation.map((item) => (

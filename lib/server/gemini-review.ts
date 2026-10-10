@@ -28,7 +28,7 @@ function isEnabled() {
   return process.env.GEMINI_REVIEW_ENABLED?.trim().toLowerCase() === "true";
 }
 
-function configuredModel() {
+export function configuredModel() {
   const requested = process.env.GEMINI_MODEL?.trim();
   return requested && ALLOWED_GEMINI_MODELS.has(requested)
     ? requested

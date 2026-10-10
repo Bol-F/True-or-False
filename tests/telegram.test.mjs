@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { botCopy, formatTelegramAssessment, handleTelegramMessage, parseTelegramUpdate, verifyTelegramSecret } from "../lib/server/telegram-core.ts";
+import { botCopy, formatTelegramAssessment, formatTelegramChat, handleTelegramMessage, parseTelegramUpdate, verifyTelegramSecret } from "../lib/server/telegram-core.ts";
 import { telegramKeyboard, telegramNotice } from "../lib/server/telegram-ui.ts";
 
 const message = { updateId: 1, chatId: 123, messageId: 42, text: "Ўзбекистон пойтахти Тошкент.", language: "uz" };
@@ -132,4 +132,38 @@ test("localized navigation buttons select language and mode without searching", 
   assert.equal(sent[1].locale, "en");
   assert.match(sent[2].text, /Fact-check mode/);
   assert.equal(telegramKeyboard("en", "https://example.org", true).keyboard[0].length, 3);
+});
+
+test("AI chat remembers follow-ups, clears context and preserves fact-check mode", async () => {
+  const { deps, values, assessed } = harness();
+  const conversations = [];
+  deps.chat = async messages => { conversations.push(messages); return { status: "complete", text: "Answer [1]", sources: assessment.sources }; };
+  for (const [index, text] of ["💬 AI chat", "First question", "Follow-up", "/new", "New question", "/check", "A claim"].entries()) await handleTelegramMessage({ ...message, updateId: index + 1, text }, deps);
+  assert.equal(conversations.length, 3);
+  assert.equal(conversations[1].length, 3);
+  assert.equal(conversations[2].length, 1);
+  assert.equal(assessed.length, 1);
+  await handleTelegramMessage({ ...message, updateId: 8, text: "/forget" }, deps);
+  assert.equal(values.has("chat:hashed-123"), false);
+  assert.equal(values.has("mode:hashed-123"), false);
+});
+
+test("AI chat delivery retries do not regenerate an answer", async () => {
+  const { deps, sent } = harness(); let calls = 0;
+  deps.chat = async () => { calls++; return { status: "complete", text: "Answer [1]", sources: assessment.sources }; };
+  await handleTelegramMessage({ ...message, text: "/chat" }, deps);
+  const original = deps.send;
+  deps.send = async () => { throw new Error("Offline"); };
+  const follow = { ...message, updateId: 2, text: "Question" };
+  await assert.rejects(handleTelegramMessage(follow, deps)); deps.send = original;
+  await handleTelegramMessage(follow, deps);
+  assert.equal(calls, 1); assert.equal(sent.length, 2);
+});
+
+test("a conversation lease serializes separate updates and HTML cannot be injected", async () => {
+  const { deps, values, assessed } = harness();
+  values.set("conversation:hashed-123:lock", "another-owner");
+  assert.equal(await handleTelegramMessage(message, deps), "busy"); assert.equal(assessed.length, 0);
+  const html = formatTelegramChat({ status: "complete", text: "<a href='evil'>Oops</a>".repeat(200), sources: assessment.sources }, "en");
+  assert.ok(html.length < 4096); assert.match(html, /&lt;a/); assert.doesNotMatch(html, /<a href='evil'/);
 });

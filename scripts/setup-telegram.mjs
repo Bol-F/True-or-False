@@ -34,6 +34,9 @@ try {
     if (!health.ok) throw new Error("Deploy the bot environment variables first: the webhook configuration check failed.");
     await call("setMyCommands", { commands: [
       { command: "start", description: "Start / Boshlash / Начать" },
+      { command: "chat", description: "AI chat / AI suhbat / AI-чат" },
+      { command: "check", description: "Check text / Tekshirish / Проверка текста" },
+      { command: "new", description: "Clear conversation / Yangi suhbat / Новый разговор" },
       { command: "uz", description: "O‘zbekcha · Lotin / Kirill" },
       { command: "ru", description: "Русский" },
       { command: "en", description: "English" },

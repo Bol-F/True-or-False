@@ -32,7 +32,8 @@ export function telegramKeyboard(locale: AppLocale, webUrl: string, languages = 
   const copy = telegramUi[locale];
   return {
     keyboard: languages ? [[{ text: "🇺🇿 O‘zbekcha" }, { text: "🇷🇺 Русский" }, { text: "🇬🇧 English" }], [{ text: copy.check }, { text: copy.help }]] : [
-      [{ text: copy.check }, { text: copy.language }],
+      [{ text: copy.check }, { text: copy.chat }],
+      [{ text: copy.clear }, { text: copy.language }],
       [{ text: copy.help }, { text: "↗ RuFact", web_app: { url: webUrl } }],
     ],
     resize_keyboard: true,

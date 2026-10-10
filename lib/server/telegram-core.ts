@@ -2,6 +2,7 @@ import { timingSafeEqual } from "node:crypto";
 import type { AppLocale } from "../i18n";
 import type { GeminiAssessment } from "./gemini-review-core";
 import { escapeTelegramHtml, telegramButtonCommand, telegramNotice, telegramUi } from "./telegram-ui.ts";
+import { parseChatMessages, recentChatMessages, safeChatSources, type ChatMessage, type ChatReply } from "../chat.ts";
 
 export interface TelegramMessage {
   updateId: number;
@@ -15,8 +16,8 @@ export const botCopy = {
   uz: {
     welcome: "RuFact — matn va manbalarni tekshirish.\n\nMatn yuboring yoki xabarni shu yerga forward qiling (5000 belgigacha). O‘zbek lotin va kirill, rus va ingliz tillari qo‘llanadi.\n\n/uz /ru /en — javob tili\n/help — yordam\n/privacy — maxfiylik\n\nTekshirish uchun matn Tavily va Google Gemini xizmatlariga yuboriladi. Shaxsiy yoki maxfiy ma’lumot yubormang.",
     selected: "Javob tili: O‘zbekcha. Matn yuboring (lotin yoki kirill).",
-    privacy: "Tekshirishda matn Tavily va Google Gemini’ga yuboriladi. Bot matnlaringiz tarixini yaratmaydi. Til sozlamasi 30 kun, takroriy xabarlarni aniqlash va yetkazish holati 48 soatgacha Redis’da saqlanadi. Javobni qayta yetkazish uchun qisqa natija ham vaqtincha saqlanishi mumkin. /forget — botdagi saqlangan tilni o‘chirish. Telegram o‘z qoidalariga ko‘ra xabarlarni saqlaydi.",
-    forgotten: "Saqlangan til sozlamasi o‘chirildi.",
+    privacy: "Savol va qisqa suhbat konteksti Tavily va Google Gemini’ga yuboriladi. AI chatning oxirgi 3 savol-javobi Redis’da saqlanadi va 30 daqiqa harakatsizlikdan keyin o‘chadi; /new ularni darhol o‘chiradi. Til 30 kun, yetkazish va takrorlarni aniqlash holati 48 soat saqlanadi. Qayta yetkazish uchun javob vaqtincha 48 soatgacha saqlanishi mumkin. /forget — til, chat rejimi va suhbatni o‘chirish. Telegram xabarlarni o‘z qoidalariga ko‘ra saqlaydi. Maxfiy ma’lumot yubormang.",
+    forgotten: "Til, chat rejimi va suhbat konteksti o‘chirildi.",
     unsupported: "Matn yuboring yoki matnli xabarni forward qiling. Fayl yuklash uchun saytni oching.",
     tooLong: "Matn 5000 belgidan oshmasligi kerak. Uni qismlarga bo‘lib yuboring.",
     limited: "So‘rovlar limiti tugadi. Birozdan keyin qayta urinib ko‘ring.",
@@ -28,8 +29,8 @@ export const botCopy = {
   ru: {
     welcome: "RuFact — проверка текста по источникам.\n\nПришлите текст или перешлите сообщение (до 5000 символов). Поддерживаются узбекский (латиница и кириллица), русский и английский.\n\n/uz /ru /en — язык ответа\n/help — помощь\n/privacy — конфиденциальность\n\nДля проверки текст отправляется Tavily и Google Gemini. Не отправляйте личные или секретные данные.",
     selected: "Язык ответа: Русский. Пришлите текст для проверки.",
-    privacy: "Текст для проверки отправляется Tavily и Google Gemini. Бот не создаёт историю ваших текстов. Язык хранится 30 дней; идентификаторы повторов и состояние доставки — до 48 часов в Redis. Краткий результат может временно храниться для повторной доставки. /forget удаляет сохранённый язык. Telegram хранит сообщения по своим правилам.",
-    forgotten: "Сохранённая настройка языка удалена.",
+    privacy: "Вопрос и краткий контекст отправляются Tavily и Google Gemini. Последние 3 пары вопросов и ответов AI-чата хранятся в Redis и удаляются через 30 минут бездействия; /new удаляет их сразу. Язык хранится 30 дней; состояние доставки и повторы — 48 часов. Ответ для повторной доставки может храниться до 48 часов. /forget удаляет язык, режим и контекст разговора. Telegram хранит сообщения по своим правилам. Не отправляйте секретные данные.",
+    forgotten: "Язык, режим чата и контекст разговора удалены.",
     unsupported: "Пришлите текст или перешлите текстовое сообщение. Для загрузки файла откройте сайт.",
     tooLong: "Максимум 5000 символов. Отправьте текст частями.",
     limited: "Лимит запросов исчерпан. Повторите попытку позже.",
@@ -41,8 +42,8 @@ export const botCopy = {
   en: {
     welcome: "RuFact — check text against sources.\n\nSend text or forward a message (up to 5000 characters). Uzbek (Latin and Cyrillic), Russian and English are supported.\n\n/uz /ru /en — response language\n/help — help\n/privacy — privacy\n\nChecks send text to Tavily and Google Gemini. Do not send personal or confidential information.",
     selected: "Response language: English. Send a text to check.",
-    privacy: "Checks send text to Tavily and Google Gemini. The bot does not create a history of your texts. Language preferences expire after 30 days; duplicate identifiers and delivery state expire after 48 hours in Redis. A short result may also be stored temporarily for delivery retries. /forget removes your saved language. Telegram retains messages under its own policies.",
-    forgotten: "Your saved language preference was removed.",
+    privacy: "Your question and short context are sent to Tavily and Google Gemini. The last 3 AI-chat exchanges are stored in Redis and expire after 30 minutes of inactivity; /new clears them immediately. Language expires after 30 days; duplicate and delivery state after 48 hours. Replies awaiting delivery can be stored for up to 48 hours. /forget removes language, chat mode and conversation context. Telegram retains messages under its own policies. Don’t send confidential data.",
+    forgotten: "Your language, chat mode and conversation context were removed.",
     unsupported: "Send text or forward a text message. Open the website to upload a file.",
     tooLong: "Maximum 5000 characters. Send the text in smaller parts.",
     limited: "The request limit has been reached. Try again later.",
@@ -118,7 +119,24 @@ export interface TelegramDependencies {
   lockToken: () => string;
   limit: (identifier: string, internet: boolean) => Promise<{ allowed: boolean; configured: boolean }>;
   assess: (text: string, locale: AppLocale) => Promise<GeminiAssessment>;
+  chat?: (messages: ChatMessage[], locale: AppLocale) => Promise<ChatReply>;
+  typing?: (message: TelegramMessage) => Promise<void>;
   send: (message: TelegramMessage, text: string, locale: AppLocale) => Promise<void>;
+}
+
+export function formatTelegramChat(reply: ChatReply, locale: AppLocale) {
+  if (reply.status !== "complete") return botCopy[locale].unavailable;
+  const body = escapeTelegramHtml(shorten(reply.text, 1500));
+  const sources = safeChatSources(reply.sources).map((source, index) => `<a href="${escapeTelegramHtml(source.url)}">[${index + 1}] ${escapeTelegramHtml(shorten(source.title, 60))}</a>`);
+  const sections = [`<b>💬 ${telegramUi[locale].chatTitle}</b>`, body];
+  if ([...sections, ...sources].join("\n\n").length > 3600) sections[1] = escapeTelegramHtml(shorten(reply.text, 300));
+  const disclaimer = `<i>${botCopy[locale].disclaimer}</i>`;
+  const links: string[] = [];
+  for (const source of sources) {
+    if ([...sections, ...links, source, disclaimer].join("\n\n").length < 3900) links.push(source);
+  }
+  if (links.length) sections.push(`<b>🔗 ${botCopy[locale].sources}</b>\n${links.join("\n")}`);
+  return [...sections, disclaimer].join("\n\n");
 }
 
 // A failed delivery is retried by Telegram; completed updates never consume providers again.
@@ -127,10 +145,16 @@ export async function handleTelegramMessage(message: TelegramMessage, deps: Tele
   if (await deps.store.get(`${updateKey}:done`)) return "duplicate";
   const token = deps.lockToken();
   if (!await deps.store.claim(`${updateKey}:lock`, token, 90)) return "busy";
+  const identifier = deps.userKey(message.chatId);
+  const userLock = `conversation:${identifier}:lock`;
+  let ownsUserLock = false;
   try {
     if (await deps.store.get(`${updateKey}:done`)) return "duplicate";
-    const identifier = deps.userKey(message.chatId);
+    ownsUserLock = await deps.store.claim(userLock, token, 90);
+    if (!ownsUserLock) return "busy";
     const languageKey = `language:${identifier}`;
+    const historyKey = `chat:${identifier}`;
+    const modeKey = `mode:${identifier}`;
     const saved = await deps.store.get(languageKey);
     let locale: AppLocale = saved === "uz" || saved === "ru" || saved === "en" ? saved : message.language;
     const cached = await deps.store.get(`${updateKey}:reply`);
@@ -150,23 +174,53 @@ export async function handleTelegramMessage(message: TelegramMessage, deps: Tele
           reply = botCopy[locale].selected;
         } else if (command === "language") {
           reply = telegramUi[locale].choose;
+        } else if (command === "new") {
+          await deps.store.remove(historyKey);
+          reply = telegramUi[locale].cleared;
+        } else if (command === "chat" && !commandMatch?.[2]) {
+          await deps.store.set(modeKey, "chat", 1800);
+          reply = telegramUi[locale].chatMode;
         } else if (command === "check" && !commandMatch?.[2]) {
+          await deps.store.remove(modeKey);
           reply = telegramUi[locale].checkMode;
         } else if (command === "forget") {
           await deps.store.remove(languageKey);
+          await deps.store.remove(historyKey);
+          await deps.store.remove(modeKey);
           reply = botCopy[locale].forgotten;
         } else if (command === "privacy") {
           reply = botCopy[locale].privacy;
-        } else if (command && command !== "check") {
-          reply = botCopy[locale].welcome;
+        } else if (command && command !== "check" && command !== "chat") {
+          reply = `${botCopy[locale].welcome}\n\n💬 /chat — AI chat\n🔎 /check — ${telegramUi[locale].check}\n🧹 /new — ${telegramUi[locale].clear}`;
         } else {
-          const text = (command === "check" ? commandMatch?.[2] ?? "" : message.text).trim();
+          const text = (command === "check" || command === "chat" ? commandMatch?.[2] ?? "" : message.text).trim();
+          const chatMode = command === "chat" || (command !== "check" && await deps.store.get(modeKey) === "chat");
           if (!text) reply = botCopy[locale].unsupported;
-          else if (text.length > 5000) reply = botCopy[locale].tooLong;
+          else if (text.length > (chatMode ? 2000 : 5000)) reply = chatMode ? (locale === "ru" ? "Максимум 2000 символов в AI-чате." : locale === "en" ? "Maximum 2000 characters in AI chat." : "AI chatda ko‘pi bilan 2000 belgi.") : botCopy[locale].tooLong;
           else {
             const limit = await deps.limit(identifier, true);
             if (!limit.configured) throw new Error("Telegram protection unavailable");
-            reply = limit.allowed ? formatTelegramAssessment(await deps.assess(text, locale), locale) : botCopy[locale].limited;
+            if (!limit.allowed) reply = botCopy[locale].limited;
+            else {
+              await deps.typing?.(message).catch(() => {});
+              if (chatMode) {
+                let history: ChatMessage[] = [];
+                try {
+                  const saved = JSON.parse(await deps.store.get(historyKey) || "[]");
+                  if (Array.isArray(saved) && saved.length && saved.length <= 6) {
+                    const candidate = parseChatMessages(recentChatMessages([...saved, { role: "user", content: text }]));
+                    if (candidate) history = candidate.slice(0, -1);
+                  }
+                } catch { /* Expired or malformed context starts a fresh conversation. */ }
+                const messages = recentChatMessages([...history, { role: "user", content: text }]);
+                const result = await deps.chat?.(messages, locale) ?? { status: "unavailable", reason: "not-configured" };
+                reply = formatTelegramChat(result, locale);
+                if (result.status === "complete") {
+                  await deps.store.set(historyKey, JSON.stringify([...messages, { role: "assistant", content: result.text.slice(0, 2000) }].slice(-6)), 1800);
+                  await deps.store.set(modeKey, "chat", 1800);
+                }
+              } else reply = formatTelegramAssessment(await deps.assess(text, locale), locale);
+            }
           }
         }
       }
@@ -186,6 +240,7 @@ export async function handleTelegramMessage(message: TelegramMessage, deps: Tele
     await deps.store.remove(`${updateKey}:format`);
     return "done";
   } finally {
+    if (ownsUserLock) await deps.store.release(userLock, token);
     await deps.store.release(`${updateKey}:lock`, token);
   }
 }
