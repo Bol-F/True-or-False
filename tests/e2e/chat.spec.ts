@@ -54,6 +54,37 @@ test("quota failure offers retry without duplicating a question", async ({ page 
   await expect(page.getByText("Savol", { exact: true })).toHaveCount(1);
 });
 
+test("long answers open at the beginning instead of jumping to the source footer", async ({ page }) => {
+  await page.route("**/api/chat", route => route.fulfill({ json: { status: "complete", text: "Birinchi jumla.\n\n" + "Manbalarni diqqat bilan tekshiring.\n".repeat(45), sources: [{ id: "s1", title: "Source", url: "https://example.org" }] } }));
+  await page.goto("/chat");
+  await page.getByRole("textbox", { name: "AI chat uchun savol" }).fill("Savol");
+  await page.getByRole("button", { name: "Yuborish", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Yangi suhbat", exact: true })).toBeEnabled();
+  await expect.poll(() => page.locator("article").evaluate(element => {
+    const container = element.closest('[role="log"]');
+    return element.getBoundingClientRect().top >= container!.getBoundingClientRect().top;
+  })).toBe(true);
+});
+
+test("cancelling restores the draft without leaving a duplicate unfinished turn", async ({ page }) => {
+  let calls = 0;
+  let release!: () => void;
+  const pending = new Promise<void>(resolve => { release = resolve; });
+  await page.route("**/api/chat", async route => {
+    calls++;
+    await pending;
+    await route.fulfill({ json: { status: "complete", text: "Late answer", sources: [] } }).catch(() => {});
+  });
+  await page.goto("/chat");
+  const input = page.getByRole("textbox", { name: "AI chat uchun savol" });
+  await input.fill("Savol"); await page.getByRole("button", { name: "Yuborish", exact: true }).click();
+  await page.getByRole("button", { name: "To‘xtatish", exact: true }).click();
+  release();
+  await expect(input).toHaveValue("Savol"); await expect(input).toBeEnabled();
+  await expect(page.getByRole("heading", { name: "Nimani aniqlamoqchisiz?" })).toBeVisible();
+  expect(calls).toBe(1);
+});
+
 test("API rejects cross-origin, invalid roles and oversized payloads", async ({ request }, testInfo) => {
   test.skip(!testInfo.project.name.startsWith("desktop"), "Server validation once");
   expect((await request.post("/api/chat", { headers: { origin: "https://evil.example" }, data: {} })).status()).toBe(403);

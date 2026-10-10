@@ -20,6 +20,8 @@ The installed AI SDK Google adapter uses the configured Gemini key directly; no 
 
 ## Verification
 
+The dependency check on 11 October 2026 found existing advisories outside the new AI packages. Next.js was patched to 16.3.8 and `source-map-js` updated. Eight audit entries remain in the `braces`/lint and `sprintf-js`/Mammoth dependency chains; automatic force-fixes propose incompatible downgrades, so they were not applied. This feature is not a certification that the entire repository is vulnerability-free.
+
 ```bash
 npm run test:chat
 npm run test:telegram
