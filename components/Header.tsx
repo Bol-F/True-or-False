@@ -1,8 +1,9 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Menu, X } from "lucide-react";
+import { Menu, MessageCircle, X } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Brand } from "./Brand";
 import { useFeedback } from "./FeedbackProvider";
@@ -15,6 +16,7 @@ export function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const { openFeedback } = useFeedback();
   const { copy, locale } = useLanguage();
+  const pathname = usePathname();
   const navigation = [
     { label: chatCopy[locale].nav, href: "/chat" },
     { label: copy.navigation.how, href: "/#how-it-works" },
@@ -34,6 +36,7 @@ export function Header() {
                 <Link
                   className="focus-ring rounded-md transition-colors hover:text-accent"
                   href={item.href}
+                  aria-current={pathname === item.href ? "page" : undefined}
                 >
                   {item.label}
                 </Link>
@@ -53,6 +56,8 @@ export function Header() {
           </button>
         </div>
 
+        <div className="ml-auto flex items-center gap-2 xl:hidden">
+          {pathname !== "/chat" ? <Link href="/chat" aria-label={chatCopy[locale].open} className="focus-ring inline-flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-xl border border-[#cfdbd4] bg-[#edf3ee] px-3 text-xs font-bold text-[#376b60]"><MessageCircle size={16} /><span className="hidden min-[380px]:inline">{chatCopy[locale].nav}</span></Link> : null}
         <button
           type="button"
           className="focus-ring inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-[12px] border border-[#d7d8d3] bg-[#fbfaf6] text-ink xl:hidden"
@@ -63,6 +68,7 @@ export function Header() {
         >
           {isOpen ? <X size={18} /> : <Menu size={18} />}
         </button>
+        </div>
       </div>
 
       <AnimatePresence>

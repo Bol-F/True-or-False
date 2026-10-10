@@ -37,6 +37,7 @@ try {
       { command: "chat", description: "AI chat / AI suhbat / AI-чат" },
       { command: "check", description: "Check text / Tekshirish / Проверка текста" },
       { command: "new", description: "Clear conversation / Yangi suhbat / Новый разговор" },
+      { command: "stop", description: "End chat / Chatni tugatish / Завершить чат" },
       { command: "uz", description: "O‘zbekcha · Lotin / Kirill" },
       { command: "ru", description: "Русский" },
       { command: "en", description: "English" },

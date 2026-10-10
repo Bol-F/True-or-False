@@ -130,6 +130,17 @@ a {
   padding-inline: clamp(24px, 2.75vw, 40px);
 }
 
+.paper-shell.chat-shell {
+  display: flex;
+  flex-direction: column;
+  height: calc(100dvh - 40px);
+  min-height: 360px;
+}
+
+.chat-shell > header {
+  flex-shrink: 0;
+}
+
 .tool-gutter {
   width: 100%;
   padding-left: clamp(18px, 1.65vw, 24px);
@@ -220,6 +231,19 @@ a {
     padding-inline: 14px;
   }
 
+  .paper-shell.chat-shell {
+    height: calc(100dvh - 8px);
+    min-height: 360px;
+  }
+
+  .chat-workspace {
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+  }
+
+  .chat-privacy summary {
+    font-size: 0.6875rem;
+  }
+
   .tool-gutter {
     padding-inline: 12px;
   }
@@ -236,6 +260,17 @@ a {
 
   .analyzer-heading-row > :last-child {
     margin-left: auto;
+  }
+}
+
+@media (max-height: 520px) {
+  .paper-shell.chat-shell {
+    min-height: 0;
+  }
+
+  .chat-heading-row,
+  .chat-followups {
+    display: none;
   }
 }
 

@@ -30,7 +30,9 @@ Registration verifies the deployed secret, creates the command menu and register
 ## Use
 
 - `/start` or `/help`: instructions and data processing notice.
-- `/chat` or **AI chat**: conversational questions with sources. Follow-ups use the last three exchanges; `/new` clears context. `/check` without text returns to fact-check mode. Chat questions are limited to 2000 characters.
+- `/chat` or **AI chat**: start a conversation, then send questions and follow-ups normally without repeating the command. Follow-ups use the last three exchanges. Greetings and introductions do not search the web. Chat questions are limited to 2000 characters.
+- `/new` or **New conversation**: clear context and keep chat active.
+- `/stop` or **End chat**: clear context and return to fact-check mode. `/check`, with or without text, also exits chat mode.
 - `/uz`, `/ru`, `/en`: save the response language for 30 days. Initially the bot uses Telegram's supported language or Uzbek.
 - Send or forward a text message: check it against online sources.
 - `/check your text`: explicit text check.
@@ -41,7 +43,7 @@ Maximum input: 5000 characters (Telegram's own message limit also applies). Capt
 
 ## Delivery, limits and storage
 
-Replies use escaped Telegram HTML with verdict markers, section headings and compact links. The reply keyboard offers check/chat modes, language selection, clearing, help and the website. Chat context expires after 30 minutes of inactivity. See [AI_CHAT.md](AI_CHAT.md) for provider limits and privacy details.
+Replies use escaped Telegram HTML with verdict markers, section headings and compact links. Chat replies omit redundant input quotations and omit sources/disclaimers for local greetings. The persistent, mode-aware reply keyboard offers New conversation, End chat, language selection, checking and the web chat. Chat mode stays active until explicitly exited, even when its content expires after 30 minutes of inactivity. The mode preference has no TTL; `/stop`, `/check` or `/forget` removes it. See [AI_CHAT.md](AI_CHAT.md) for provider limits and privacy details.
 
 The webhook verifies a 32–256-character secret before reading a bounded JSON body. Incoming messages are limited to 10 per minute per hashed Telegram identity. Internet checks use the website's configured per-client limit and **the same shared daily provider budget**, so both entry points together stay within that budget. No public browser endpoint can supply the Telegram identity.
 

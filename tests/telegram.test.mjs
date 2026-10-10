@@ -16,10 +16,11 @@ function harness() {
   const sent = [];
   const assessed = [];
   const limits = [];
+  const ttls = new Map();
   const deps = {
     store: {
       get: async key => values.get(key) ?? null,
-      set: async (key, value) => { values.set(key, value); },
+      set: async (key, value, ttl) => { values.set(key, value); ttls.set(key, ttl); },
       remove: async key => { values.delete(key); },
       claim: async (key, value) => { if (values.has(key)) return false; values.set(key, value); return true; },
       release: async (key, value) => { if (values.get(key) === value) values.delete(key); },
@@ -30,7 +31,7 @@ function harness() {
     assess: async (text, locale) => { assessed.push({ text, locale }); return assessment; },
     send: async (incoming, text, locale) => { sent.push({ incoming, text, locale }); },
   };
-  return { deps, values, sent, assessed, limits };
+  return { deps, values, sent, assessed, limits, ttls };
 }
 
 test("webhook requires a strong exact shared secret", () => {
@@ -166,4 +167,48 @@ test("a conversation lease serializes separate updates and HTML cannot be inject
   assert.equal(await handleTelegramMessage(message, deps), "busy"); assert.equal(assessed.length, 0);
   const html = formatTelegramChat({ status: "complete", text: "<a href='evil'>Oops</a>".repeat(200), sources: assessment.sources }, "en");
   assert.ok(html.length < 4096); assert.match(html, /&lt;a/); assert.doesNotMatch(html, /<a href='evil'/);
+});
+
+test("chat mode survives expired content and stops only on an explicit exit", async () => {
+  const { deps, values, ttls, assessed } = harness();
+  const conversations = [];
+  deps.chat = async messages => { conversations.push(messages); return { status: "complete", text: "Answer", sources: [] }; };
+  await handleTelegramMessage({ ...message, text: "/chat First factual question" }, deps);
+  assert.equal(values.get("mode:hashed-123"), "chat");
+  assert.equal(ttls.get("mode:hashed-123"), undefined);
+  assert.equal(ttls.get("chat:hashed-123"), 1800);
+  values.delete("chat:hashed-123"); // Simulate idle context expiry, not an exit.
+  await handleTelegramMessage({ ...message, updateId: 2, text: "Another factual question" }, deps);
+  assert.equal(conversations.length, 2);
+  assert.equal(conversations[1].length, 1);
+  assert.equal(assessed.length, 0);
+  await handleTelegramMessage({ ...message, updateId: 3, text: "⏹ Chatni tugatish" }, deps);
+  assert.equal(values.has("mode:hashed-123"), false);
+  assert.equal(values.has("chat:hashed-123"), false);
+  await handleTelegramMessage({ ...message, updateId: 4, text: "A claim" }, deps);
+  assert.equal(assessed.length, 1);
+});
+
+test("introductions have no irrelevant sources and consume no internet quota", async () => {
+  const { deps, limits, sent, values } = harness();
+  deps.chat = async () => { throw new Error("Should not call provider"); };
+  await handleTelegramMessage({ ...message, text: "/chat" }, deps);
+  await handleTelegramMessage({ ...message, updateId: 2, text: "who are you ?" }, deps);
+  assert.match(sent[1].text, /RuFact/);
+  assert.doesNotMatch(sent[1].text, /<a |Manbalar|<i>/);
+  assert.equal(limits.filter(limit => limit.internet).length, 0);
+  assert.equal(JSON.parse(values.get("chat:hashed-123")).length, 2);
+});
+
+test("stop clears chat even after quota denial, and new always starts chat", async () => {
+  const { deps, values } = harness();
+  await handleTelegramMessage({ ...message, text: "/new" }, deps);
+  assert.equal(values.get("mode:hashed-123"), "chat");
+  deps.limit = async () => ({ allowed: false, configured: true });
+  await handleTelegramMessage({ ...message, updateId: 2, text: "/stop" }, deps);
+  assert.equal(values.has("mode:hashed-123"), false);
+  const keyboard = telegramKeyboard("en", "https://example.org", false, true);
+  assert.equal(keyboard.keyboard[0][1].text, "⏹ End chat");
+  assert.equal(keyboard.keyboard[1][1].web_app.url, "https://example.org/chat");
+  assert.equal(keyboard.is_persistent, true);
 });

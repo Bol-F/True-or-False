@@ -7,8 +7,13 @@ import { requestAiChat } from "./ai-chat-core";
 import { requestTavilyEvidence } from "./tavily-search";
 import { configuredModel, isGeminiReviewConfigured } from "./gemini-review";
 import { createAbortScope } from "./abort-scope";
+import { localChatReply } from "../chat-local";
+import { parseChatMessages } from "../chat";
 
 export async function getAiChatReply(messages: ChatMessage[], locale: AppLocale, signal?: AbortSignal): Promise<ChatReply> {
+  if (!parseChatMessages(messages)) return { status: "unavailable", reason: "provider-unavailable" };
+  const local = localChatReply(messages, locale);
+  if (local) return local;
   if (!isGeminiReviewConfigured()) return { status: "unavailable", reason: "not-configured" };
   const scope = createAbortScope(signal, 25_000);
   try {

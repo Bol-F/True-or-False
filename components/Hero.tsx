@@ -2,6 +2,9 @@
 
 import { motion } from "framer-motion";
 import Image from "next/image";
+import Link from "next/link";
+import { MessageCircle } from "lucide-react";
+import { chatCopy } from "@/lib/chat-copy";
 
 import { MODEL_QUALITY } from "@/lib/model-quality";
 import { useLanguage } from "./LanguageProvider";
@@ -69,6 +72,10 @@ export function Hero() {
             {copy.hero.desktopDescription}{locale === "ru" ? ` Русская ML-модель показала ${Math.round((accuracy ?? 0) * 100)}% accuracy на отдельной внешней выборке.` : ""}
           </span>
         </motion.p>
+        <div className="relative mt-3 flex flex-wrap items-center gap-2 sm:mt-4">
+          <Link href="/#analyzer" className="focus-ring inline-flex min-h-11 items-center rounded-xl bg-ink px-4 text-sm font-semibold text-white">{chatCopy[locale].check} ↓</Link>
+          <Link href="/chat" className="focus-ring inline-flex min-h-11 items-center gap-2 rounded-xl border border-[#cbd8d0] bg-white/70 px-4 text-sm font-semibold"><MessageCircle size={17} />{chatCopy[locale].open} ↗</Link>
+        </div>
       </motion.div>
 
       <motion.div

@@ -1,6 +1,7 @@
 import { parseChatMessages, safeChatSources, type ChatMessage, type ChatReply } from "../chat.ts";
 import type { AppLocale } from "../i18n";
 import type { TavilyEvidence, TavilySearchResult } from "./tavily-search";
+import { localChatReply } from "../chat-local.ts";
 
 const languages = { uz: "Uzbek, preserving the user's Latin or Cyrillic script", ru: "Russian", en: "English" };
 export function chatInstructions(locale: AppLocale, evidence: TavilyEvidence) {
@@ -24,12 +25,15 @@ export interface ChatDependencies {
 
 export async function requestAiChat(messages: ChatMessage[], locale: AppLocale, deps: ChatDependencies): Promise<ChatReply> {
   if (!parseChatMessages(messages)) return { status: "unavailable", reason: "provider-unavailable" };
+  const local = localChatReply(messages, locale);
+  if (local) return local;
   try {
-    const questions = messages.filter(message => message.role === "user");
+    const questions = messages.filter(message => message.role === "user" && !localChatReply([message], locale));
     const latest = questions.at(-1)!.content;
-    const previous = questions.at(-2)?.content;
-    const first = questions[0].content;
-    const query = previous ? `${first.slice(0, 140)} ${previous === first ? "" : previous.slice(0, 100)} ${latest.slice(0, 340)}` : latest;
+    // Add the recent topic only for short dependent follow-ups, not every new topic.
+    const followUp = latest.length <= 180 && /^(?:why\b|how so\b|explain\b|what about\b|and\b|tell me more\b|can you explain (?:that|in more detail)\b|which source\b|is (?:it|that|this)\b|почему(?:\s|[?!]|$)|объясни|подробнее|можешь (?:рассказать подробнее|объяснить это)|а |какой источник|это |nega\b|buni\b|tushuntir|batafsil|qaysi manba|нега|тушунтир|батафсил|қайси манба)/iu.test(latest);
+    const context = questions.slice(0, -1).slice(-2).map(message => message.content.slice(0, 150)).join(" ");
+    const query = followUp && context ? `${context} ${latest}` : latest;
     const search = await deps.search(query, locale);
     if (!search.ok) return { status: "unavailable", reason: "search-unavailable" };
     const sources = safeChatSources(search.evidence.sources);

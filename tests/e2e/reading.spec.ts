@@ -41,6 +41,11 @@ test("reading size persists and mobile controls stay usable", async ({ page }, t
     await page.setViewportSize({ width: 320, height: 740 });
     await page.goto("/");
     await expect(page.locator("html")).toHaveAttribute("data-text-size", "larger");
+    const menu = page.getByRole("button", { name: "Menyuni ochish" });
+    expect(await menu.evaluate(element => element.getBoundingClientRect().right <= innerWidth)).toBe(true);
+    await menu.click();
+    await expect(page.locator("#mobile-navigation")).toBeVisible();
+    await page.getByRole("button", { name: "Menyuni yopish" }).click();
     await expect.poll(() => input.evaluate(element => element.getBoundingClientRect().right <= innerWidth)).toBe(true);
     await input.scrollIntoViewIfNeeded();
     expect(await page.locator(".paper-shell").evaluate(element => element.scrollLeft)).toBe(0);

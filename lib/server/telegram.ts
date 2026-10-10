@@ -21,7 +21,7 @@ function createStore(botToken: string): TelegramStore {
     const redis = redisClient;
     return {
       get: key => redis.get<string>(prefix + key),
-      set: async (key, value, ttl) => { await redis.set(prefix + key, value, { ex: ttl }); },
+      set: async (key, value, ttl) => { await redis.set(prefix + key, value, ttl === undefined ? undefined : { ex: ttl }); },
       remove: async key => { await redis.del(prefix + key); },
       claim: async (key, token, ttl) => await redis.set(prefix + key, token, { nx: true, ex: ttl }) === "OK",
       release: async (key, token) => {
@@ -35,12 +35,12 @@ function createStore(botToken: string): TelegramStore {
     localStore.delete(prefix + key);
     return null;
   }
-  function write(key: string, value: string, ttl: number) {
+  function write(key: string, value: string, ttl?: number) {
     if (localStore.size >= 2000) {
       for (const [name, item] of localStore) if (item.expiry <= Date.now()) localStore.delete(name);
       if (localStore.size >= 2000) throw new Error("Local Telegram store is full");
     }
-    localStore.set(prefix + key, { value, expiry: Date.now() + ttl * 1000 });
+    localStore.set(prefix + key, { value, expiry: ttl === undefined ? Infinity : Date.now() + ttl * 1000 });
   }
   return {
     get: async key => read(key),
@@ -72,7 +72,7 @@ export async function processTelegramMessage(message: TelegramMessage, botToken:
         signal: AbortSignal.timeout(2000), cache: "no-store",
       });
     },
-    send: async (incoming, text, locale) => {
+    send: async (incoming, text, locale, chatMode) => {
       const webUrl = process.env.TELEGRAM_WEB_APP_URL?.trim() || "https://rufact.vercel.app";
       const url = new URL(webUrl);
       if (url.protocol !== "https:" || url.username || url.password) throw new Error("Invalid Telegram website URL");
@@ -83,9 +83,10 @@ export async function processTelegramMessage(message: TelegramMessage, botToken:
           chat_id: incoming.chatId,
           text,
           parse_mode: "HTML",
-          reply_parameters: { message_id: incoming.messageId, allow_sending_without_reply: true },
+          // Chat reads as one conversation; assessments retain their quoted input.
+          ...(chatMode ? {} : { reply_parameters: { message_id: incoming.messageId, allow_sending_without_reply: true } }),
           link_preview_options: { is_disabled: true },
-          reply_markup: telegramKeyboard(locale, url.href, telegramButtonCommand(incoming.text) === "/language"),
+          reply_markup: telegramKeyboard(locale, url.href, telegramButtonCommand(incoming.text) === "/language", chatMode),
         }),
         cache: "no-store",
         signal: AbortSignal.timeout(8000),
