@@ -2,6 +2,8 @@
 
 - [`DEPLOYMENT.md`](DEPLOYMENT.md) — production-развёртывание, переменные, Docker,
   Vercel, smoke-test и откат.
+- [`TELEGRAM.md`](TELEGRAM.md) — создание бота, безопасный webhook, языки,
+  лимиты, обработка повторов и проверка доставки.
 - [`SECURITY.md`](SECURITY.md) — модель угроз, JWT, rate limiting, web-защита,
   dependency audit и разбор N+1.
 - [`CLAIM_ANALYSIS_CONTRACT.md`](CLAIM_ANALYSIS_CONTRACT.md) — строгий контракт

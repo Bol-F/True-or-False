@@ -19,7 +19,7 @@ const ignoredExtensions = new Set([
   ".webp",
   ".zip",
 ]);
-const credentialPattern = /(?:AQ\.[A-Za-z0-9_-]{20,}|AIza[A-Za-z0-9_-]{20,})/u;
+const credentialPattern = /(?:AQ\.[A-Za-z0-9_-]{20,}|AIza[A-Za-z0-9_-]{20,}|\b\d{6,12}:[A-Za-z0-9_-]{30,})/u;
 const findings = [];
 
 async function visit(directory) {

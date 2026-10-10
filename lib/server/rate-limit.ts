@@ -13,7 +13,7 @@ const DEFAULT_INTERNET_DAILY_LIMIT = 30;
 const REDIS_REQUEST_TIMEOUT_MS = 2_500;
 const RATE_LIMIT_TIMEOUT_MS = 3_000;
 
-type RateLimitScope = "analyze" | "extract" | "internet" | "internet-global";
+type RateLimitScope = "analyze" | "extract" | "internet" | "internet-global" | "telegram";
 
 interface MemoryWindow {
   count: number;
@@ -37,6 +37,9 @@ function positiveInteger(value: string | undefined, fallback: number) {
 }
 
 function rateLimitSettings(scope: RateLimitScope) {
+  if (scope === "telegram") {
+    return { limit: 10, windowSeconds: 60 };
+  }
   if (scope === "extract") {
     return {
       limit: positiveInteger(
@@ -231,6 +234,17 @@ export async function rateLimitInternetRequest(request: Request) {
   if (!perClient.configured || !perClient.allowed) return perClient;
 
   return rateLimitRequest(request, "internet-global", "daily-provider-budget");
+}
+
+// The identity comes only from a verified Telegram webhook, never a client header.
+export function rateLimitTelegramRequest(identifier: string) {
+  return rateLimitRequest(new Request("https://telegram.invalid"), "telegram", identifier);
+}
+
+export async function rateLimitTelegramInternet(identifier: string) {
+  const perUser = await rateLimitRequest(new Request("https://telegram.invalid"), "internet", `telegram:${identifier}`);
+  if (!perUser.configured || !perUser.allowed) return perUser;
+  return rateLimitRequest(new Request("https://telegram.invalid"), "internet-global", "daily-provider-budget");
 }
 
 export function rateLimitHeaders(result: AnalysisRateLimit) {

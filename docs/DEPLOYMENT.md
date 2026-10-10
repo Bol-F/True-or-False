@@ -9,6 +9,12 @@ RuFact состоит из двух сервисов:
 Браузер никогда не обращается к FastAPI или Gemini напрямую. `ML_API_URL`, JWT,
 Redis token и Gemini key остаются только на сервере.
 
+Telegram работает в том же Next.js сервисе через `POST /api/telegram/webhook`.
+Для активации добавьте `TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_SECRET` и
+`TELEGRAM_WEB_APP_URL` в Vercel Production, redeploy, затем зарегистрируйте
+webhook. Полная инструкция: [`TELEGRAM.md`](TELEGRAM.md). Бот использует общий
+дневной бюджет Tavily/Gemini и проверку по источникам без зависимости от FastAPI.
+
 ## 1. Production-секреты
 
 Создайте два независимых случайных значения длиной не менее 32 байт:

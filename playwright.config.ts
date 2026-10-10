@@ -9,6 +9,8 @@ const inheritedEnvironment = Object.fromEntries(
 );
 const testServiceEnvironment = {
   ...inheritedEnvironment,
+  TELEGRAM_BOT_TOKEN: "playwright-bot-token-not-for-live-traffic",
+  TELEGRAM_WEBHOOK_SECRET: "playwright-telegram-webhook-secret-at-least-32-chars",
   ML_API_JWT_SECRET: "playwright-only-service-secret-with-at-least-32-bytes",
   RATE_LIMIT_HASH_SECRET:
     "playwright-only-rate-limit-secret-with-at-least-32-bytes",
