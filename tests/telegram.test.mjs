@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { botCopy, formatTelegramAssessment, handleTelegramMessage, parseTelegramUpdate, verifyTelegramSecret } from "../lib/server/telegram-core.ts";
+import { telegramKeyboard, telegramNotice } from "../lib/server/telegram-ui.ts";
 
 const message = { updateId: 1, chatId: 123, messageId: 42, text: "Ўзбекистон пойтахти Тошкент.", language: "uz" };
 const assessment = {
@@ -108,7 +109,7 @@ test("quota denial and protection outages never call providers", async () => {
   const { deps, assessed, sent } = harness();
   deps.limit = async () => ({ allowed: false, configured: true });
   await handleTelegramMessage(message, deps);
-  assert.equal(sent[0].text, botCopy.uz.limited);
+  assert.equal(sent[0].text, telegramNotice(botCopy.uz.limited));
   deps.limit = async () => ({ allowed: false, configured: false });
   await assert.rejects(handleTelegramMessage({ ...message, updateId: 2 }, deps));
   assert.equal(assessed.length, 0);
@@ -119,5 +120,16 @@ test("failed checks are never presented as true and unsafe links are omitted", (
   const result = formatTelegramAssessment({ ...assessment, explanation: "<b>Claim</b>", sources: [{ id: "x", title: "Fake", url: "javascript:alert(1)" }], claims: Array.from({ length: 6 }, () => ({ quote: "x".repeat(320), explanation: "y".repeat(500) })) }, "en");
   assert.ok(result.length <= 4096);
   assert.doesNotMatch(result, /javascript:/);
-  assert.match(result, /<b>Claim<\/b>/); // Sent as plain text, never HTML parse_mode.
+  assert.match(result, /&lt;b&gt;Claim&lt;\/b&gt;/);
+});
+
+test("localized navigation buttons select language and mode without searching", async () => {
+  const { deps, assessed, sent } = harness();
+  for (const [index, text] of ["🌐 Til / Language", "🇬🇧 English", "🔎 Check text"].entries()) {
+    await handleTelegramMessage({ ...message, updateId: index + 1, text }, deps);
+  }
+  assert.equal(assessed.length, 0);
+  assert.equal(sent[1].locale, "en");
+  assert.match(sent[2].text, /Fact-check mode/);
+  assert.equal(telegramKeyboard("en", "https://example.org", true).keyboard[0].length, 3);
 });

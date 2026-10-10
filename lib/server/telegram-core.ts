@@ -1,6 +1,7 @@
 import { timingSafeEqual } from "node:crypto";
 import type { AppLocale } from "../i18n";
 import type { GeminiAssessment } from "./gemini-review-core";
+import { escapeTelegramHtml, telegramButtonCommand, telegramNotice, telegramUi } from "./telegram-ui.ts";
 
 export interface TelegramMessage {
   updateId: number;
@@ -86,18 +87,21 @@ function shorten(text: string, length: number) {
 export function formatTelegramAssessment(result: GeminiAssessment, locale: AppLocale) {
   const copy = botCopy[locale];
   if (result.status !== "complete") return copy.unavailable;
-  const claims = result.claims.slice(0, 3).map(claim => `• ${shorten(claim.quote, 100)}\n${shorten(claim.explanation, 180)}`);
+  const claims = result.claims.slice(0, 3).map(claim => `• <b>${escapeTelegramHtml(shorten(claim.quote, 90))}</b>\n${escapeTelegramHtml(shorten(claim.explanation, 130))}`);
   const sources = result.sources.slice(0, 4).flatMap(source => {
     try {
       const url = new URL(source.url);
       if (!['https:', 'http:'].includes(url.protocol) || url.username || url.password || url.href.length > 450) return [];
-      return [`• ${shorten(source.title.replace(/[\r\n]/g, " "), 80)}\n${url.href}`];
+      return [`• <a href="${escapeTelegramHtml(url.href)}">${escapeTelegramHtml(shorten(source.title.replace(/[\r\n]/g, " "), 65))}</a>`];
     } catch { return []; }
   });
-  // Plain text prevents claims or source titles from injecting Telegram markup.
-  return [copy.title, copy.labels[result.label], shorten(result.explanation, 850),
-    ...(claims.length ? [copy.claims, ...claims] : []),
-    ...(sources.length ? [copy.sources, ...sources] : []), copy.disclaimer].join("\n\n").slice(0, 4096);
+  const icon = result.label === "REAL" ? "🟢" : result.label === "FAKE" ? "🔴" : "🟡";
+  // Escape untrusted content before using Telegram HTML. Never truncate markup.
+  const sections = [`<b>🔎 ${escapeTelegramHtml(copy.title)}</b>`, `<b>${icon} ${escapeTelegramHtml(copy.labels[result.label])}</b>`, escapeTelegramHtml(shorten(result.explanation, 500))];
+  for (const section of [claims.length ? `<b>📌 ${copy.claims}</b>\n${claims.join("\n\n")}` : "", sources.length ? `<b>🔗 ${copy.sources}</b>\n${sources.join("\n")}` : ""]) {
+    if (section && [...sections, section, copy.disclaimer].join("\n\n").length < 4000) sections.push(section);
+  }
+  return [...sections, `<i>${escapeTelegramHtml(copy.disclaimer)}</i>`].join("\n\n");
 }
 
 export interface TelegramStore {
@@ -137,12 +141,17 @@ export async function handleTelegramMessage(message: TelegramMessage, deps: Tele
       if (!generalLimit.allowed) {
         reply = botCopy[locale].limited;
       } else {
-        const commandMatch = /^\/(\w+)(?:@[A-Za-z0-9_]+)?(?:\s+([\s\S]*))?$/.exec(message.text);
+        const input = telegramButtonCommand(message.text);
+        const commandMatch = /^\/(\w+)(?:@[A-Za-z0-9_]+)?(?:\s+([\s\S]*))?$/.exec(input);
         const command = commandMatch?.[1]?.toLowerCase();
         if (command === "uz" || command === "ru" || command === "en") {
           locale = command;
           await deps.store.set(languageKey, locale, 30 * 86_400);
           reply = botCopy[locale].selected;
+        } else if (command === "language") {
+          reply = telegramUi[locale].choose;
+        } else if (command === "check" && !commandMatch?.[2]) {
+          reply = telegramUi[locale].checkMode;
         } else if (command === "forget") {
           await deps.store.remove(languageKey);
           reply = botCopy[locale].forgotten;
@@ -161,9 +170,12 @@ export async function handleTelegramMessage(message: TelegramMessage, deps: Tele
           }
         }
       }
+      if (!reply.startsWith("<b>")) reply = telegramNotice(reply);
       await deps.store.set(`${updateKey}:reply`, reply, 2 * 86_400);
+      await deps.store.set(`${updateKey}:format`, "html", 2 * 86_400);
       await deps.store.set(`${updateKey}:locale`, locale, 2 * 86_400);
     } else {
+      if (await deps.store.get(`${updateKey}:format`) !== "html") reply = telegramNotice(reply);
       const replyLocale = await deps.store.get(`${updateKey}:locale`);
       if (replyLocale === "uz" || replyLocale === "ru" || replyLocale === "en") locale = replyLocale;
     }
@@ -171,6 +183,7 @@ export async function handleTelegramMessage(message: TelegramMessage, deps: Tele
     await deps.store.set(`${updateKey}:done`, "1", 2 * 86_400);
     await deps.store.remove(`${updateKey}:reply`);
     await deps.store.remove(`${updateKey}:locale`);
+    await deps.store.remove(`${updateKey}:format`);
     return "done";
   } finally {
     await deps.store.release(`${updateKey}:lock`, token);

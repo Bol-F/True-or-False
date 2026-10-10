@@ -4,7 +4,8 @@ import { createHmac, createHash, randomUUID } from "node:crypto";
 import { Redis } from "@upstash/redis";
 import { getGeminiAssessment } from "./gemini-review";
 import { redisCredentials, rateLimitTelegramInternet, rateLimitTelegramRequest } from "./rate-limit";
-import { botCopy, handleTelegramMessage, type TelegramMessage, type TelegramStore } from "./telegram-core";
+import { handleTelegramMessage, type TelegramMessage, type TelegramStore } from "./telegram-core";
+import { telegramButtonCommand, telegramKeyboard } from "./telegram-ui";
 
 const localStore = new Map<string, { value: string; expiry: number }>();
 let redisClient: Redis | undefined;
@@ -72,9 +73,10 @@ export async function processTelegramMessage(message: TelegramMessage, botToken:
         body: JSON.stringify({
           chat_id: incoming.chatId,
           text,
+          parse_mode: "HTML",
           reply_parameters: { message_id: incoming.messageId, allow_sending_without_reply: true },
           link_preview_options: { is_disabled: true },
-          reply_markup: { inline_keyboard: [[{ text: botCopy[locale].open, url: url.href }]] },
+          reply_markup: telegramKeyboard(locale, url.href, telegramButtonCommand(incoming.text) === "/language"),
         }),
         cache: "no-store",
         signal: AbortSignal.timeout(8000),
