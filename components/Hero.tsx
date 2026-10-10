@@ -30,7 +30,7 @@ export function Hero() {
         <motion.p
           variants={enter}
           transition={{ duration: 0.45 }}
-          className="mb-1.5 text-[9px] font-bold uppercase tracking-[0.23em] text-[#718097] sm:mb-2 sm:text-xs sm:tracking-[0.28em]"
+          className="mb-1.5 text-[0.5625rem] font-bold uppercase tracking-[0.23em] text-[#718097] sm:mb-2 sm:text-xs sm:tracking-[0.28em]"
         >
           {copy.hero.eyebrow}
         </motion.p>
@@ -39,7 +39,7 @@ export function Hero() {
           id="hero-heading"
           variants={enter}
           transition={{ duration: 0.5 }}
-          className="max-w-[680px] font-serif text-[30px] leading-[1.01] font-semibold tracking-[-0.045em] text-ink sm:text-[48px] sm:leading-[1.03] lg:text-[51px] lg:leading-[0.96]"
+          className="max-w-[680px] font-serif text-[1.875rem] leading-[1.01] font-semibold tracking-[-0.045em] text-ink sm:text-[3rem] sm:leading-[1.03] lg:text-[3.1875rem] lg:leading-[0.96]"
         >
           <span className="sm:hidden">
             {copy.hero.mobileTitleStart}
@@ -60,7 +60,7 @@ export function Hero() {
         <motion.p
           variants={enter}
           transition={{ duration: 0.5 }}
-          className="mt-2 max-w-[615px] text-[12px] leading-[1.45] text-[#607087] sm:mt-3 sm:text-[16px] sm:leading-[1.52]"
+          className="mt-2 max-w-[615px] text-[0.75rem] leading-[1.45] text-[#607087] sm:mt-3 sm:text-[1rem] sm:leading-[1.52]"
         >
           <span className="sm:hidden">
             {copy.hero.mobileDescription}
@@ -89,7 +89,7 @@ export function Hero() {
           />
         </div>
 
-        <div className="font-hand absolute left-[11%] top-[-2%] hidden -rotate-6 text-[19px] leading-[0.95] text-[#7b879a] xl:block">
+        <div className="font-hand absolute left-[11%] top-[-2%] hidden -rotate-6 text-[1.1875rem] leading-[0.95] text-[#7b879a] xl:block">
           {copy.hero.noteLeft.split("\n").map((line) => <span className="block" key={line}>{line}</span>)}
           <svg
             width="68"
@@ -104,7 +104,7 @@ export function Hero() {
           </svg>
         </div>
 
-        <div className="font-hand absolute right-[5%] top-[1%] hidden rotate-[-4deg] text-[18px] leading-[1.04] text-[#66758c] xl:block">
+        <div className="font-hand absolute right-[5%] top-[1%] hidden rotate-[-4deg] text-[1.125rem] leading-[1.04] text-[#66758c] xl:block">
           {copy.hero.noteRight.split("\n").map((line) => <span className="block" key={line}>{line}</span>)}
           <span className="mt-2 block h-px w-14 -rotate-6 bg-[#d6693a]" />
         </div>

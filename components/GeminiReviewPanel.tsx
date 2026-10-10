@@ -73,10 +73,10 @@ export function GeminiReviewPanel({
             aria-hidden="true"
           />
           <div>
-            <h3 className="text-[11px] font-extrabold text-[#29465f] sm:text-[12.5px]">
+            <h3 className="text-[0.6875rem] font-extrabold text-[#29465f] sm:text-[0.78125rem]">
               {labels.unavailable}
             </h3>
-            <p className="mt-1 text-[9.5px] leading-[1.4] text-[#6c7986] sm:text-[10.5px] sm:leading-[1.5]">
+            <p className="mt-1 text-[0.59375rem] leading-[1.4] text-[#6c7986] sm:text-[0.65625rem] sm:leading-[1.5]">
               {locale === "ru" ? unavailableCopy[review.reason] : labels.unavailableBody}
             </p>
           </div>
@@ -114,34 +114,34 @@ export function GeminiReviewPanel({
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
-              <p className="text-[9px] font-extrabold uppercase tracking-[0.12em] text-[#668097]">
+              <p className="text-[0.5625rem] font-extrabold uppercase tracking-[0.12em] text-[#668097]">
                 {copy.analyzer.internetTitle}
               </p>
-              <h3 className="mt-0.5 text-[13px] font-extrabold text-[#173b59]">
+              <h3 className="mt-0.5 text-[0.8125rem] font-extrabold text-[#173b59]">
                 {heading}
               </h3>
             </div>
-            <span className="rounded-md bg-white/75 px-2 py-1 text-[9px] font-extrabold text-[#526b7f]">
+            <span className="rounded-md bg-white/75 px-2 py-1 text-[0.5625rem] font-extrabold text-[#526b7f]">
               Tavily + Gemini
             </span>
           </div>
 
-          <div className="mt-3 grid grid-cols-2 gap-2 text-[10px]">
+          <div className="mt-3 grid grid-cols-2 gap-2 text-[0.625rem]">
             <div className="rounded-[9px] bg-white/60 px-3 py-2">
               <span className="block text-[#778796]">RuFact ML</span>
-              <strong className="mt-0.5 block text-[13px] text-[#173b59]">
+              <strong className="mt-0.5 block text-[0.8125rem] text-[#173b59]">
                 {primaryLabel}
               </strong>
             </div>
             <div className="rounded-[9px] bg-white/60 px-3 py-2">
               <span className="block text-[#778796]">Gemini</span>
-              <strong className="mt-0.5 block text-[13px] text-[#173b59]">
+              <strong className="mt-0.5 block text-[0.8125rem] text-[#173b59]">
                 {review.label}
               </strong>
             </div>
           </div>
 
-          <p className="mt-3 text-[11px] leading-[1.55] text-[#5c7082]">
+          <p className="mt-3 text-[0.6875rem] leading-[1.55] text-[#5c7082]">
             {review.explanation}
           </p>
 
@@ -150,7 +150,7 @@ export function GeminiReviewPanel({
               {review.warningSigns.map((sign, index) => (
                 <li
                   key={`${index}-${sign}`}
-                  className="flex gap-2 text-[10.5px] leading-[1.45] text-[#627383]"
+                  className="flex gap-2 text-[0.65625rem] leading-[1.45] text-[#627383]"
                 >
                   <span className="mt-[6px] h-1.5 w-1.5 shrink-0 rounded-full bg-[#6f8fa9]" />
                   <span>{sign}</span>
@@ -166,10 +166,10 @@ export function GeminiReviewPanel({
               <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[#dce9f2] text-[#356783]">
                 <SearchCheck size={15} strokeWidth={2} aria-hidden="true" />
               </span>
-              <span className="min-w-0 flex-1 text-[11.5px] font-extrabold">
+              <span className="min-w-0 flex-1 text-[0.71875rem] font-extrabold">
                 {labels.sources}
               </span>
-              <span className="rounded-md bg-white/80 px-2 py-0.5 text-[9px] font-bold tabular-nums text-[#60768a]">
+              <span className="rounded-md bg-white/80 px-2 py-0.5 text-[0.5625rem] font-bold tabular-nums text-[#60768a]">
                 {review.sources.length}
               </span>
             </summary>
@@ -183,9 +183,9 @@ export function GeminiReviewPanel({
                     href={source.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="focus-ring flex min-h-9 items-start gap-2 rounded-lg px-2 py-1.5 text-[10px] font-bold leading-[1.4] text-[#315d7b] transition-colors hover:bg-white"
+                    className="focus-ring flex min-h-9 items-start gap-2 rounded-lg px-2 py-1.5 text-[0.625rem] font-bold leading-[1.4] text-[#315d7b] transition-colors hover:bg-white"
                   >
-                    <span className="mt-0.5 text-[9px] tabular-nums text-[#8293a1]">
+                    <span className="mt-0.5 text-[0.5625rem] tabular-nums text-[#8293a1]">
                       {index + 1}.
                     </span>
                     <span className="min-w-0 flex-1">{source.title}</span>
@@ -196,7 +196,7 @@ export function GeminiReviewPanel({
             </ul>
           </details>
 
-          <p className="mt-3 border-t border-[#cbd8e2]/80 pt-2 text-[9.5px] leading-[1.45] text-[#758696]">
+          <p className="mt-3 border-t border-[#cbd8e2]/80 pt-2 text-[0.59375rem] leading-[1.45] text-[#758696]">
             {labels.footerStart}: {locale === "ru" ? certaintyCopy[review.certainty] : labels[review.certainty]}. {labels.footerEnd}
           </p>
         </div>

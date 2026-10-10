@@ -33,11 +33,11 @@ export function LoadingState() {
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white/70 text-[#c84b43] shadow-[0_5px_14px_rgba(115,47,40,0.08)]">
               <ScanSearch size={22} strokeWidth={2} aria-hidden="true" />
             </span>
-            <p className="text-[18px] font-extrabold tracking-[-0.025em] text-ink sm:text-[21px]">
+            <p className="text-[1.125rem] font-extrabold tracking-[-0.025em] text-ink sm:text-[1.3125rem]">
               {copy.loading.title}
             </p>
           </div>
-          <p className="mt-3 text-[12px] leading-[1.5] text-[#68768b] sm:text-[13px]">
+          <p className="mt-3 text-[0.75rem] leading-[1.5] text-[#68768b] sm:text-[0.8125rem]">
             {copy.loading.description}
           </p>
         </div>
@@ -73,7 +73,7 @@ export function LoadingState() {
 
       <div className="mt-4 flex items-start gap-3 rounded-[13px] bg-[#e8effa] px-4 py-3.5 text-[#50719f]">
         <Info size={18} className="mt-0.5 shrink-0" aria-hidden="true" />
-        <p className="text-[11px] leading-[1.45] sm:text-xs">
+        <p className="text-[0.6875rem] leading-[1.45] sm:text-xs">
           {copy.loading.wait}
         </p>
       </div>

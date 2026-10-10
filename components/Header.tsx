@@ -8,6 +8,7 @@ import { Brand } from "./Brand";
 import { useFeedback } from "./FeedbackProvider";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useLanguage } from "./LanguageProvider";
+import { TextSizeControl } from "./TextSizeControl";
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
@@ -25,7 +26,7 @@ export function Header() {
         <Brand />
 
         <nav aria-label={copy.navigation.main} className="hidden lg:block">
-          <ul className="flex items-center gap-10 text-[14px] font-medium text-[#173552] xl:gap-12">
+          <ul className="flex items-center gap-10 text-[0.875rem] font-medium text-[#173552] xl:gap-12">
             {navigation.map((item) => (
               <li key={item.href}>
                 <Link
@@ -44,7 +45,7 @@ export function Header() {
           <button
             type="button"
             onClick={() => openFeedback({ source: "header" })}
-            className="focus-ring inline-flex min-h-11 items-center rounded-[13px] bg-ink-deep px-6 text-[14px] font-semibold text-white shadow-[0_7px_18px_rgba(10,41,73,0.16)] transition-transform hover:-translate-y-0.5"
+            className="focus-ring inline-flex min-h-11 items-center rounded-[13px] bg-ink-deep px-6 text-[0.875rem] font-semibold text-white shadow-[0_7px_18px_rgba(10,41,73,0.16)] transition-transform hover:-translate-y-0.5"
           >
             {copy.navigation.feedback}
           </button>
@@ -52,7 +53,7 @@ export function Header() {
 
         <button
           type="button"
-          className="focus-ring inline-flex h-9 w-9 items-center justify-center rounded-[10px] border border-[#d7d8d3] bg-[#fbfaf6] text-ink md:hidden"
+          className="focus-ring inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-[12px] border border-[#d7d8d3] bg-[#fbfaf6] text-ink md:hidden"
           aria-expanded={isOpen}
           aria-controls="mobile-navigation"
           aria-label={isOpen ? copy.navigation.closeMenu : copy.navigation.openMenu}
@@ -71,9 +72,9 @@ export function Header() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.18 }}
-            className="absolute left-[14px] right-[14px] top-[58px] rounded-[14px] border border-[#dedbd4] bg-[#fbf9f4] p-2.5 shadow-[0_18px_38px_rgba(21,38,54,0.14)] sm:top-[78px] md:hidden"
+            className="absolute left-[14px] right-[14px] top-full max-h-[75dvh] overflow-y-auto rounded-[14px] border border-[#dedbd4] bg-[#fbf9f4] p-2.5 shadow-[0_18px_38px_rgba(21,38,54,0.14)] md:hidden"
           >
-            <ul className="grid gap-1 text-[14px] font-semibold">
+            <ul className="grid gap-1 text-[0.875rem] font-semibold">
               {navigation.map((item) => (
                 <li key={item.href}>
                   <Link
@@ -88,6 +89,9 @@ export function Header() {
             </ul>
             <div className="mt-2 border-t border-[#e3dfd7] px-3 pt-3">
               <LanguageSwitcher compact />
+            </div>
+            <div className="mt-2 border-t border-[#e3dfd7] px-3 pt-3">
+              <TextSizeControl />
             </div>
             <div className="mt-2 border-t border-[#e3dfd7] px-3 pt-3">
               <button

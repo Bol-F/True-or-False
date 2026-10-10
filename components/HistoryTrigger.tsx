@@ -44,7 +44,7 @@ export function HistoryTrigger({
       aria-expanded={isOpen}
       aria-label={`${labels.history}: ${statusLabel}${countLabel}`}
       onClick={onOpen}
-      className={`focus-ring relative inline-flex min-h-9 items-center gap-2 rounded-[10px] border border-[#d8d8d2] bg-[#fbfaf6]/90 px-1.5 text-[12px] font-bold text-[#28445f] shadow-[0_6px_18px_rgba(31,48,63,0.06)] transition hover:-translate-y-0.5 hover:border-[#bdc8cf] hover:bg-white sm:min-h-10 sm:rounded-xl sm:px-3.5 ${className}`}
+      className={`focus-ring relative inline-flex min-h-9 items-center gap-2 rounded-[10px] border border-[#d8d8d2] bg-[#fbfaf6]/90 px-1.5 text-[0.75rem] font-bold text-[#28445f] shadow-[0_6px_18px_rgba(31,48,63,0.06)] transition hover:-translate-y-0.5 hover:border-[#bdc8cf] hover:bg-white sm:min-h-10 sm:rounded-xl sm:px-3.5 ${className}`}
     >
       <span className="relative grid h-6 w-6 place-items-center rounded-[7px] bg-[#e7edf2] text-[#315d7f] sm:h-7 sm:w-7 sm:rounded-lg">
         <History size={14} strokeWidth={2} aria-hidden="true" />
@@ -58,7 +58,7 @@ export function HistoryTrigger({
       <span className="hidden sm:inline">{labels.history}</span>
       {enabled && count > 0 ? (
         <span
-          className="absolute -right-1 -top-1 min-w-5 rounded-md bg-[#dfe8ee] px-1.5 py-0.5 text-center text-[10px] font-extrabold tabular-nums text-[#31536d] ring-2 ring-[#fbfaf6] sm:static sm:ring-0"
+          className="absolute -right-1 -top-1 min-w-5 rounded-md bg-[#dfe8ee] px-1.5 py-0.5 text-center text-[0.625rem] font-extrabold tabular-nums text-[#31536d] ring-2 ring-[#fbfaf6] sm:static sm:ring-0"
           aria-hidden="true"
         >
           {count}

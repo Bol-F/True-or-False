@@ -40,7 +40,7 @@ export function ExampleChips({
   const { copy } = useLanguage();
   return (
     <div className="mt-2.5 sm:mt-3">
-      <p className="mb-1.5 text-[10.5px] font-medium text-[#718097] sm:mb-2 sm:text-[12px]">
+      <p className="mb-1.5 text-[0.65625rem] font-medium text-[#718097] sm:mb-2 sm:text-[0.75rem]">
         {copy.analyzer.examples}
       </p>
       <div className="-mx-1 flex snap-x gap-1.5 overflow-x-auto px-1 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0" role="group" aria-label={copy.analyzer.examplesAria}>
@@ -58,7 +58,7 @@ export function ExampleChips({
               disabled={disabled}
               aria-pressed={isActive}
               onClick={() => onSelect(example)}
-              className={`focus-ring inline-flex min-h-7 shrink-0 snap-start items-center gap-1 rounded-[9px] border px-2 text-[9.5px] font-semibold transition-colors sm:min-h-8 sm:gap-1.5 sm:rounded-xl sm:px-2.5 sm:text-[10.5px] xl:text-[11px] ${
+              className={`focus-ring inline-flex min-h-7 shrink-0 snap-start items-center gap-1 rounded-[9px] border px-2 text-[0.59375rem] font-semibold transition-colors sm:min-h-8 sm:gap-1.5 sm:rounded-xl sm:px-2.5 sm:text-[0.65625rem] xl:text-[0.6875rem] ${
                 isActive
                   ? "border-[#b7c8d8] bg-[#e9f0f6] text-ink"
                   : "border-transparent bg-[#f0f1f1] text-[#425167] hover:bg-[#e8ebed]"

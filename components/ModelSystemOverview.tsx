@@ -73,17 +73,17 @@ export function ModelSystemOverview() {
         <div className="border-b border-[#dddeda] px-6 py-6 sm:px-8 sm:py-7">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-[10px] font-extrabold uppercase tracking-[0.17em] text-[#8a5b42]">
+              <p className="text-[0.625rem] font-extrabold uppercase tracking-[0.17em] text-[#8a5b42]">
                 Текущая архитектура
               </p>
               <h2
                 id="system-overview-heading"
-                className="mt-2 font-serif text-[29px] leading-[1.08] font-semibold tracking-[-0.035em] text-ink sm:text-[36px]"
+                className="mt-2 font-serif text-[1.8125rem] leading-[1.08] font-semibold tracking-[-0.035em] text-ink sm:text-[2.25rem]"
               >
                 Как RuFact проверяет текст сейчас
               </h2>
             </div>
-            <p className="max-w-[430px] text-[12.5px] leading-[1.6] text-[#647487] sm:text-right">
+            <p className="max-w-[430px] text-[0.78125rem] leading-[1.6] text-[#647487] sm:text-right">
               Итог состоит из двух независимых сигналов: статистической оценки текста и
               проверки фактов по найденным интернет-источникам.
             </p>
@@ -104,21 +104,21 @@ export function ModelSystemOverview() {
                   <span className={`grid h-11 w-11 place-items-center rounded-[13px] ${tone.icon}`}>
                     <Icon size={22} strokeWidth={1.9} aria-hidden="true" />
                   </span>
-                  <span className="font-serif text-[25px] font-semibold text-[#ccd2d2]">
+                  <span className="font-serif text-[1.5625rem] font-semibold text-[#ccd2d2]">
                     {stage.number}
                   </span>
                 </div>
                 <div className={`mt-5 h-0.5 w-10 rounded-full ${tone.line}`} aria-hidden="true" />
-                <h3 className="mt-4 text-[17px] font-extrabold tracking-[-0.02em] text-[#173b59]">
+                <h3 className="mt-4 text-[1.0625rem] font-extrabold tracking-[-0.02em] text-[#173b59]">
                   {stage.title}
                 </h3>
-                <span className={`mt-2 inline-flex rounded-md px-2.5 py-1 text-[9px] font-extrabold uppercase tracking-[0.06em] ${tone.badge}`}>
+                <span className={`mt-2 inline-flex rounded-md px-2.5 py-1 text-[0.5625rem] font-extrabold uppercase tracking-[0.06em] ${tone.badge}`}>
                   {stage.badge}
                 </span>
-                <p className="mt-3 text-[12px] leading-[1.6] text-[#667586]">
+                <p className="mt-3 text-[0.75rem] leading-[1.6] text-[#667586]">
                   {stage.description}
                 </p>
-                <p className="mt-4 text-[10px] font-bold leading-[1.45] text-[#82909b]">
+                <p className="mt-4 text-[0.625rem] font-bold leading-[1.45] text-[#82909b]">
                   {stage.detail}
                 </p>
 
@@ -134,7 +134,7 @@ export function ModelSystemOverview() {
 
         <div className="flex gap-3 border-t border-[#dddeda] bg-[#edf3f1] px-6 py-4 sm:px-8">
           <ShieldCheck className="mt-0.5 shrink-0 text-[#397156]" size={19} aria-hidden="true" />
-          <p className="text-[11px] leading-[1.55] text-[#577065]">
+          <p className="text-[0.6875rem] leading-[1.55] text-[#577065]">
             <strong className="font-extrabold text-[#315e49]">Что изменилось:</strong>{" "}
             раньше блок «Как проверить источники» предлагал только ручной поиск. Теперь при
             включённой проверке Tavily действительно находит страницы, а RuFact показывает

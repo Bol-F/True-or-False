@@ -68,13 +68,13 @@ export function AnalysisResult({
               <CheckCircle2 size={18} strokeWidth={2} aria-hidden="true" />
             )}
           </span>
-          <h2 className="truncate text-[12px] font-extrabold text-[#112f4d] sm:text-[16px]">
+          <h2 className="truncate text-[0.75rem] font-extrabold text-[#112f4d] sm:text-[1rem]">
             {copy.result.heading}
           </h2>
         </div>
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
           <span
-            className={`rounded-md px-1.5 py-0.5 text-[7.5px] font-extrabold uppercase tracking-[0.07em] sm:px-2 sm:py-1 sm:text-[9px] ${
+            className={`rounded-md px-1.5 py-0.5 text-[0.46875rem] font-extrabold uppercase tracking-[0.07em] sm:px-2 sm:py-1 sm:text-[0.5625rem] ${
               isDemo
                 ? "bg-[#f3e1d4] text-[#985539]"
                 : "bg-[#dcebdd] text-[#316746]"
@@ -82,7 +82,7 @@ export function AnalysisResult({
           >
             {isDemo ? copy.result.demo : copy.result.model}
           </span>
-          <time className="max-w-[72px] text-right text-[8px] leading-tight font-medium text-[#768398] sm:max-w-none sm:text-[11px]">
+          <time className="max-w-[72px] text-right text-[0.5rem] leading-tight font-medium text-[#768398] sm:max-w-none sm:text-[0.6875rem]">
             {timestamp}
           </time>
         </div>
@@ -110,16 +110,16 @@ export function AnalysisResult({
             <div className="flex gap-3">
               <AlertTriangle className="mt-0.5 shrink-0 text-[#be3f43]" size={21} />
               <div>
-                <h3 className="text-[15px] font-extrabold text-[#a93239]">
+                <h3 className="text-[0.9375rem] font-extrabold text-[#a93239]">
                   {copy.result.failed}
                 </h3>
-                <p className="mt-1 text-[12.5px] leading-relaxed text-[#735c62]">
+                <p className="mt-1 text-[0.78125rem] leading-relaxed text-[#735c62]">
                   {errorMessage ?? copy.result.retryHint}
                 </p>
                 <button
                   type="button"
                   onClick={onRetry}
-                  className="focus-ring mt-4 inline-flex min-h-10 items-center gap-2 rounded-xl bg-[#a83a3e] px-4 text-[12px] font-bold text-white"
+                  className="focus-ring mt-4 inline-flex min-h-10 items-center gap-2 rounded-xl bg-[#a83a3e] px-4 text-[0.75rem] font-bold text-white"
                 >
                   <RefreshCw size={15} aria-hidden="true" />
                   {copy.result.retry}
@@ -153,12 +153,12 @@ export function AnalysisResult({
                 </span>
                 <div className="min-w-0">
                   <p
-                    className="text-[34px] leading-none font-extrabold tracking-[-0.04em] sm:text-[48px]"
+                    className="text-[2.125rem] leading-none font-extrabold tracking-[-0.04em] sm:text-[3rem]"
                     style={{ color: accent }}
                   >
                     {result.label}
                   </p>
-                  <p className="mt-1 max-w-[240px] text-[9px] leading-[1.3] text-[#5e5e68] sm:mt-2 sm:max-w-[300px] sm:text-[12px] sm:leading-[1.4]">
+                  <p className="mt-1 max-w-[240px] text-[0.5625rem] leading-[1.3] text-[#5e5e68] sm:mt-2 sm:max-w-[300px] sm:text-[0.75rem] sm:leading-[1.4]">
                     {isLowConfidence
                       ? copy.result.lowConfidence
                       : isFake
@@ -182,7 +182,7 @@ export function AnalysisResult({
 
             <aside className="mt-3 flex gap-2 rounded-[11px] bg-[#e7eef9] px-3 py-2.5 text-[#3c608e] sm:mt-4 sm:gap-3 sm:rounded-[13px] sm:px-4 sm:py-3">
               <Info className="mt-0.5 shrink-0" size={16} fill="#5f8ed8" color="white" aria-hidden="true" />
-              <p className="text-[9.5px] leading-[1.45] sm:text-[12px] sm:leading-[1.55]">
+              <p className="text-[0.59375rem] leading-[1.45] sm:text-[0.75rem] sm:leading-[1.55]">
                 {copy.result.disclaimer}
               </p>
             </aside>

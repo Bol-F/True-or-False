@@ -71,22 +71,22 @@ export function GeminiClaimsPanel({ claims }: GeminiClaimsPanelProps) {
         <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[#dce9f2] text-[#356783]">
           <MessageSquareQuote size={15} strokeWidth={2} aria-hidden="true" />
         </span>
-        <span className="min-w-0 flex-1 text-[11.5px] font-extrabold">
+        <span className="min-w-0 flex-1 text-[0.71875rem] font-extrabold">
           {labels.title}
         </span>
-        <span className="rounded-md bg-white/80 px-2 py-0.5 text-[9px] font-bold tabular-nums text-[#60768a]">
+        <span className="rounded-md bg-white/80 px-2 py-0.5 text-[0.5625rem] font-bold tabular-nums text-[#60768a]">
           {claims.length}
         </span>
-        <span className="text-[9px] font-bold text-[#738494] group-open:hidden">
+        <span className="text-[0.5625rem] font-bold text-[#738494] group-open:hidden">
           {labels.show}
         </span>
-        <span className="hidden text-[9px] font-bold text-[#738494] group-open:inline">
+        <span className="hidden text-[0.5625rem] font-bold text-[#738494] group-open:inline">
           {labels.hide}
         </span>
       </summary>
 
       <div className="border-t border-[#cbd8e2]/80 px-3 py-3">
-        <p className="mb-3 flex items-start gap-2 text-[9.5px] leading-[1.45] text-[#738494]">
+        <p className="mb-3 flex items-start gap-2 text-[0.59375rem] leading-[1.45] text-[#738494]">
           <FileQuestion className="mt-0.5 shrink-0" size={13} aria-hidden="true" />
           {factualCount
             ? factualSummary
@@ -100,23 +100,23 @@ export function GeminiClaimsPanel({ claims }: GeminiClaimsPanelProps) {
               className="rounded-[10px] border border-[#d8e0e6] bg-white/70 p-3"
             >
               <div className="flex flex-wrap items-center gap-1.5">
-                <span className="text-[9px] font-extrabold tabular-nums text-[#81909e]">
+                <span className="text-[0.5625rem] font-extrabold tabular-nums text-[#81909e]">
                   {String(index + 1).padStart(2, "0")}
                 </span>
-                <span className="rounded-md bg-[#e8eef2] px-2 py-0.5 text-[8.5px] font-extrabold uppercase tracking-[0.06em] text-[#526b7f]">
+                <span className="rounded-md bg-[#e8eef2] px-2 py-0.5 text-[0.53125rem] font-extrabold uppercase tracking-[0.06em] text-[#526b7f]">
                   {claim.kind === "FACTUAL" ? labels.fact : labels.opinion}
                 </span>
                 <span
-                  className={`rounded-md px-2 py-0.5 text-[8.5px] font-extrabold ${assessmentTone[claim.assessment]}`}
+                  className={`rounded-md px-2 py-0.5 text-[0.53125rem] font-extrabold ${assessmentTone[claim.assessment]}`}
                 >
                   {labels.assessments[claim.assessment]}
                 </span>
               </div>
 
-              <blockquote className="mt-2 border-l-2 border-[#7897ad] pl-2.5 text-[10.5px] leading-[1.5] font-semibold text-[#354f65]">
+              <blockquote className="mt-2 border-l-2 border-[#7897ad] pl-2.5 text-[0.65625rem] leading-[1.5] font-semibold text-[#354f65]">
                 «{claim.quote}»
               </blockquote>
-              <p className="mt-2 text-[10px] leading-[1.5] text-[#6b7b89]">
+              <p className="mt-2 text-[0.625rem] leading-[1.5] text-[#6b7b89]">
                 {claim.explanation}
               </p>
 
@@ -125,7 +125,7 @@ export function GeminiClaimsPanel({ claims }: GeminiClaimsPanelProps) {
                   href={buildVerificationUrl(claim.quote, labels.source)}
                   target="_blank"
                   rel="noreferrer"
-                  className="focus-ring mt-2.5 inline-flex min-h-8 items-center gap-1.5 rounded-lg border border-[#d7e0e5] bg-[#f7fafb] px-2.5 text-[9.5px] font-extrabold text-[#315d7b] transition-colors hover:bg-white"
+                  className="focus-ring mt-2.5 inline-flex min-h-8 items-center gap-1.5 rounded-lg border border-[#d7e0e5] bg-[#f7fafb] px-2.5 text-[0.59375rem] font-extrabold text-[#315d7b] transition-colors hover:bg-white"
                 >
                   <Search size={12} strokeWidth={2} aria-hidden="true" />
                   {labels.verify}

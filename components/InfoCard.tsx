@@ -126,7 +126,7 @@ export function InfoCard({
             >
               <Icon size={24} strokeWidth={1.9} />
             </span>
-            <h3 className={`mt-2.5 text-[18px] leading-[1.12] text-ink sm:text-[19px] ${styles.title}`}>
+            <h3 className={`mt-2.5 text-[1.125rem] leading-[1.12] text-ink sm:text-[1.1875rem] ${styles.title}`}>
               {title}
             </h3>
           </div>
@@ -138,18 +138,18 @@ export function InfoCard({
             >
               <Icon size={24} strokeWidth={1.9} />
             </span>
-            <h3 className={`pt-1 text-[18px] leading-[1.12] text-ink sm:text-[19px] ${styles.title}`}>
+            <h3 className={`pt-1 text-[1.125rem] leading-[1.12] text-ink sm:text-[1.1875rem] ${styles.title}`}>
               {title}
             </h3>
           </div>
         )}
 
-        <p className={`text-[12.5px] leading-[1.45] sm:text-[13px] ${styles.body}`}>{description}</p>
+        <p className={`text-[0.78125rem] leading-[1.45] sm:text-[0.8125rem] ${styles.body}`}>{description}</p>
 
         {action ? (
           <Link
             href={action.href}
-            className="focus-ring mt-2 inline-flex w-fit items-center gap-2 rounded-xl bg-[#fffdf9]/90 px-3.5 py-2 text-[12px] font-bold text-ink shadow-[0_5px_14px_rgba(33,44,52,0.06)] transition-colors hover:bg-white"
+            className="focus-ring mt-2 inline-flex w-fit items-center gap-2 rounded-xl bg-[#fffdf9]/90 px-3.5 py-2 text-[0.75rem] font-bold text-ink shadow-[0_5px_14px_rgba(33,44,52,0.06)] transition-colors hover:bg-white"
           >
             {action.label}
             <ArrowRight size={15} strokeWidth={2} aria-hidden="true" />
@@ -158,7 +158,7 @@ export function InfoCard({
       </div>
 
       <p
-        className={`font-hand absolute z-10 hidden text-[16px] leading-[1.02] sm:block ${styles.annotation}`}
+        className={`font-hand absolute z-10 hidden text-[1rem] leading-[1.02] sm:block ${styles.annotation}`}
         aria-hidden="true"
       >
         {annotation}

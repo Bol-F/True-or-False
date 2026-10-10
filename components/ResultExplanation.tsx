@@ -112,10 +112,10 @@ export function ResultExplanation({ result, analyzedText }: ResultExplanationPro
           <SearchCheck size={16} strokeWidth={2} aria-hidden="true" />
         </span>
         <div>
-          <h3 id="explanation-title" className="text-[13px] font-extrabold text-[#173451] sm:text-[15px]">
+          <h3 id="explanation-title" className="text-[0.8125rem] font-extrabold text-[#173451] sm:text-[0.9375rem]">
             {copy.result.why}
           </h3>
-          <p className="mt-1 text-[10.5px] leading-[1.45] text-[#69778c] sm:mt-2 sm:text-[13px] sm:leading-[1.55]">
+          <p className="mt-1 text-[0.65625rem] leading-[1.45] text-[#69778c] sm:mt-2 sm:text-[0.8125rem] sm:leading-[1.55]">
             {result.explanation ??
               (isModelResult
                 ? copy.result.noSavedExplanation
@@ -128,7 +128,7 @@ export function ResultExplanation({ result, analyzedText }: ResultExplanationPro
         <div className="mt-2.5 overflow-hidden rounded-[10px] border border-[#ead5ce] bg-white/25 sm:mt-3 sm:rounded-[12px]">
         <button
           type="button"
-          className="focus-ring flex min-h-10 w-full items-center gap-2 rounded-[9px] px-2.5 text-left text-[11px] font-semibold text-[#243b55] transition-colors hover:bg-white/35 sm:min-h-11 sm:gap-3 sm:rounded-[11px] sm:px-3 sm:text-[13px]"
+          className="focus-ring flex min-h-10 w-full items-center gap-2 rounded-[9px] px-2.5 text-left text-[0.6875rem] font-semibold text-[#243b55] transition-colors hover:bg-white/35 sm:min-h-11 sm:gap-3 sm:rounded-[11px] sm:px-3 sm:text-[0.8125rem]"
           aria-expanded={isOpen}
           aria-controls="result-signals"
           onClick={() => setIsOpen((value) => !value)}
@@ -139,7 +139,7 @@ export function ResultExplanation({ result, analyzedText }: ResultExplanationPro
           <span className="flex-1">
             {isModelResult ? copy.result.modelSignals : copy.result.textSignals}
           </span>
-          <span className="rounded-md bg-[#f1e4de] px-2 py-0.5 text-[10px] font-bold tabular-nums text-[#8f5a48]">
+          <span className="rounded-md bg-[#f1e4de] px-2 py-0.5 text-[0.625rem] font-bold tabular-nums text-[#8f5a48]">
             {signals.length}
           </span>
           <motion.span animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
@@ -171,16 +171,16 @@ export function ResultExplanation({ result, analyzedText }: ResultExplanationPro
                         aria-hidden="true"
                       />
                       <div className="min-w-0">
-                        <p className="text-[12px] leading-[1.4] font-bold text-[#445269]">
+                        <p className="text-[0.75rem] leading-[1.4] font-bold text-[#445269]">
                           {signal.title}
                         </p>
-                        <p className="mt-0.5 text-[11px] leading-[1.45] text-[#758094]">
+                        <p className="mt-0.5 text-[0.6875rem] leading-[1.45] text-[#758094]">
                           {signal.description}
                         </p>
                         {signalEvidence.map((item) => (
                           <blockquote
                             key={item.id}
-                            className={`mt-2 rounded-r-lg border-l-2 px-2.5 py-1.5 text-[10.5px] leading-[1.45] italic ${
+                            className={`mt-2 rounded-r-lg border-l-2 px-2.5 py-1.5 text-[0.65625rem] leading-[1.45] italic ${
                               item.tone === "risk"
                                 ? "border-[#dc765b] bg-[#fff1ec] text-[#865b51]"
                                 : "border-[#65a077] bg-[#edf6ef] text-[#55715d]"
@@ -199,7 +199,7 @@ export function ResultExplanation({ result, analyzedText }: ResultExplanationPro
         </AnimatePresence>
         </div>
       ) : (
-        <p className="mt-3 rounded-[12px] border border-[#d8dfe4] bg-white/35 px-4 py-3 text-[11px] leading-[1.5] text-[#6d7886]">
+        <p className="mt-3 rounded-[12px] border border-[#d8dfe4] bg-white/35 px-4 py-3 text-[0.6875rem] leading-[1.5] text-[#6d7886]">
           {copy.result.signalsUnavailable}
         </p>
       )}
@@ -219,10 +219,10 @@ export function ResultExplanation({ result, analyzedText }: ResultExplanationPro
             <span className="grid h-7 w-7 shrink-0 place-items-center rounded-[8px] bg-[#e1e8ec] text-[#385f7a]">
               <Search size={15} strokeWidth={2} aria-hidden="true" />
             </span>
-            <h3 id="source-check-heading" className="min-w-0 flex-1 text-[10.5px] font-extrabold text-[#23425d] sm:text-[12.5px]">
+            <h3 id="source-check-heading" className="min-w-0 flex-1 text-[0.65625rem] font-extrabold text-[#23425d] sm:text-[0.78125rem]">
               {copy.result.sourceHow}
             </h3>
-            <span className="rounded-md bg-[#f0ddcf] px-2 py-0.5 text-[8.5px] font-extrabold uppercase tracking-[0.07em] text-[#93553c]">
+            <span className="rounded-md bg-[#f0ddcf] px-2 py-0.5 text-[0.53125rem] font-extrabold uppercase tracking-[0.07em] text-[#93553c]">
               {copy.result.notChecked}
             </span>
             <motion.span animate={{ rotate: isSourceOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
@@ -240,7 +240,7 @@ export function ResultExplanation({ result, analyzedText }: ResultExplanationPro
                 transition={{ duration: 0.22, ease: "easeOut" }}
                 className="border-t border-[#d8dfe4] px-4 py-3"
               >
-                <p className="text-[11px] leading-[1.5] text-[#6d7886]">
+                <p className="text-[0.6875rem] leading-[1.5] text-[#6d7886]">
                   {sourceReview.message}
                 </p>
 
@@ -253,7 +253,7 @@ export function ResultExplanation({ result, analyzedText }: ResultExplanationPro
                         target="_blank"
                         rel="noreferrer"
                         title={action.rationale}
-                        className="focus-ring inline-flex min-h-9 items-center justify-between gap-2 rounded-[10px] border border-[#d9e0e2] bg-white/70 px-3 text-[10.5px] font-bold text-[#31536e] transition-colors hover:bg-white"
+                        className="focus-ring inline-flex min-h-9 items-center justify-between gap-2 rounded-[10px] border border-[#d9e0e2] bg-white/70 px-3 text-[0.65625rem] font-bold text-[#31536e] transition-colors hover:bg-white"
                       >
                         {action.label}
                         <ExternalLink size={13} strokeWidth={2} aria-hidden="true" />

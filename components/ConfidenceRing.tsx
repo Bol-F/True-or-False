@@ -91,14 +91,14 @@ export function ConfidenceRing({
 
       <div className="relative z-10 flex max-w-[62px] flex-col items-center text-center sm:max-w-[82px]">
         <span
-          className="text-[21px] leading-none font-extrabold tracking-[-0.045em] tabular-nums sm:text-[27px]"
+          className="text-[1.3125rem] leading-none font-extrabold tracking-[-0.045em] tabular-nums sm:text-[1.6875rem]"
           style={{ color: colors.text }}
           aria-hidden="true"
         >
           {percentage}%
         </span>
         <span
-          className="mt-0.5 text-[7px] leading-[1.15] font-medium text-[#69768a] sm:mt-1 sm:text-[10px] sm:leading-[1.25]"
+          className="mt-0.5 text-[0.4375rem] leading-[1.15] font-medium text-[#69768a] sm:mt-1 sm:text-[0.625rem] sm:leading-[1.25]"
           aria-hidden="true"
         >
           {label}

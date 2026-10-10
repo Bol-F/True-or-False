@@ -30,25 +30,25 @@ export function ModelEvaluationDetails() {
               <GitCompareArrows size={20} strokeWidth={1.9} aria-hidden="true" />
             </span>
             <div>
-              <p className="text-[10px] font-extrabold uppercase tracking-[0.13em] text-[#74828d]">
+              <p className="text-[0.625rem] font-extrabold uppercase tracking-[0.13em] text-[#74828d]">
                 157 текстов · внешний тест
               </p>
               <h2
                 id="evaluation-details-title"
-                className="font-serif text-[25px] leading-tight font-semibold tracking-[-0.03em] text-ink"
+                className="font-serif text-[1.5625rem] leading-tight font-semibold tracking-[-0.03em] text-ink"
               >
                 Где модель ошибается
               </h2>
             </div>
           </div>
 
-          <p className="mt-4 text-[12.5px] leading-[1.65] text-[#657486]">
+          <p className="mt-4 text-[0.78125rem] leading-[1.65] text-[#657486]">
             Матрица показывает не только общий процент, но и два разных типа ошибки.
             Для фактчекинга это важнее одной красивой цифры.
           </p>
 
           <div className="mt-5 overflow-hidden rounded-[14px] border border-[#d7dcdd] bg-white/65">
-            <table className="w-full border-collapse text-center text-[11px]">
+            <table className="w-full border-collapse text-center text-[0.6875rem]">
               <caption className="sr-only">
                 Матрица ошибок для классов REAL и FAKE
               </caption>
@@ -66,10 +66,10 @@ export function ModelEvaluationDetails() {
                   <th scope="row" className="p-2 text-left font-extrabold text-[#315f45]">
                     REAL
                   </th>
-                  <td className="bg-[#e5f0e6] p-3 text-[16px] font-extrabold text-[#326c47]">
+                  <td className="bg-[#e5f0e6] p-3 text-[1rem] font-extrabold text-[#326c47]">
                     {trueReal}
                   </td>
-                  <td className="bg-[#fae8e2] p-3 text-[16px] font-extrabold text-[#a84e39]">
+                  <td className="bg-[#fae8e2] p-3 text-[1rem] font-extrabold text-[#a84e39]">
                     {falseFake}
                   </td>
                 </tr>
@@ -77,10 +77,10 @@ export function ModelEvaluationDetails() {
                   <th scope="row" className="p-2 text-left font-extrabold text-[#a14346]">
                     FAKE
                   </th>
-                  <td className="bg-[#fae8e2] p-3 text-[16px] font-extrabold text-[#a84e39]">
+                  <td className="bg-[#fae8e2] p-3 text-[1rem] font-extrabold text-[#a84e39]">
                     {falseReal}
                   </td>
-                  <td className="bg-[#e5f0e6] p-3 text-[16px] font-extrabold text-[#326c47]">
+                  <td className="bg-[#e5f0e6] p-3 text-[1rem] font-extrabold text-[#326c47]">
                     {trueFake}
                   </td>
                 </tr>
@@ -88,7 +88,7 @@ export function ModelEvaluationDetails() {
             </table>
           </div>
 
-          <p className="mt-3 text-[10.5px] leading-[1.5] text-[#75828e]">
+          <p className="mt-3 text-[0.65625rem] leading-[1.5] text-[#75828e]">
             Модель пропустила {falseReal} из 81 размеченного FAKE-текста и ошибочно
             предупредила о {falseFake} из 76 REAL-текстов.
           </p>
@@ -97,13 +97,13 @@ export function ModelEvaluationDetails() {
         <div className="px-6 py-7 sm:px-8 lg:py-9">
           <div className="grid gap-7 sm:grid-cols-2">
             <div>
-              <h3 className="flex items-center gap-2 text-[14px] font-extrabold text-[#284b3a]">
+              <h3 className="flex items-center gap-2 text-[0.875rem] font-extrabold text-[#284b3a]">
                 <CheckCircle2 size={18} strokeWidth={2} aria-hidden="true" />
                 Сильные стороны
               </h3>
               <ul className="mt-3 grid gap-2.5">
                 {strengths.map((item) => (
-                  <li key={item} className="flex gap-2 text-[11.5px] leading-[1.5] text-[#617064]">
+                  <li key={item} className="flex gap-2 text-[0.71875rem] leading-[1.5] text-[#617064]">
                     <span className="mt-[0.45rem] h-1.5 w-1.5 shrink-0 rounded-full bg-[#4c8a60]" />
                     {item}
                   </li>
@@ -112,13 +112,13 @@ export function ModelEvaluationDetails() {
             </div>
 
             <div>
-              <h3 className="flex items-center gap-2 text-[14px] font-extrabold text-[#87463d]">
+              <h3 className="flex items-center gap-2 text-[0.875rem] font-extrabold text-[#87463d]">
                 <TriangleAlert size={18} strokeWidth={2} aria-hidden="true" />
                 Ограничения
               </h3>
               <ul className="mt-3 grid gap-2.5">
                 {MODEL_QUALITY.limitations.map((item) => (
-                  <li key={item} className="flex gap-2 text-[11.5px] leading-[1.5] text-[#74635f]">
+                  <li key={item} className="flex gap-2 text-[0.71875rem] leading-[1.5] text-[#74635f]">
                     <span className="mt-[0.45rem] h-1.5 w-1.5 shrink-0 rounded-full bg-[#c96a4d]" />
                     {item}
                   </li>
@@ -129,7 +129,7 @@ export function ModelEvaluationDetails() {
 
           <div className="mt-7 flex gap-3 border-t border-[#dddcd6] pt-5">
             <Database className="mt-0.5 shrink-0 text-[#637d91]" size={18} aria-hidden="true" />
-            <p className="text-[10.5px] leading-[1.55] text-[#71808d]">
+            <p className="text-[0.65625rem] leading-[1.55] text-[#71808d]">
               Датасет и протокол воспроизводимы: версия корпуса, удаление дубликатов,
               разбиение, калибровка и контрольные хэши зафиксированы вместе с моделью.
               Это позволяет сравнивать будущие версии на одном и том же честном

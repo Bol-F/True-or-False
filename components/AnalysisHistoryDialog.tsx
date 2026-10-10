@@ -88,11 +88,11 @@ function ConfirmationPanel({
     >
       <p
         id={titleId}
-        className="text-[13px] font-extrabold text-[#963b2f]"
+        className="text-[0.8125rem] font-extrabold text-[#963b2f]"
       >
         {title}
       </p>
-      <p id={descriptionId} className="mt-1 text-[11.5px] leading-[1.5] text-[#765e5b]">
+      <p id={descriptionId} className="mt-1 text-[0.71875rem] leading-[1.5] text-[#765e5b]">
         {description}
       </p>
       <div className="mt-3 flex flex-wrap gap-2">
@@ -100,14 +100,14 @@ function ConfirmationPanel({
           ref={cancelButtonRef}
           type="button"
           onClick={onCancel}
-          className="focus-ring min-h-9 rounded-lg border border-[#d8c8c3] bg-white px-3 text-[11px] font-bold text-[#40556a]"
+          className="focus-ring min-h-9 rounded-lg border border-[#d8c8c3] bg-white px-3 text-[0.6875rem] font-bold text-[#40556a]"
         >
           {text.cancel}
         </button>
         <button
           type="button"
           onClick={onConfirm}
-          className="focus-ring min-h-9 rounded-lg bg-[#a63e35] px-3 text-[11px] font-bold text-white shadow-[0_5px_12px_rgba(166,62,53,0.18)]"
+          className="focus-ring min-h-9 rounded-lg bg-[#a63e35] px-3 text-[0.6875rem] font-bold text-white shadow-[0_5px_12px_rgba(166,62,53,0.18)]"
         >
           {isDisable ? text.disableAction : text.clearAction}
         </button>
@@ -242,11 +242,11 @@ export function AnalysisHistoryDialog({
             <div>
               <h2
                 id={headingId}
-                className="font-serif text-[24px] leading-tight font-semibold tracking-[-0.03em] text-ink sm:text-[27px]"
+                className="font-serif text-[1.5rem] leading-tight font-semibold tracking-[-0.03em] text-ink sm:text-[1.6875rem]"
               >
                 {labels.title}
               </h2>
-              <p id={descriptionId} className="mt-1 text-[11.5px] leading-[1.45] text-[#718092]">
+              <p id={descriptionId} className="mt-1 text-[0.71875rem] leading-[1.45] text-[#718092]">
                 {labels.description}
               </p>
             </div>
@@ -265,7 +265,7 @@ export function AnalysisHistoryDialog({
           {errorMessage ? (
             <div
               role="alert"
-              className="mb-4 rounded-[13px] border border-[#e7bdb6] bg-[#fff0ed] px-4 py-3 text-[11.5px] leading-[1.5] text-[#8a4038]"
+              className="mb-4 rounded-[13px] border border-[#e7bdb6] bg-[#fff0ed] px-4 py-3 text-[0.71875rem] leading-[1.5] text-[#8a4038]"
             >
               {errorMessage}
             </div>
@@ -279,24 +279,24 @@ export function AnalysisHistoryDialog({
                   <ShieldCheck size={18} strokeWidth={2} aria-hidden="true" />
                 </span>
               </span>
-              <h3 className="mt-6 font-serif text-[23px] font-semibold tracking-[-0.025em] text-ink">
+              <h3 className="mt-6 font-serif text-[1.4375rem] font-semibold tracking-[-0.025em] text-ink">
                 {labels.off}
               </h3>
-              <p className="mt-3 max-w-[350px] text-[12.5px] leading-[1.65] text-[#66778a]">
+              <p className="mt-3 max-w-[350px] text-[0.78125rem] leading-[1.65] text-[#66778a]">
                 {labels.offDescription}
               </p>
               <button
                 type="button"
                 onClick={handleEnable}
-                className="focus-ring mt-6 inline-flex min-h-11 items-center gap-2 rounded-xl bg-ink-deep px-5 text-[12.5px] font-bold text-white shadow-[0_9px_22px_rgba(10,41,73,0.18)] transition-transform hover:-translate-y-0.5"
+                className="focus-ring mt-6 inline-flex min-h-11 items-center gap-2 rounded-xl bg-ink-deep px-5 text-[0.78125rem] font-bold text-white shadow-[0_9px_22px_rgba(10,41,73,0.18)] transition-transform hover:-translate-y-0.5"
               >
                 <CheckCircle2 size={17} strokeWidth={2} aria-hidden="true" />
                 {labels.enable}
               </button>
-              <p className="mt-4 max-w-[330px] text-[10.5px] leading-[1.5] text-[#89939e]">
+              <p className="mt-4 max-w-[330px] text-[0.65625rem] leading-[1.5] text-[#89939e]">
                 {labels.consent}
               </p>
-              <p className="mt-2 max-w-[330px] text-[10.5px] leading-[1.5] font-semibold text-[#8b6659]">
+              <p className="mt-2 max-w-[330px] text-[0.65625rem] leading-[1.5] font-semibold text-[#8b6659]">
                 {labels.sharedDevice}
               </p>
             </div>
@@ -304,13 +304,13 @@ export function AnalysisHistoryDialog({
             <>
               <aside className="flex gap-3 rounded-[14px] border border-[#cfdee3] bg-[#eaf2f4] px-4 py-3.5 text-[#3f6376]">
                 <ShieldCheck className="mt-0.5 shrink-0" size={19} strokeWidth={2} aria-hidden="true" />
-                <p className="text-[11.5px] leading-[1.55]">
+                <p className="text-[0.71875rem] leading-[1.55]">
                   {labels.storage}
                 </p>
               </aside>
 
               <div className="my-5 flex flex-wrap items-center justify-between gap-3">
-                <p className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[#7c8895]">
+                <p className="text-[0.6875rem] font-extrabold uppercase tracking-[0.12em] text-[#7c8895]">
                   {items.length} / {HISTORY_LIMIT} {labels.records}
                 </p>
                 <div className="flex items-center gap-3">
@@ -318,7 +318,7 @@ export function AnalysisHistoryDialog({
                     <button
                       type="button"
                       onClick={() => setConfirmation("clear")}
-                      className="focus-ring rounded-md text-[11px] font-bold text-[#9a4b3f] underline decoration-[#d4a99f] underline-offset-4 hover:text-[#7e312b]"
+                      className="focus-ring rounded-md text-[0.6875rem] font-bold text-[#9a4b3f] underline decoration-[#d4a99f] underline-offset-4 hover:text-[#7e312b]"
                     >
                       {labels.clear}
                     </button>
@@ -326,7 +326,7 @@ export function AnalysisHistoryDialog({
                   <button
                     type="button"
                     onClick={() => setConfirmation("disable")}
-                    className="focus-ring rounded-md text-[11px] font-bold text-[#667686] underline decoration-[#bec4c8] underline-offset-4 hover:text-[#344b5f]"
+                    className="focus-ring rounded-md text-[0.6875rem] font-bold text-[#667686] underline decoration-[#bec4c8] underline-offset-4 hover:text-[#344b5f]"
                   >
                     {labels.disable}
                   </button>
@@ -356,7 +356,7 @@ export function AnalysisHistoryDialog({
                           <div className="flex items-center justify-between gap-3">
                             <div className="flex min-w-0 items-center gap-2.5">
                               <span
-                                className={`rounded-lg px-2.5 py-1 text-[10px] font-extrabold tracking-[0.06em] ${
+                                className={`rounded-lg px-2.5 py-1 text-[0.625rem] font-extrabold tracking-[0.06em] ${
                                   isFake
                                     ? "bg-[#f8dddd] text-[#b5363c]"
                                     : "bg-[#dcecdf] text-[#357047]"
@@ -364,20 +364,20 @@ export function AnalysisHistoryDialog({
                               >
                                 {item.label}
                               </span>
-                              <span className="text-[12px] font-extrabold tabular-nums text-[#29465f]">
+                              <span className="text-[0.75rem] font-extrabold tabular-nums text-[#29465f]">
                                 {formatConfidence(item.confidence)}
                               </span>
                             </div>
                             <time
                               dateTime={String(item.analyzedAt)}
-                              className="inline-flex shrink-0 items-center gap-1.5 text-[9.5px] font-semibold text-[#89939d]"
+                              className="inline-flex shrink-0 items-center gap-1.5 text-[0.59375rem] font-semibold text-[#89939d]"
                             >
                               <Clock3 size={12} strokeWidth={2} aria-hidden="true" />
                               {formatAnalyzedAt(item.analyzedAt, locale)}
                             </time>
                           </div>
 
-                          <p className="mt-3 line-clamp-2 text-[12px] leading-[1.55] text-[#53667a]">
+                          <p className="mt-3 line-clamp-2 text-[0.75rem] leading-[1.55] text-[#53667a]">
                             {excerpt || labels.missing}
                           </p>
 
@@ -385,7 +385,7 @@ export function AnalysisHistoryDialog({
                             <button
                               type="button"
                               onClick={() => handleRestore(item)}
-                              className="focus-ring inline-flex min-h-9 items-center gap-2 rounded-lg bg-[#e7eef4] px-3 text-[11px] font-extrabold text-[#315b7b] transition-colors hover:bg-[#dbe7ef]"
+                              className="focus-ring inline-flex min-h-9 items-center gap-2 rounded-lg bg-[#e7eef4] px-3 text-[0.6875rem] font-extrabold text-[#315b7b] transition-colors hover:bg-[#dbe7ef]"
                             >
                               {labels.open}
                               <ExternalLink size={14} strokeWidth={2} aria-hidden="true" />
@@ -409,8 +409,8 @@ export function AnalysisHistoryDialog({
                   <span className="grid h-12 w-12 place-items-center rounded-[15px] bg-[#e7ebeb] text-[#71818c]">
                     <History size={23} strokeWidth={1.8} aria-hidden="true" />
                   </span>
-                  <h3 className="mt-4 text-[14px] font-extrabold text-[#29455e]">{labels.empty}</h3>
-                  <p className="mt-1.5 max-w-[270px] text-[11.5px] leading-[1.55] text-[#7a8793]">
+                  <h3 className="mt-4 text-[0.875rem] font-extrabold text-[#29455e]">{labels.empty}</h3>
+                  <p className="mt-1.5 max-w-[270px] text-[0.71875rem] leading-[1.55] text-[#7a8793]">
                     {labels.emptyDescription}
                   </p>
                 </div>
@@ -420,7 +420,7 @@ export function AnalysisHistoryDialog({
         </div>
 
         <footer className="shrink-0 border-t border-[#e5e2dc] bg-[#f6f4ef] px-5 pb-[max(0.875rem,env(safe-area-inset-bottom))] pt-3.5 sm:px-7 sm:pb-3.5">
-          <p className="flex items-center gap-2 text-[10.5px] leading-[1.4] text-[#788592]">
+          <p className="flex items-center gap-2 text-[0.65625rem] leading-[1.4] text-[#788592]">
             <LockKeyhole size={14} strokeWidth={1.9} aria-hidden="true" />
             {labels.footer}
           </p>

@@ -11,7 +11,7 @@ export function Brand() {
         <span className="absolute left-0 top-1 h-[22px] w-3 rotate-[13deg] rounded-[70%_35%_68%_32%] bg-[#113656] sm:h-7 sm:w-4" />
         <span className="absolute bottom-0 right-0 h-[22px] w-3 rotate-[32deg] rounded-[35%_70%_32%_68%] bg-[#e27a42] sm:h-7 sm:w-4" />
       </span>
-      <span className="font-serif text-[25px] font-bold tracking-[-0.045em] sm:text-[32px]">
+      <span className="font-serif text-[1.5625rem] font-bold tracking-[-0.045em] sm:text-[2rem]">
         RuFact
       </span>
     </Link>

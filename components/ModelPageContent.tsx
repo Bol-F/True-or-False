@@ -50,13 +50,13 @@ export function ModelPageContent() {
     return (
       <>
         <section aria-labelledby="model-page-heading" className="content-gutter pb-2 pt-4 sm:pb-3 sm:pt-7">
-          <Link href="/#analyzer" className="focus-ring inline-flex min-h-10 items-center gap-2 rounded-xl border border-[#d7d8d3] bg-[#fbfaf6]/80 px-3.5 text-[12px] font-bold text-[#486177] transition-colors hover:bg-white hover:text-ink">
+          <Link href="/#analyzer" className="focus-ring inline-flex min-h-10 items-center gap-2 rounded-xl border border-[#d7d8d3] bg-[#fbfaf6]/80 px-3.5 text-[0.75rem] font-bold text-[#486177] transition-colors hover:bg-white hover:text-ink">
             <ArrowLeft size={15} strokeWidth={2} aria-hidden="true" />
             К проверке текста
           </Link>
           <div className="mt-5 max-w-[760px] sm:mt-7">
-            <h1 id="model-page-heading" className="font-serif text-[38px] leading-[1.02] font-semibold tracking-[-0.045em] text-ink sm:text-[50px]">О системе проверки RuFact</h1>
-            <p className="mt-3 text-[14px] leading-[1.65] text-[#607087] sm:max-w-[700px] sm:text-[16px]">RuFact сочетает языковой ML-анализ, поиск интернет-источников Tavily и сопоставление утверждений через Gemini. Ни один этап сам по себе не считается окончательным вердиктом.</p>
+            <h1 id="model-page-heading" className="font-serif text-[2.375rem] leading-[1.02] font-semibold tracking-[-0.045em] text-ink sm:text-[3.125rem]">О системе проверки RuFact</h1>
+            <p className="mt-3 text-[0.875rem] leading-[1.65] text-[#607087] sm:max-w-[700px] sm:text-[1rem]">RuFact сочетает языковой ML-анализ, поиск интернет-источников Tavily и сопоставление утверждений через Gemini. Ни один этап сам по себе не считается окончательным вердиктом.</p>
           </div>
         </section>
         <InfoCards />
@@ -73,27 +73,27 @@ export function ModelPageContent() {
   return (
     <>
       <section aria-labelledby="model-page-heading" className="content-gutter pb-5 pt-4 sm:pb-8 sm:pt-7">
-        <Link href="/#analyzer" className="focus-ring inline-flex min-h-10 items-center gap-2 rounded-xl border border-[#d7d8d3] bg-[#fbfaf6]/80 px-3.5 text-[12px] font-bold text-[#486177] transition-colors hover:bg-white hover:text-ink">
+        <Link href="/#analyzer" className="focus-ring inline-flex min-h-10 items-center gap-2 rounded-xl border border-[#d7d8d3] bg-[#fbfaf6]/80 px-3.5 text-[0.75rem] font-bold text-[#486177] transition-colors hover:bg-white hover:text-ink">
           <ArrowLeft size={15} strokeWidth={2} aria-hidden="true" />
           {copy.back}
         </Link>
         <div className="mt-5 max-w-[780px] sm:mt-7">
-          <h1 id="model-page-heading" className="font-serif text-[36px] leading-[1.03] font-semibold tracking-[-0.045em] text-ink sm:text-[50px]">{copy.title}</h1>
-          <p className="mt-3 text-[14px] leading-[1.65] text-[#607087] sm:text-[16px]">{copy.intro}</p>
+          <h1 id="model-page-heading" className="font-serif text-[2.25rem] leading-[1.03] font-semibold tracking-[-0.045em] text-ink sm:text-[3.125rem]">{copy.title}</h1>
+          <p className="mt-3 text-[0.875rem] leading-[1.65] text-[#607087] sm:text-[1rem]">{copy.intro}</p>
         </div>
       </section>
 
       <section className="tool-gutter pb-6" aria-labelledby="architecture-heading">
-        <h2 id="architecture-heading" className="font-serif text-[28px] font-semibold text-ink sm:text-[36px]">{copy.architecture}</h2>
+        <h2 id="architecture-heading" className="font-serif text-[1.75rem] font-semibold text-ink sm:text-[2.25rem]">{copy.architecture}</h2>
         <div className="mt-4 grid gap-3 lg:grid-cols-3">
           {copy.stages.map((stage, index) => {
             const Icon = icons[index];
             return (
               <article key={stage.title} className="rounded-[18px] border border-[#d9ddd9] bg-white/55 p-5 shadow-[0_10px_28px_rgba(21,45,63,0.05)]">
                 <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#e5eef2] text-[#315f78]"><Icon size={20} aria-hidden="true" /></span>
-                <h3 className="mt-4 text-[16px] font-extrabold text-[#173552]">{stage.title}</h3>
-                <p className="mt-2 text-[12px] leading-[1.6] text-[#647589]">{stage.description}</p>
-                <p className="mt-4 border-t border-[#e1e3df] pt-3 text-[10px] font-bold text-[#778694]">{stage.detail}</p>
+                <h3 className="mt-4 text-[1rem] font-extrabold text-[#173552]">{stage.title}</h3>
+                <p className="mt-2 text-[0.75rem] leading-[1.6] text-[#647589]">{stage.description}</p>
+                <p className="mt-4 border-t border-[#e1e3df] pt-3 text-[0.625rem] font-bold text-[#778694]">{stage.detail}</p>
               </article>
             );
           })}
@@ -102,12 +102,12 @@ export function ModelPageContent() {
 
       <section className="tool-gutter grid gap-4 pb-8 lg:grid-cols-2">
         <article className="rounded-[18px] border border-[#ebd6bd] bg-[#fff8ec] p-5 sm:p-6">
-          <h2 className="text-[17px] font-extrabold text-[#76502d]">{copy.accuracyTitle}</h2>
-          <p className="mt-2 text-[12px] leading-[1.65] text-[#785f49]">{copy.accuracy}</p>
+          <h2 className="text-[1.0625rem] font-extrabold text-[#76502d]">{copy.accuracyTitle}</h2>
+          <p className="mt-2 text-[0.75rem] leading-[1.65] text-[#785f49]">{copy.accuracy}</p>
         </article>
         <article className="rounded-[18px] border border-[#d5dde3] bg-[#f1f5f7] p-5 sm:p-6">
-          <div className="flex items-center gap-2 text-[#315f78]"><ShieldAlert size={19} aria-hidden="true" /><h2 className="text-[17px] font-extrabold">{copy.limitationsTitle}</h2></div>
-          <ul className="mt-3 grid gap-2 text-[12px] leading-[1.55] text-[#607284]">
+          <div className="flex items-center gap-2 text-[#315f78]"><ShieldAlert size={19} aria-hidden="true" /><h2 className="text-[1.0625rem] font-extrabold">{copy.limitationsTitle}</h2></div>
+          <ul className="mt-3 grid gap-2 text-[0.75rem] leading-[1.55] text-[#607284]">
             {copy.limitations.map((item) => <li key={item} className="flex gap-2"><span aria-hidden="true">•</span><span>{item}</span></li>)}
           </ul>
         </article>

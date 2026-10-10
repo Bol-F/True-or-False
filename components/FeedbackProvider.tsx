@@ -130,10 +130,10 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
                 <MessageSquareText size={20} strokeWidth={1.9} aria-hidden="true" />
               </span>
               <div>
-                <h2 id="feedback-title" className="font-serif text-[25px] font-semibold tracking-[-0.03em] text-ink">
+                <h2 id="feedback-title" className="font-serif text-[1.5625rem] font-semibold tracking-[-0.03em] text-ink">
                   {labels.messageHeading}
                 </h2>
-                <p id="feedback-description" className="mt-1 text-[11px] leading-[1.5] text-[#6d7b88]">
+                <p id="feedback-description" className="mt-1 text-[0.6875rem] leading-[1.5] text-[#6d7b88]">
                   {labels.description}
                 </p>
               </div>
@@ -149,12 +149,12 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
           </header>
 
           <div className="mt-5 grid gap-4">
-            <label className="grid gap-1.5 text-[11px] font-extrabold text-[#365269]">
+            <label className="grid gap-1.5 text-[0.6875rem] font-extrabold text-[#365269]">
               {labels.topic}
               <select
                 value={category}
                 onChange={(event) => setCategory(event.target.value as keyof typeof labels.categories)}
-                className="focus-ring min-h-11 rounded-xl border border-[#d5d9da] bg-white px-3 text-[13px] font-medium text-[#334b5f]"
+                className="focus-ring min-h-11 rounded-xl border border-[#d5d9da] bg-white px-3 text-[0.8125rem] font-medium text-[#334b5f]"
               >
                 {Object.entries(labels.categories).map(([value, label]) => (
                   <option key={value} value={value}>{label}</option>
@@ -162,7 +162,7 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
               </select>
             </label>
 
-            <label className="grid gap-1.5 text-[11px] font-extrabold text-[#365269]">
+            <label className="grid gap-1.5 text-[0.6875rem] font-extrabold text-[#365269]">
               {labels.message}
               <textarea
                 ref={messageRef}
@@ -174,9 +174,9 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
                   setCopySucceeded(false);
                 }}
                 placeholder={labels.placeholder}
-                className="focus-ring resize-none rounded-xl border border-[#d5d9da] bg-white px-3 py-3 text-[13px] leading-[1.55] text-[#334b5f]"
+                className="focus-ring resize-none rounded-xl border border-[#d5d9da] bg-white px-3 py-3 text-[0.8125rem] leading-[1.55] text-[#334b5f]"
               />
-              <span className="text-right text-[9.5px] font-medium tabular-nums text-[#83909a]">
+              <span className="text-right text-[0.59375rem] font-medium tabular-nums text-[#83909a]">
                 {message.length} / {MAX_MESSAGE_LENGTH}
               </span>
             </label>
@@ -191,7 +191,7 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
               onClick={(event) => {
                 if (!isReady) event.preventDefault();
               }}
-              className={`focus-ring inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl px-4 text-[12px] font-extrabold ${
+              className={`focus-ring inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl px-4 text-[0.75rem] font-extrabold ${
                 isReady
                   ? "bg-ink-deep text-white shadow-[0_8px_20px_rgba(10,41,73,0.16)]"
                   : "cursor-not-allowed bg-[#e4e5e2] text-[#8b9398]"
@@ -204,14 +204,14 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
               type="button"
               onClick={handleCopy}
               disabled={!isReady}
-              className="focus-ring inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-[#d4d9dc] bg-white px-4 text-[11px] font-extrabold text-[#3c5870] disabled:cursor-not-allowed disabled:opacity-45"
+              className="focus-ring inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-[#d4d9dc] bg-white px-4 text-[0.6875rem] font-extrabold text-[#3c5870] disabled:cursor-not-allowed disabled:opacity-45"
             >
               {copySucceeded ? <Check size={15} aria-hidden="true" /> : <ClipboardCopy size={15} aria-hidden="true" />}
               {copySucceeded ? labels.copied : labels.copy}
             </button>
           </div>
 
-          <p className="mt-3 text-[9.5px] leading-[1.5] text-[#7c8994]" role="status">
+          <p className="mt-3 text-[0.59375rem] leading-[1.5] text-[#7c8994]" role="status">
             {copySucceeded
               ? labels.copiedStatus
               : labels.publicStatus}

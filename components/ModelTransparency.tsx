@@ -27,17 +27,17 @@ export function ModelTransparency() {
 
         <div className="relative grid lg:grid-cols-[0.82fr_1.18fr]">
           <div className="border-b border-[#ccd7dc] px-6 py-7 sm:px-8 lg:border-b-0 lg:border-r lg:px-9 lg:py-9">
-            <div className="inline-flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.17em] text-[#8a5b42]">
+            <div className="inline-flex items-center gap-2 text-[0.6875rem] font-extrabold uppercase tracking-[0.17em] text-[#8a5b42]">
               <FlaskConical size={16} strokeWidth={2} aria-hidden="true" />
               Основная ML-модель · {MODEL_QUALITY.modelVersion}
             </div>
             <h2
               id="model-quality-heading"
-              className="mt-3 max-w-[470px] font-serif text-[30px] leading-[1.08] font-semibold tracking-[-0.035em] text-ink sm:text-[37px]"
+              className="mt-3 max-w-[470px] font-serif text-[1.875rem] leading-[1.08] font-semibold tracking-[-0.035em] text-ink sm:text-[2.3125rem]"
             >
               Качество базового классификатора
             </h2>
-            <p className="mt-4 max-w-[520px] text-[13px] leading-[1.65] text-[#5d6e81] sm:text-[14px]">
+            <p className="mt-4 max-w-[520px] text-[0.8125rem] leading-[1.65] text-[#5d6e81] sm:text-[0.875rem]">
               Процент в результате показывает уверенность классификатора в конкретном
               ответе. Он не означает, что сервис отвечает правильно в таком же проценте
               случаев.
@@ -47,8 +47,8 @@ export function ModelTransparency() {
               <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[13px] bg-[#173b5d] text-white shadow-[0_8px_20px_rgba(23,59,93,0.14)]">
                 <Scale size={23} strokeWidth={1.9} aria-hidden="true" />
               </span>
-              <p className="text-[14px] leading-[1.35] font-extrabold text-[#173b5d] sm:text-[16px]">
-                Уверенность в ответе <span className="px-1 text-[23px] text-[#c7502e]">≠</span>
+              <p className="text-[0.875rem] leading-[1.35] font-extrabold text-[#173b5d] sm:text-[1rem]">
+                Уверенность в ответе <span className="px-1 text-[1.4375rem] text-[#c7502e]">≠</span>
                 точность сервиса
               </p>
             </div>
@@ -60,10 +60,10 @@ export function ModelTransparency() {
                 <ShieldAlert size={19} strokeWidth={2} aria-hidden="true" />
               </span>
               <div>
-                <h3 className="text-[17px] font-extrabold tracking-[-0.02em] text-ink">
+                <h3 className="text-[1.0625rem] font-extrabold tracking-[-0.02em] text-ink">
                   Accuracy на внешней выборке: {accuracyLabel}
                 </h3>
-                <p className="mt-1.5 max-w-[620px] text-[12.5px] leading-[1.55] text-[#687689] sm:text-[13px]">
+                <p className="mt-1.5 max-w-[620px] text-[0.78125rem] leading-[1.55] text-[#687689] sm:text-[0.8125rem]">
                   {MODEL_QUALITY.dataset.samples} русскоязычных текстов · {MODEL_QUALITY.dataset.split}.
                   95% интервал для accuracy: {Math.round(MODEL_QUALITY.confidenceInterval[0] * 100)}–
                   {Math.round(MODEL_QUALITY.confidenceInterval[1] * 100)}%. Это оценка качества
@@ -85,16 +85,16 @@ export function ModelTransparency() {
                   className="grid grid-cols-[minmax(0,1fr)_auto] gap-4 border-t border-[#bdcbd1]/65 py-3 first:border-t-0 first:pt-0"
                 >
                   <div className="min-w-0">
-                    <p role="cell" className="text-[13px] font-extrabold text-[#203d58]">
+                    <p role="cell" className="text-[0.8125rem] font-extrabold text-[#203d58]">
                       {metric.label}
                     </p>
-                    <p role="cell" className="mt-0.5 text-[11.5px] leading-[1.45] text-[#718092]">
+                    <p role="cell" className="mt-0.5 text-[0.71875rem] leading-[1.45] text-[#718092]">
                       {metric.description}
                     </p>
                   </div>
                   <p
                     role="cell"
-                    className="self-center whitespace-nowrap rounded-lg bg-[#e1e5e2]/75 px-3 py-1.5 text-[11px] font-bold text-[#68736f]"
+                    className="self-center whitespace-nowrap rounded-lg bg-[#e1e5e2]/75 px-3 py-1.5 text-[0.6875rem] font-bold text-[#68736f]"
                   >
                     {formatMetric(metric.value)}
                   </p>
@@ -104,7 +104,7 @@ export function ModelTransparency() {
 
             <div className="mt-5 flex gap-3 rounded-[13px] bg-[#dfe9f3] px-4 py-3 text-[#3d607f]">
               <ArrowDownRight className="mt-0.5 shrink-0" size={18} strokeWidth={2} aria-hidden="true" />
-              <p className="text-[11.5px] leading-[1.5]">
+              <p className="text-[0.71875rem] leading-[1.5]">
                 На похожей внутренней выборке модель получила 99,7%, но этот результат
                 завышен различиями между официальными и синтетическими текстами. Поэтому
                 выше показана более строгая внешняя оценка. Экспериментальное второе

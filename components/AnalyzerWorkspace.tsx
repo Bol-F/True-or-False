@@ -22,6 +22,14 @@ interface AnalyzerWorkspaceSessionProps extends AnalyzerWorkspaceProps {
 }
 
 function formatTimestamp(date: Date, locale: "uz" | "ru" | "en") {
+  // Browser ICU builds can format uz-Latn-UZ differently from Node (e.g. "M11").
+  // Use stable Uzbek month names, including for the server-rendered demo.
+  if (locale === "uz") {
+    const months = ["yan", "fev", "mar", "apr", "may", "iyn", "iyl", "avg", "sen", "okt", "noy", "dek"];
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    return `${date.getDate()}-${months[date.getMonth()]}, ${date.getFullYear()}, ${hours}:${minutes}`;
+  }
   return new Intl.DateTimeFormat(localeTags[locale], {
     day: "numeric",
     month: "short",

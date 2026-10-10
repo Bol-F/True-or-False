@@ -82,7 +82,7 @@ export function ResultActions({
           type="button"
           aria-label={labels.copyReport}
           onClick={handleCopy}
-          className="focus-ring inline-flex min-h-9 items-center justify-center gap-1 rounded-lg border border-[#d8dcde] bg-white/55 px-1.5 text-[9px] font-extrabold text-[#3d5870] transition-colors hover:bg-white sm:gap-2 sm:px-3 sm:text-[10.5px]"
+          className="focus-ring inline-flex min-h-9 items-center justify-center gap-1 rounded-lg border border-[#d8dcde] bg-white/55 px-1.5 text-[0.5625rem] font-extrabold text-[#3d5870] transition-colors hover:bg-white sm:gap-2 sm:px-3 sm:text-[0.65625rem]"
         >
           {status === "copied" ? (
             <Check size={14} strokeWidth={2.2} aria-hidden="true" />
@@ -98,7 +98,7 @@ export function ResultActions({
             downloadReport(report);
             setStatus("downloaded");
           }}
-          className="focus-ring inline-flex min-h-9 items-center justify-center gap-1 rounded-lg border border-[#d8dcde] bg-white/55 px-1.5 text-[9px] font-extrabold text-[#3d5870] transition-colors hover:bg-white sm:gap-2 sm:px-3 sm:text-[10.5px]"
+          className="focus-ring inline-flex min-h-9 items-center justify-center gap-1 rounded-lg border border-[#d8dcde] bg-white/55 px-1.5 text-[0.5625rem] font-extrabold text-[#3d5870] transition-colors hover:bg-white sm:gap-2 sm:px-3 sm:text-[0.65625rem]"
         >
           <Download size={14} strokeWidth={2} aria-hidden="true" />
           <span>{labels.download}</span><span className="hidden sm:inline"> .txt</span>
@@ -107,7 +107,7 @@ export function ResultActions({
           type="button"
           aria-label={labels.share}
           onClick={handleShare}
-          className="focus-ring inline-flex min-h-9 items-center justify-center gap-1 rounded-lg border border-[#d8dcde] bg-white/55 px-1.5 text-[9px] font-extrabold text-[#3d5870] transition-colors hover:bg-white sm:gap-2 sm:px-3 sm:text-[10.5px]"
+          className="focus-ring inline-flex min-h-9 items-center justify-center gap-1 rounded-lg border border-[#d8dcde] bg-white/55 px-1.5 text-[0.5625rem] font-extrabold text-[#3d5870] transition-colors hover:bg-white sm:gap-2 sm:px-3 sm:text-[0.65625rem]"
         >
           <Share2 size={14} strokeWidth={2} aria-hidden="true" />
           {labels.share}
@@ -120,13 +120,13 @@ export function ResultActions({
               summary: `${labels.result}: ${result.label}; ${labels.confidence}: ${Math.round(result.confidence * 100)}%.`,
             })
           }
-          className="focus-ring col-span-3 mx-auto inline-flex min-h-8 items-center gap-1.5 rounded-lg px-2 text-[9px] font-bold text-[#826258] transition-colors hover:bg-[#f5e9e3] sm:col-auto sm:ml-auto sm:mr-0 sm:min-h-9 sm:gap-2 sm:text-[10px]"
+          className="focus-ring col-span-3 mx-auto inline-flex min-h-8 items-center gap-1.5 rounded-lg px-2 text-[0.5625rem] font-bold text-[#826258] transition-colors hover:bg-[#f5e9e3] sm:col-auto sm:ml-auto sm:mr-0 sm:min-h-9 sm:gap-2 sm:text-[0.625rem]"
         >
           <MailWarning size={14} strokeWidth={1.9} aria-hidden="true" />
           {labels.reportIssue}
         </button>
       </div>
-      <p className="mt-1.5 min-h-4 text-[8.5px] leading-[1.35] text-[#798795] sm:mt-2 sm:text-[9.5px] sm:leading-[1.4]" role="status">
+      <p className="mt-1.5 min-h-4 text-[0.53125rem] leading-[1.35] text-[#798795] sm:mt-2 sm:text-[0.59375rem] sm:leading-[1.4]" role="status">
         {status === "shared"
           ? labels.shared
           : status === "share-copied"
